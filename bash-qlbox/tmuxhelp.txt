@@ -1,0 +1,19 @@
+
+Simple tmux keyboard guide on this server:
+ * Ctrl+a , release, followed by (case sensitive)
+   c      Create a new Tab (called 'window' by tmux)
+   1...9  Switch to Tab #1...#9
+   -      Split current Tab into upper pane and lower pane.
+   |      Split current Tab into left pane and right pane.
+   PgUp   View scroll buffer of current pane, then q to quit view.
+   d      Detach from current session(go back to non-tmux shell).
+   ?      List all tmux key bindings, then q to quit.  
+
+ * F8/F9/F10  Previous tab / Next tab / Last-used tab
+ * Ctrl+o  Cycle through panes in current Tab
+ * To remove a Tab/pane, execute 'exit' in that Tab/pane.
+ * Execute 'tabrename <newname>' to rename current tab.
+ * Execute 'srename <newname>' to rename current session to your preference.
+ * F12    Choose a session to attach(if you have multiple sessions).
+ * F11    Save scroll-back buffer to a file.
+
