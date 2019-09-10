@@ -1,6 +1,6 @@
 [2017-07-13] 
 
-The word qlbox means "quick-launch toolbox". It consists of mainly three things:
+The word qlbox means "quick-launch toolbox". It consists of mainly two things:
 1. Scripts to launch tmux as a login-session persistent facility.
 2. An info-rich PS1 prompt string and some Bash alias to make better 
   Linux command-line experience.
