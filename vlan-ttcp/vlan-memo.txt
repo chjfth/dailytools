@@ -1,0 +1,24 @@
+Find out your USB-LAN NIC device name with:
+
+  ifconfig -a
+  
+or
+  
+  ip addr         # new style
+
+Ensure your NIC(eth1 for example) is "up" with:
+
+  ifconfig eth1 up
+
+Create a vlan with vlanid=30 on eth1:
+
+  vconfig add eth1 30
+
+Assign an IP to eth1.30:
+
+  ifconfig eth1.30 10.1.1.5 up
+
+Ping the peer with full-length IP packet:
+
+  ping -c 3 -s 1472 -M do 10.1.1.6
+
