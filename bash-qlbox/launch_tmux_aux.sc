@@ -1,5 +1,5 @@
 
-# First check for the present of  a real terminal.
+# First check for the presence of a real terminal.
 if [ ! -t 0 ]; then
 	# STDIN is not a terminal, so don't wait for any user input.
 	# This is the case when you use an SCP client such as WinSCP 4.0 .
