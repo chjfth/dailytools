@@ -2,8 +2,15 @@
 
 echo "You've logged in at [$(date "+%F %T")]"
 
-i=1
+if [ ! -t 0 ]; then
+    # STDIN is not a terminal, so don't wait for any user input.
+    # This is the case when I launch an ssh-client login in crontab,
+    # as depicted in my post https://askubuntu.com/q/1216655/694251
+    
+    while true; do sleep 40; done; # just sleep infinitely
+fi
 
+i=1
 while true; do
     read -e i
     if [ -n "$i" ] && [ "$i" = q -o "$i" = Q ]; then exit 0; fi
