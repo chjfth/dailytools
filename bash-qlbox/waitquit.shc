@@ -1,0 +1,11 @@
+#! /bin/bash
+
+echo "You've logged in at [$(date "+%F %T")]"
+
+i=1
+
+while [ -n $i ]; do
+    read -e i
+    if [ -n "$i" ] && [ $i = q -o $i = Q ]; then exit 0; fi
+    echo [`date "+%F %T"`] Input Q or q then Enter to quit.
+done
