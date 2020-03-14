@@ -126,6 +126,10 @@ else
 	
 	alias srename='tmux rename'
 	alias tabrename='tmux rename-window'
+	
+	# The following two is ok for tmux 2.7 .
+	alias tmouseon='tmux set-option -g mouse on'
+	alias tmouseoff='tmux set-option -g mouse off'
 fi
 
 
