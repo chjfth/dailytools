@@ -1,0 +1,77 @@
+<html>
+<head>
+  <title>Evernote 6.5。4 color DIVs</title>
+  <basefont face="Tahoma" size="2" />
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+  <meta name="exporter-version" content="Evernote Windows/277380; Windows/6.1.7601 Service Pack 1 (Win64);"/>
+  <style>
+    body, td {
+      font-family: Tahoma;
+      font-size: 10pt;
+    }
+  </style>
+</head>
+<body>
+<a name="35145"/>
+
+<div><p>Evernote 带底色的小节标题</p></div>
+
+<div id="mycanvas">
+
+<div id="separator"><br/>-</div>
+<div id="sample" style="padding: 5px; border:0px; background-color:#eee; font-size:120%; text-shadow:2px 2px 4px #888; box-shadow:2px 2px 4px 0px #888; text-align:start;">灰色背景</span></div>
+</div>
+
+<div id="separator"><br/>-</div>
+<div><p>@</p></div>
+
+</body>
+
+<script>
+var arcolors = [
+	// [ "span bg color", "description" ]
+	[ "EAE4DA" , "浅棕" ], 
+	[ "FEFEC8" , "浅黄" ], 
+	[ "FEF0D0" , "浅橙" ], 
+	[ "E0F0FF" , "灰蓝" ], 
+	[ "F0E6FA" , "淡紫" ], 
+	[ "D8f0D8" , "淡绿" ], 
+	[ "FFe4FF" , "粉红" ], 
+//	[ "" , "" ],
+]
+
+var mycanvas = document.getElementById("mycanvas")
+var div_sample = document.getElementById("sample")
+var sep_sample = document.getElementById("separator")
+
+// Bigger banners :
+for(var tcolor of arcolors) {
+	var new_sep = sep_sample.cloneNode(true)
+	var new_div = div_sample.cloneNode(true)
+//	var new_span = new_div.getElementsByTagName("span")[0]
+	new_div.style.backgroundColor = "#"+tcolor[0];
+	new_div.textContent = "#" + tcolor[0] + " " + tcolor[1]
+
+	mycanvas.appendChild(new_sep);
+	mycanvas.appendChild(new_div);
+}
+
+// Smaller banners :
+for(var tcolor of arcolors) {
+	var new_sep = sep_sample.cloneNode(true)
+	var new_div = div_sample.cloneNode(true)
+	new_div.style.backgroundColor = "#"+tcolor[0];
+	new_div.textContent = "#" + tcolor[0] + " " + tcolor[1]
+	
+	new_div.style.width = "50%";
+	new_div.style.fontSize = "100%";
+	new_div.style.borderRadius = "12px";
+
+	mycanvas.appendChild(new_sep);
+	mycanvas.appendChild(new_div);
+}
+
+</script>
+
+
+</html>
