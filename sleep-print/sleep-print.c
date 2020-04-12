@@ -58,19 +58,23 @@ void print_help()
 "  ErrL1-2(1040).                              \n"
 "  Line2;Line2-1;ErrL2-1(304);                 \n"
 "\n"
+"How to control process exit code? \n"
+"The final millisecond number determines the exit code. Conventionally, 0 means success.\n"
+"\n"
 "This program is useful in testing whether a parent-process can grab a child-process stdout/stderr.\n"
 	;
 	fprintf(stderr, "%s", helptext);
 }
 
-void sleep_and_print(int n, char *argv[])
+int sleep_and_print(int n, char *argv[])
 {
 	int line=1, step=0;
+	int sleep_ms = 0;
 	int i;
 	
 	for(i=0; i<n; i++)
 	{
-		int sleep_ms = atoi(argv[i]);
+		sleep_ms = atoi(argv[i]);
 		if(sleep_ms<0)
 			sleep_ms = 0;
 		
@@ -113,17 +117,20 @@ void sleep_and_print(int n, char *argv[])
 		fflush(stdout);
 		fflush(stderr);
 	}
+	return sleep_ms;
 }
 
 int main(int argc, char **argv)
 {
+	int ret = 0;
+	
 	if(argc==1)
 	{
 		print_help();
 		exit(1);
 	}
 
-	sleep_and_print(argc-1, argv+1);
+	ret = sleep_and_print(argc-1, argv+1);
 
-	return 0;
+	return ret;
 }
