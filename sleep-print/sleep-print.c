@@ -61,6 +61,9 @@ void print_help()
 "How to control process exit code? \n"
 "The final millisecond number determines the exit code. Conventionally, 0 means success.\n"
 "\n"
+"How to generate mass output?\n"
+"If first number start with *, it tells repeating cycles. '*100' means repeat 100 times.\n"
+"\n"
 "This program is useful in testing whether a parent-process can grab a child-process stdout/stderr.\n"
 	;
 	fprintf(stderr, "%s", helptext);
@@ -68,55 +71,72 @@ void print_help()
 
 int sleep_and_print(int n, char *argv[])
 {
-	int line=1, step=0;
-	int sleep_ms = 0;
+	int repeat=0;
+	int sleep_ms = 0, cycles = 0;
 	int i;
 	
-	for(i=0; i<n; i++)
+	if(argv[0][0]=='*')
 	{
-		sleep_ms = atoi(argv[i]);
-		if(sleep_ms<0)
-			sleep_ms = 0;
-		
-		sleep_millisec(sleep_ms);
-		
-		if(sleep_ms%10==0)
-		{
-			if(step==0)
-				printf("Line%d.\n", line);
-			else
-				printf("Line%d-%d.\n", line, step);
-		}
-		else
-		{
-			if(step==0)
-				printf("Line%d;", line);
-			else
-				printf("Line%d-%d;", line, step);
-		}
-
-		if(sleep_ms%100 == 40)
-		{
-			fprintf(stderr, "ErrL%d-%d(%d).\n", line, step, sleep_ms);
-		}
-		else if(sleep_ms%10 == 4)
-		{
-			fprintf(stderr, "ErrL%d-%d(%d);", line, step, sleep_ms);
-		}
-
-		if(sleep_ms%10==0)
-		{
-			line++;
-			step = 0;
-		}
-		else
-		{
-			step++;
-		}
-
-		fflush(stdout);
-		fflush(stderr);
+		cycles = atoi(argv[0]+1);
+		argv++; n--;
 	}
+	
+	do
+	{
+		int line=1, step=0;
+			
+		if(cycles>=1)
+		{
+			printf("====cycles:%d/%d====\n", repeat+1, cycles);
+		}
+		
+		for(i=0; i<n; i++)
+		{
+			sleep_ms = atoi(argv[i]);
+			if(sleep_ms<0)
+				sleep_ms = 0;
+			
+			sleep_millisec(sleep_ms);
+			
+			if(sleep_ms%10==0)
+			{
+				if(step==0)
+					printf("Line%d.\n", line);
+				else
+					printf("Line%d-%d.\n", line, step);
+			}
+			else
+			{
+				if(step==0)
+					printf("Line%d;", line);
+				else
+					printf("Line%d-%d;", line, step);
+			}
+
+			if(sleep_ms%100 == 40)
+			{
+				fprintf(stderr, "ErrL%d-%d(%d).\n", line, step, sleep_ms);
+			}
+			else if(sleep_ms%10 == 4)
+			{
+				fprintf(stderr, "ErrL%d-%d(%d);", line, step, sleep_ms);
+			}
+
+			if(sleep_ms%10==0)
+			{
+				line++;
+				step = 0;
+			}
+			else
+			{
+				step++;
+			}
+
+			fflush(stdout);
+			fflush(stderr);
+		}
+	} while(++repeat<cycles);
+	
 	return sleep_ms;
 }
 
