@@ -53,7 +53,7 @@ void print_help()
 "  user    0m0.000s                            \n"
 "  sys     0m0.000s                            \n"
 "\n"
-"  D:\\>sleep-print  101 204 1040 1001 304      \n"
+"  D:\\>sleep-print  101 204 1040 1001 304     \n"
 "  Line1;Line1-1;ErrL1-1(204);Line1-2.         \n"
 "  ErrL1-2(1040).                              \n"
 "  Line2;Line2-1;ErrL2-1(304);                 \n"
@@ -62,9 +62,10 @@ void print_help()
 "The final millisecond number determines the exit code. Conventionally, 0 means success.\n"
 "\n"
 "How to generate mass output?\n"
-"If first number start with *, it tells repeating cycles. '*100' means repeat 100 times.\n"
+"If first number starts with *, it tells repeating cycles. '*100' means repeat 100 times.\n"
 "\n"
-"This program is useful in testing whether a parent-process can grab a child-process stdout/stderr.\n"
+"This program, run as a child-process, is useful in testing whether a parent-process \n"
+"can grab a child-process's stdout/stderr.\n"
 	;
 	fprintf(stderr, "%s", helptext);
 }
