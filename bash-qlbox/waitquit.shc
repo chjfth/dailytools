@@ -1,6 +1,6 @@
 #! /bin/bash
 
-echo "You've logged in at [$(date "+%F %T")]"
+echo "You have logged in at [$(date "+%F %T")]"
 
 if [ ! -t 0 ]; then
     # STDIN is not a terminal, so don't wait for any user input.
