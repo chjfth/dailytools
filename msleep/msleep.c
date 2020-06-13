@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h> // gcc strpbrk()
 #include <ctype.h>
 
 #ifdef _WIN32
