@@ -28,6 +28,7 @@ void sleep_millisec(int ms)
 void print_help()
 {
 	const char *helptext = 
+"sleep-print v1.0\n"
 "Print some text to stdout/stderr according to sleep (milliseconds) parameter input.\n"
 "\n"		
 "You can control whether one print is followed by a line feed character(LF, or say \\n).\n"
