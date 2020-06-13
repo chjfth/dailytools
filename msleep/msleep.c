@@ -1,5 +1,4 @@
 // Sleep for a number of milliseconds before exit.
-// Sleep time can be assigned in exe filename, or in parameter. The latter takes precedence.
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -51,10 +50,13 @@ void print_help()
 "	msleep 0x7d0\n"
 "	msleep0x7d0\n"
 "\n"
-"If parameter form is given, it takes precedence over the value in exe name.\n"
+"Sleep-time value in filename take precedence over run time parameter "
+"(think of the -Embedding parameter imposed on an EXE by Microsoft COM system).\n"
 	;
 	fprintf(stderr, "%s", helptext);
 }
+
+#define MSEC_UNSET (-1)
 
 const char *get_filenam_ptr(const char *filepath)
 {
@@ -78,7 +80,7 @@ int get_value_in_filenam(const char *filepath)
 		pdigit++;
 	
 	if(*pdigit=='\0')
-		return 0;
+		return MSEC_UNSET;
 	
 	return strtoul(pdigit, NULL, 0);
 }
@@ -86,20 +88,15 @@ int get_value_in_filenam(const char *filepath)
 int main(int argc, char **argv)
 {
 	int ret = 0;
-	int sleep_ms = 0;
-	
-	if(argc==1)
+	int sleep_ms = get_value_in_filenam(argv[0]);
+
+	if(argc==1 && sleep_ms==MSEC_UNSET)
 	{
-		sleep_ms = get_value_in_filenam(argv[0]);
-		
-		if(sleep_ms==0)
-		{
-			print_help();
-			exit(1);
-		}
+		print_help();
+		exit(1);
 	}
 
-	if(argc==2)
+	if(argc>1 && sleep_ms==MSEC_UNSET)
 	{
 		sleep_ms = strtoul(argv[1], NULL, 0);
 	}
