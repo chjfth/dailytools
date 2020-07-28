@@ -1,9 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 
 """
 Requirment:
-* Python 2.6
+* Python 2.6 or Python 3.5+
 * tmux 1.8 and above (openSUSE 11.4, tmux 1.4 has problem)
 
 This program "launch" tmux session with the following rules:
@@ -54,6 +54,8 @@ import shlex
 import time
 import subprocess
 import traceback
+
+is_python2 = sys.version_info.major==2
 
 #g_is_interactive = False
 g_tmuxconf_filepath = ''
@@ -142,7 +144,7 @@ panes: 3 windows (created Sun Apr  8 12:10:19 2012) [100x35] (attached)
 				As a workaround, I add stdin=subprocess.PIPE, so the 'real' stdin is not affected by 'tmux ls'
 		"""
 	except OSError as errinfo:
-		print "Cannot execute '%s' command. Perhaps tmux is not installed on the server."%(cmd_tmuxls)
+		print("Cannot execute '%s' command. Perhaps tmux is not installed on the server."%(cmd_tmuxls))
 		exit(4)
 	except subprocess.CalledProcessError as cpe: # Strange: cannot capture this exception from subprocess.CalledProcessError from subprocess_check_output.
 		# Typical error:
@@ -154,7 +156,8 @@ panes: 3 windows (created Sun Apr  8 12:10:19 2012) [100x35] (attached)
 	
 	
 	sess_infos = []
-	lines = Output.strip().split('\n')
+	output_str = Output if is_python2 else Output.decode('utf8')
+	lines = str(output_str).strip().split('\n')
 	for line in lines:
 		try:
 			sess_info = CSessinfo(line)
@@ -290,14 +293,14 @@ def main():
 			sys.stderr.write(choice_prompt2)
 		
 			try:
-				input = raw_input()
-				idx = int(input)-1
-			except ValueError: # input is not a number
+				inputc = raw_input() if is_python2 else input()
+				idx = int(inputc)-1
+			except ValueError: # inputc is not a number
 				idx = 4444
 			except KeyboardInterrupt: # user press Ctrl+C
 				break
 			
-			if input in ['a', 'A']:
+			if inputc in ['a', 'A']:
 				shcmd = create_one_more_sesssion(sess_infos)
 				break
 			elif idx>=0 and idx<nsess:
@@ -305,13 +308,13 @@ def main():
 				break
 			elif idx==-1:
 				break
-			elif input == '' and detaches>0:
+			elif inputc == '' and detaches>0:
 				# Choose the first detached one automatically.
 				shcmd = shcmd_attach_a_session(first_detached_sess.sessname)
 				break
 	
 #	sys.stderr.write( 'shcmd='+shcmd + '\n' ) # debug
-	print shcmd
+	print(shcmd)
 		# The caller(bash script) will capture this output and execute it as command.
 	
 	return 0 # success
