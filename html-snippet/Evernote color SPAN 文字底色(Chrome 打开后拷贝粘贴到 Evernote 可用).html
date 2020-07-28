@@ -1,0 +1,67 @@
+<html>
+<head>
+  <title>Evernote 5.9 color DIVs</title>
+  <basefont face="Tahoma" size="2" />
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+  <meta name="exporter-version" content="Evernote Windows/277380; Windows/6.1.7601 Service Pack 1 (Win64);"/>
+  <style>
+    body, td {
+      font-family: Tahoma;
+      font-size: 10pt;
+    }
+  </style>
+</head>
+<body>
+<a name="35145"/>
+
+<div><p>文字底色 for Evernote</p></div>
+
+<div id="mycanvas">
+
+<div id="separator"><br/>-</div>
+<div id="sample" style="padding: 1em; border: 1px solid rgb(221, 221, 221); font-style: normal; font-variant: normal; font-weight: normal; text-align: start; text-indent: 0px; "><div><span>. 无背景色 . (拷贝粘贴之可取消背景色黏附)</span></div></div>
+</div>
+
+<div id="separator"><br/>-</div>
+<div id="white-on-black" style="padding: 1em; border: 1px solid rgb(221, 221, 221); font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; text-align: start; text-indent: 0px;"><div><span style="color: #F0F0F0; background-color: #101010">. 黑底白字 .</span></div></div>
+
+<div><p>@</p></div>
+
+</body>
+
+<script>
+var arcolors = [
+	// [ "span bg color", "description" ]
+	[ "FEFE60" , "亮黄" ], 
+	[ "60FEFE" , "亮蓝" ], 
+	[ "FE60FE" , "玫红" ], 
+	[ "60FF30" , "亮绿" ], 
+	[ "FE6060" , "大红" ], 
+	[ "60C0FF" , "深空蓝" ], 
+	[ "FEA030" , "亮橙" ], 
+	[ "C080FF" , "深紫" ], 
+	[ "EAe4DA" , "浅棕" ], 
+	[ "e0e0e0" , "浅灰" ], 
+	[ "c0c0c0" , "深灰" ], 
+//	[ "" , "" ],
+]
+
+var mycanvas = document.getElementById("mycanvas")
+var div_sample = document.getElementById("sample")
+var sep_sample = document.getElementById("separator")
+
+for(var i in arcolors) {
+	var new_sep = sep_sample.cloneNode(true)
+	var new_div = div_sample.cloneNode(true)
+	var new_span = new_div.getElementsByTagName("span")[0]
+	new_span.setAttribute("style", "background-color:#"+arcolors[i][0]);
+		// Ref: http://www.w3schools.com/jsref/met_element_setattribute.asp
+	new_span.textContent = ". #" + arcolors[i][0] + " " + arcolors[i][1] + " ."
+
+	mycanvas.appendChild(new_sep);
+	mycanvas.appendChild(new_div);
+}
+</script>
+
+
+</html>

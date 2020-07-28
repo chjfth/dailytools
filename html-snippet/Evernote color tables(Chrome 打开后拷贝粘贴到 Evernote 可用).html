@@ -1,0 +1,88 @@
+<html>
+<head>
+  <title>Evernote 5.9 color tables</title>
+  <basefont face="Tahoma" size="2" />
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+  <meta name="exporter-version" content="Evernote Windows/277380; Windows/6.1.7601 Service Pack 1 (Win64);"/>
+  <style>
+    body, td {
+      font-family: Tahoma;
+      font-size: 10pt;
+    }
+  </style>
+</head>
+<body>
+
+<p>Evernote 5.9 color tables
+
+<p>Chj Note: I suggest using Chrome to copy/paste these table to Evernote(5.9 today), because 
+Chrome preserves HTML format very well. 
+After pasting, you'd better <strong>drag the table's right border</strong> to make adjustment to the table width,
+after a dragging, the table width in Evernote clip will automatically go with Evernote clip's 
+visual width, instead of being fixed width.
+</p>
+
+<div id="mycanvas">
+
+<p>--
+
+<div><table border="1" cellpadding="6" cellspacing="0" width="96%" style="-evernote-table:true;border-color:#A0A0A0;border-collapse:collapse">
+  <tr><td style="width:30%;" valign="top">2x2</td><td style="width:70%;" valign="top"><br/></td></tr>
+  <tr><td valign="top"><br/></td><td valign="top"><br/></td></tr>
+</table><div><br/></div></div>
+
+<!-- Memo: Deleting "border-collapse:collapse" makes 3D-look table border, but dragging the right-side border farthest to right-side will cause Evernote(v5,v6)'s display very ugly. So just keep it collapse. -->
+<!-- Modify cellpadding's value(2,3,4,5,6 etc) to get bigger cell margins -->
+<div id="sample"><table border="1" cellpadding="6" cellspacing="0" width="96%" style="border-collapse:collapse;border-color:#c0c0c0">
+  <thead style="font-weight:bold;background-color:#f0f0f0" align="center">
+  <tr><td style="width:40%;" valign="top">f0f0f0</td><td style="width:60%;" valign="top"><br/></td></tr>
+  </thead>
+  <tr><td valign="top"><br/></td><td valign="top"><br/></td></tr>
+</table><div><br/></div></div>
+
+</div>
+
+</body>
+
+<script>
+var arcolors = [
+	// [ "thead color", "border color" ]
+	[ "e0e0f0" , "b0b0e0" ], // grey
+	[ "e0f0f0" , "a0c0c0" ], // grey-blue
+	[ "f0e0f0" , "c0a0c0" ], // dark purple
+	[ "d8e8ff" , "b0c0e0" ], // sky blue
+	[ "e0f0e0" , "a0d0a0" ], // green
+	[ "f0e0e0" , "d0a0a0" ], // crimson
+	[ "c8c8ff" , "8090b0" ], // light ink blue
+	[ "f0f0e0" , "d0d0a0" ], // grey-yellow
+	[ "f8e8ff" , "d0b8f0" ], // purple, lighter
+	[ "d0b0f0" , "b080c0" ], // purple, darker
+	[ "ffe0c0" , "e0c0a0" ], // orange
+	[ "FFffBF" , "e0e020" ], // light yellow
+	[ "EEe0c0" , "99754d" ], // light brown
+	[ "AAe8ff" , "b0c0e0" ], // dark sky blue
+//	[ "64B4B4" , "2c6262" ], // (Win98 green)
+	[ "74c4c4" , "2c6262" ], // Win98 green
+	[ "b0e0b0" , "a0c0a0" ], // olive green
+	[ "f890c0" , "e860b0" ], // pink
+	[ "FFf0f0" , "e0c0a0" ], // a bit red in white
+	[ "f2f8b4" , "e0c0a0" ], // weird yellow
+	[ "40A0ff" , "2080e0" ], // deep blue
+]
+
+var mycanvas = document.getElementById("mycanvas")
+var table_sample = document.getElementById("sample")
+
+for(var i in arcolors) {
+	var new_tbl = table_sample.cloneNode(true)
+	new_tbl.getElementsByTagName("table")[0].setAttribute("style", "border-collapse:collapse;border-color:#"+arcolors[i][1]);
+		// Ref: http://www.w3schools.com/jsref/met_element_setattribute.asp
+	var thead = new_tbl.getElementsByTagName("thead")[0]
+	thead.setAttribute("style", "font-weight:bold;background-color:#"+arcolors[i][0])
+	thead.getElementsByTagName("td")[0].textContent = arcolors[i][0] // show thead color on webpage
+	mycanvas.appendChild(new_tbl);
+}
+</script>
+
+
+</html>

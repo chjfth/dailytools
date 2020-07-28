@@ -1,5 +1,5 @@
 
-# First check for the present of  a real terminal.
+# First check for the presence of a real terminal.
 if [ ! -t 0 ]; then
 	# STDIN is not a terminal, so don't wait for any user input.
 	# This is the case when you use an SCP client such as WinSCP 4.0 .
@@ -15,9 +15,13 @@ fi
 # The "default" behavior is to launch tmux on each shell login.
 # But give 3 seconds timeout so that user can opt NOT to launch tmux.
 
-function is_tmux_ls_bugfree()
+function is_tmux_ls_buggy()
 {
-	# ``tmux ls`` may have bug in version earlier than 1.7 .
+	# ``tmux ls`` have bug in version earlier than 1.7 .
+	# When some session exist, 
+	#	tmux ls > /dev/null
+	# goes freeze, and you have to type Ctrl+\ to quit it.
+	#
 	# return 1 if it has such bug, 0 otherwise.
 	
 	tmux_V_output=$(tmux -V) 
@@ -25,7 +29,7 @@ function is_tmux_ls_bugfree()
 		#	tmux 1.4 
 		#
 	n=${tmux_V_output#tmux } # strip leading "tmux "
-	if [ 1.5 = "$n" ] || [ 1.4 = "$n" ] || [ 1.3 = "$n" ]; then
+	if [ 1.6 = "$n" ] || [ 1.5 = "$n" ] || [ 1.4 = "$n" ] || [ 1.3 = "$n" ]; then
 		return 1
 	else
 		return 0
@@ -70,7 +74,7 @@ if [ "$TMUX" = "" ]; then
 	# This is a brand new shell login, so we launch tmux,
 	# but give a 3-second "user confirm" timeout.
 
-	if is_tmux_ls_bugfree; then
+	if is_tmux_ls_buggy; then
 		tmux ls > /dev/null 2>&1
 	else
 		false # so, let three-second delay always executed
@@ -126,6 +130,10 @@ else
 	
 	alias srename='tmux rename'
 	alias tabrename='tmux rename-window'
+	
+	# The following two is ok for tmux 2.7 .
+	alias tmouseon='tmux set-option -g mouse on'
+	alias tmouseoff='tmux set-option -g mouse off'
 fi
 
 
