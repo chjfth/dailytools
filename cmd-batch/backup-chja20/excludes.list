@@ -1,0 +1,12 @@
+$RECYCLE.BIN
+pagefile.sys
+DeliveryOptimization
+System Volume Information
+WindowsApps
+WpSystem
+
+; portableapps/GoogleChrome-74/Data/profile/Default/Current Session" (in myd): Permission denied (13)
+*/Default/Current Session
+*/Default/Current Tabs
+
+*文件名太长，Everything搜不出*
