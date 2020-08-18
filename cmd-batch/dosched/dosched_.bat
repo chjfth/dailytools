@@ -9,14 +9,33 @@ REM Remaining parameters are the "real" internal CMD command line to execute.
 REM Limitation: Can only deal with 7 params to internal cmd, bcz `SHIFT` does not affect %* .
 
 set DelaySeconds=%~1
-set JOBCMD_PATH=%2
+set JOBCMD_PATH=%~2
+set JOBCMD_LOGFILE=%JOBCMD_PATH%.log
 
 call :AssumeError
 
+REM Ensuring the logfile can be created, trying 3 filenames.
+REM Hint: If %JOBCMD_LOGFILE% can NOT be created, :AssumeError will remain effective.
+ver > %JOBCMD_LOGFILE%
+if not ERRORLEVEL 1 goto :LogfileOK
+set JOBCMD_LOGFILE=%JOBCMD_PATH%.1.log
+ver > %JOBCMD_LOGFILE%
+if not ERRORLEVEL 1 goto :LogfileOK
+set JOBCMD_LOGFILE=%JOBCMD_PATH%.2.log
+ver > %JOBCMD_LOGFILE%
+if ERRORLEVEL 1 (
+  echo So bad, Cannot create logfile after trying as many times as %JOBCMD_LOGFILE%
+  exit /b 145
+)
+
+:LogfileOK
+echo Now datetime: %DATE% %TIME% >> %JOBCMD_LOGFILE%
+echo. >> %JOBCMD_LOGFILE%
+
 if "%DelaySeconds%" == "" (
-	call %JOBCMD_PATH% %3 %4 %5 %6 %7 %8 %9 > %JOBCMD_PATH%.log 2>&1
+	call "%JOBCMD_PATH%" %3 %4 %5 %6 %7 %8 %9 >> "%JOBCMD_LOGFILE%" 2>&1
 ) else (
-	call %JOBCMD_PATH% %3 %4 %5 %6 %7 %8 %9
+	call "%JOBCMD_PATH%" %3 %4 %5 %6 %7 %8 %9
 )
 
 set ERRCODE=%ERRORLEVEL%
@@ -36,4 +55,4 @@ ping 127.0.0.1 -n 2 -w 1000 > nul
 exit /b
 
 :AssumeError
-exit /b 14
+exit /b 144
