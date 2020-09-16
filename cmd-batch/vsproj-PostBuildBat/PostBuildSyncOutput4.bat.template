@@ -1,35 +1,38 @@
 @echo off
+setlocal enabledelayedexpansion
 set batfilenam=%~n0%~x0
 REM
 set BuildConf=%1
 set PlatformName=%2
 set ExeDllDir=%3
-set ExeNam=%4
+set TargetName=%4
 
 REM =========================================================================
 REM This file should be kept as a .template file, because not all users
 REM need to duplicate EXE/DLL output at all times.
 REM 
-REM After copying this file to PostBuildSyncOutput.bat (drop the .template suffix),
-REM customize DIR_COPY_TO's value to set where to duplicate the output EXE/DLL.
-REM For example, duplicate to a remote machine folder for remote debugging.
+REM After copying this file to PostBuildSyncOutput4.bat (drop the .template suffix),
+REM customize DIR_COPY_TO_DIR's value to set where to duplicate the output EXE/DLL.
+REM You can list multiple target dirs, separated by spaces.
+REM For example, duplicate to two remote machine folders for remote debugging.
 REM 
-set DIR_COPY_TO=z:\bin
+set DIR_COPY_TO_LIST=z:\bin y:\bin2
 REM
 REM =========================================================================
 
 
-set DIR_COPY_TO_FINAL=%DIR_COPY_TO%\__%BuildConf%\%PlatformName%
-
-set COPY_CMD=copy %ExeDllDir%\*.* %DIR_COPY_TO_FINAL%
-REM
-if not exist %DIR_COPY_TO_FINAL% (
-	mkdir %DIR_COPY_TO_FINAL%
-)
-call :EchoExec %COPY_CMD%
-%COPY_CMD%
-if errorlevel 1 (
-	exit /b 4
+for %%d in (%DIR_COPY_TO_LIST%) do (
+	set d_final=%%d\__%BuildConf%\%PlatformName%
+	if not exist !d_final! ( 
+		mkdir !d_final! 
+	)
+	set copy_cmd=copy %ExeDllDir%\*.* !d_final!
+	call :EchoExec !copy_cmd!
+	!copy_cmd!
+	if errorlevel 1 ( 
+		call :Echos BAD. Error occurred when copying file to some DIR_COPY_TO_LIST.
+		exit /b 4 
+	)
 )
 
 
