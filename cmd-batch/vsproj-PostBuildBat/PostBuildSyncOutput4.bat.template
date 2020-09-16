@@ -1,0 +1,57 @@
+@echo off
+set batfilenam=%~n0%~x0
+REM
+set BuildConf=%1
+set PlatformName=%2
+set ExeDllDir=%3
+set ExeNam=%4
+
+REM =========================================================================
+REM This file should be kept as a .template file, because not all users
+REM need to duplicate EXE/DLL output at all times.
+REM 
+REM After copying this file to PostBuildSyncOutput.bat (drop the .template suffix),
+REM customize DIR_COPY_TO's value to set where to duplicate the output EXE/DLL.
+REM For example, duplicate to a remote machine folder for remote debugging.
+REM 
+set DIR_COPY_TO=z:\bin
+REM
+REM =========================================================================
+
+
+set DIR_COPY_TO_FINAL=%DIR_COPY_TO%\__%BuildConf%\%PlatformName%
+
+set COPY_CMD=copy %ExeDllDir%\*.* %DIR_COPY_TO_FINAL%
+REM
+if not exist %DIR_COPY_TO_FINAL% (
+	mkdir %DIR_COPY_TO_FINAL%
+)
+call :EchoExec %COPY_CMD%
+%COPY_CMD%
+if errorlevel 1 (
+	exit /b 4
+)
+
+
+goto :END
+
+REM =============================
+REM ==== Main Procedure Done ====
+REM =============================
+
+:Echos
+  echo [%batfilenam%] %*
+exit /b
+
+:EchoExec
+  echo [%batfilenam%] EXEC: %*
+exit /b
+
+:EchoVar
+  REM Env-var double expansion trick from: https://stackoverflow.com/a/1202562/151453
+  set _Varname=%1
+  for /F %%i in ('echo %%%_Varname%%%') do echo [%batfilenam%] %_Varname% = %%i
+exit /b
+
+:END
+rem echo [%batfilenam%] END for %ProjectDir%
