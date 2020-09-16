@@ -12,16 +12,16 @@ REM This file should be kept as a .template file, because not all users
 REM need to duplicate EXE/DLL output at all times.
 REM 
 REM After copying this file to PostBuildSyncOutput4.bat (drop the .template suffix),
-REM customize DIR_COPY_TO_DIR's value to set where to duplicate the output EXE/DLL.
+REM customize COPY_TO_DIRS's value to be your copying target dirs.
 REM You can list multiple target dirs, separated by spaces.
 REM For example, duplicate to two remote machine folders for remote debugging.
 REM 
-set DIR_COPY_TO_LIST=z:\bin y:\bin2
+set COPY_TO_DIRS=z:\bin y:\bin2
 REM
 REM =========================================================================
 
 
-for %%d in (%DIR_COPY_TO_LIST%) do (
+for %%d in (%COPY_TO_DIRS%) do (
 	set d_final=%%d\__%BuildConf%\%PlatformName%
 	if not exist !d_final! ( 
 		mkdir !d_final! 
@@ -30,7 +30,7 @@ for %%d in (%DIR_COPY_TO_LIST%) do (
 	call :EchoExec !copy_cmd!
 	!copy_cmd!
 	if errorlevel 1 ( 
-		call :Echos BAD. Error occurred when copying file to some DIR_COPY_TO_LIST.
+		call :Echos BAD. Error occurred when copying file to some COPY_TO_DIRS.
 		exit /b 4 
 	)
 )
