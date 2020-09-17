@@ -1,0 +1,14 @@
+REM TODO: Change Program.cs below to be an existing file in your VS-project.
+REM
+set FILE_TOUCH=$(ProjectDir)Program.cs
+if not exist "%FILE_TOUCH%" (
+  echo [VSPGBat]ERROR: The filepath defined by FILE_TOUCH does NOT exist: %FILE_TOUCH%
+  exit /b 4
+)
+set ALL_PARAMS=$(SolutionDir) $(ProjectDir) $(Configuration) $(PlatformName) $(TargetDir) $(TargetFileName) $(TargetName)
+if exist $(ProjectDir)PostBuildGeneric7.bat (
+  call $(ProjectDir)PostBuildGeneric7.bat %ALL_PARAMS%
+) else if exist $(SolutionDir)PostBuildGeneric7.bat (
+  call $(SolutionDir)PostBuildGeneric7.bat %ALL_PARAMS%
+)
+if errorlevel 1 (  copy /b "%FILE_TOUCH%"+,, "%FILE_TOUCH%" >NUL 2>&1 && exit /b 4)
