@@ -2,7 +2,9 @@
 REM ==== boilerplate code >>>
 REM
 set batfilenam=%~n0%~x0
-REM PostBuildGeneric7.bat $(SolutionDir) $(ProjectDir) $(Configuration) $(PlatformName) $(TargetDir) $(TargetFileName) $(TargetName)
+set batdir=%~dp0
+set batdir=%batdir:~0,-1%
+REM Pre-BuildGeneric7.bat $(SolutionDir) $(ProjectDir) $(Configuration) $(PlatformName) $(TargetDir) $(TargetFileName) $(TargetName)
 set SolutionDir=%1
 set SolutionDir=%SolutionDir:~0,-1%
 set ProjectDir=%2
@@ -32,27 +34,32 @@ call :EchoVar TargetDir
 call :EchoVar TargetFilenam
 call :EchoVar TargetName
 
-REM Call PostBuildSyncOutput4.bat only if that file exist. If you need it, just copy it from the .template aside.
-REM We check two places for that .bat and call both, first in %ProjectDir% then in %SolutionDir% .
-set BAT_HFP=_VSPG\PostBuildSyncOutput4.bat
+
+REM Call Pre-Build-SubWCRev1.bat only if that file exist. If you need it, just copy it from the .template aside.
+REM We check two places for that .bat can call both, first in %ProjectDir% then in %SolutionDir% .
+set BAT_HFP=_VSPG\Pre-Build-SubWCRev1.bat
 if exist %ProjectDir%\%BAT_HFP% (
 	call :Echos Now exec [ProjectDir]\%BAT_HFP%
-	call %ProjectDir%\%BAT_HFP% %BuildConf% %PlatformName% %TargetDir% %TargetName%
+	call %ProjectDir%\%BAT_HFP%               %ProjectDir%
 	if errorlevel 1 exit /b 4
 )
 REM.
 if not %SolutionDir% == %ProjectDir% (
 if exist %SolutionDir%\%BAT_HFP% (
 	call :Echos Now exec [SolutionDir]\%BAT_HFP%
-	call %SolutionDir%\%BAT_HFP% %BuildConf% %PlatformName% %TargetDir% %TargetName%
+	call %SolutionDir%\%BAT_HFP%              %SolutionDir%
 	if errorlevel 1 exit /b 4
 ))
+
 
 goto :END
 
 REM =============================
 REM ====== Functions Below ======
 REM =============================
+
+:SetErrorlevel
+exit /b %1
 
 :Echos
   echo [%batfilenam%] %*

@@ -1,0 +1,68 @@
+@echo off
+setlocal enabledelayedexpansion
+set batfilenam=%~n0%~x0
+set batdir=%~dp0
+set batdir=%batdir:~0,-1%
+set svndir=%~1
+
+set subparams=
+
+REM SubWCRev.csv is examined for SrcVersionFile,DstVersionFile pairs passed to SubWCRev.exe .
+REM If this bat is inside [ProjectDir] , the filepaths in the csv must be relative to [ProjectDir].
+REM If this bat is inside [SolutionDir], the filepaths in the csv must be relative to [SolutionDir].
+
+set csvpath=%batdir%\SubWCRev.csv
+
+if not exist %csvpath% (
+	call :Echos Cannot find %csvpath%
+	exit /b 4
+)
+
+call :PathSplit %batdir% svndir _tmp
+
+call :SetErrorlevel 4
+
+for /f "usebackq tokens=1-2 delims=," %%a in ("%csvpath%") do (
+	set execmd=SubWCRev.exe "%svndir%" "%svndir%\%%a" "%svndir%\%%b" %subparams%
+	call :Echos !execmd!
+	!execmd!
+	if errorlevel 1 exit /b 4
+)
+
+
+
+REM =============================
+REM ====== Functions Below ======
+REM =============================
+
+:SetErrorlevel
+exit /b %1
+
+:Echos
+  echo [%batfilenam%] %*
+exit /b
+
+:EchoExec
+  echo [%batfilenam%] EXEC: %*
+exit /b
+
+:EchoVar
+  REM Env-var double expansion trick from: https://stackoverflow.com/a/1202562/151453
+  set _Varname=%1
+  for /F %%i in ('echo %%%_Varname%%%') do echo [%batfilenam%] %_Varname% = %%i
+exit /b
+
+:PathSplit
+REM Usage: 
+REM call :PathSplit "c:\program files\d2\d3.txt" dname fname
+  setlocal
+  Set path=%~1
+  For %%A in ("%path%") do (
+    Set Folder=%%~dpA
+    Set Name=%%~nxA
+  )
+  endlocal & (
+    set "%~2=%Folder:~0,-1%"
+    set "%~3=%Name%"
+  )
+exit /b
