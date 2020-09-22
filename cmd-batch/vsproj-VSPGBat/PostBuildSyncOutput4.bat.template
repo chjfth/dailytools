@@ -8,8 +8,8 @@ set ExeDllDir=%3
 set TargetName=%4
 
 REM =========================================================================
-REM This file should be kept as a .template file, because not all users
-REM need to duplicate EXE/DLL output at all times.
+REM Origin of this file should be saved with a .template suffix, because 
+REM not all users need to duplicate EXE/DLL output at all times.
 REM 
 REM After copying this file to PostBuildSyncOutput4.bat (drop the .template suffix),
 REM customize COPY_TO_DIRS's value to be your copying target dirs.

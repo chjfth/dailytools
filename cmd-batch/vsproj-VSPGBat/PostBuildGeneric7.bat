@@ -34,16 +34,17 @@ call :EchoVar TargetName
 
 REM Call PostBuildSyncOutput4.bat only if that file exist. If you need it, just copy it from the .template aside.
 REM We check two places for that .bat, first in %ProjectDir% then in %SolutionDir% .
-if exist %ProjectDir%\PostBuildSyncOutput4.bat (
-	call :Echos Now exec [ProjectDir]\PostBuildSyncOutput4.bat 
-	call %ProjectDir%\PostBuildSyncOutput4.bat %BuildConf% %PlatformName% %TargetDir% %TargetName%
+set P4BAT_HFP=_VSPG\PostBuildSyncOutput4.bat
+if exist %ProjectDir%\%P4BAT_HFP% (
+	call :Echos Now exec [ProjectDir]\%P4BAT_HFP%
+	call %ProjectDir%\%P4BAT_HFP% %BuildConf% %PlatformName% %TargetDir% %TargetName%
 	if errorlevel 1 exit /b 4
 	goto :BAT4_DONE
 )
 REM.
-if exist %SolutionDir%\PostBuildSyncOutput4.bat (
-	call :Echos Now exec [SolutionDir]\PostBuildSyncOutput4.bat 
-	call %SolutionDir%\PostBuildSyncOutput4.bat %BuildConf% %PlatformName% %TargetDir% %TargetName%
+if exist %SolutionDir%\%P4BAT_HFP% (
+	call :Echos Now exec [SolutionDir]\%P4BAT_HFP%
+	call %SolutionDir%\%P4BAT_HFP% %BuildConf% %PlatformName% %TargetDir% %TargetName%
 	if errorlevel 1 exit /b 4
 )
 
