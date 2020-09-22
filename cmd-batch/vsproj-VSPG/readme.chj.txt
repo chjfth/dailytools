@@ -10,4 +10,6 @@ REMEMBER:
 Features:
 * Robust. All errors in .bat are reported and fail the build.
 * Easy to deploy and apply customization. 
+* Be little intrusive, so we can apply it team-wide.
 * Extensibility of the framework is fairly OK.
+* Co-existence with other Pre-build/Post-build actions.
