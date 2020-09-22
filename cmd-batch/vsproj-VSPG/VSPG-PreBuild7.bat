@@ -4,7 +4,7 @@ REM
 set batfilenam=%~n0%~x0
 set batdir=%~dp0
 set batdir=%batdir:~0,-1%
-REM Pre-BuildGeneric7.bat $(SolutionDir) $(ProjectDir) $(Configuration) $(PlatformName) $(TargetDir) $(TargetFileName) $(TargetName)
+REM VSPG-PreBuild7.bat $(SolutionDir) $(ProjectDir) $(Configuration) $(PlatformName) $(TargetDir) $(TargetFileName) $(TargetName)
 set SolutionDir=%1
 set SolutionDir=%SolutionDir:~0,-1%
 set ProjectDir=%2
@@ -35,9 +35,9 @@ call :EchoVar TargetFilenam
 call :EchoVar TargetName
 
 
-REM Call Pre-Build-SubWCRev1.bat only if that file exist. If you need it, just copy it from the .template aside.
+REM Call PreBuild-SubWCRev1.bat only if that file exist. If you need it, just copy it from the .template aside.
 REM We check two places for that .bat can call both, first in %ProjectDir% then in %SolutionDir% .
-set BAT_HFP=_VSPG\Pre-Build-SubWCRev1.bat
+set BAT_HFP=_VSPG\PreBuild-SubWCRev1.bat
 if exist %ProjectDir%\%BAT_HFP% (
 	call :Echos Now exec [ProjectDir]\%BAT_HFP%
 	call %ProjectDir%\%BAT_HFP%               %ProjectDir%

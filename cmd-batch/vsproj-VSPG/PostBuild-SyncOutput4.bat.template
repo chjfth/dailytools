@@ -8,13 +8,12 @@ set ExeDllDir=%3
 set TargetName=%4
 
 REM =========================================================================
-REM Origin of this file should be saved with a .template suffix, because 
-REM not all users need to duplicate EXE/DLL output at all times.
+REM This bat copies(=sync) project output(EXE/DLL etc) to your desired target dirs.
 REM 
-REM After copying this file to PostBuildSyncOutput4.bat (drop the .template suffix),
+REM After duplicating your own PostBuild-SyncOutput4.bat, you should 
 REM customize COPY_TO_DIRS's value to be your copying target dirs.
 REM You can list multiple target dirs, separated by spaces.
-REM For example, duplicate to two remote machine folders for remote debugging.
+REM For example, assign two remote machine folders for remote debugging:
 REM 
 set COPY_TO_DIRS=z:\bin y:\bin2
 REM

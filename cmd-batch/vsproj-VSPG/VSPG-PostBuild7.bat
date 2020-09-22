@@ -2,7 +2,7 @@
 REM ==== boilerplate code >>>
 REM
 set batfilenam=%~n0%~x0
-REM PostBuildGeneric7.bat $(SolutionDir) $(ProjectDir) $(Configuration) $(PlatformName) $(TargetDir) $(TargetFileName) $(TargetName)
+REM VSPG-PostBuild7.bat $(SolutionDir) $(ProjectDir) $(Configuration) $(PlatformName) $(TargetDir) $(TargetFileName) $(TargetName)
 set SolutionDir=%1
 set SolutionDir=%SolutionDir:~0,-1%
 set ProjectDir=%2
@@ -32,9 +32,9 @@ call :EchoVar TargetDir
 call :EchoVar TargetFilenam
 call :EchoVar TargetName
 
-REM Call PostBuildSyncOutput4.bat only if that file exist. If you need it, just copy it from the .template aside.
+REM Call PostBuild-SyncOutput4.bat only if that file exist. If you need it, just copy it from the .template aside.
 REM We check two places for that .bat and call both, first in %ProjectDir% then in %SolutionDir% .
-set BAT_HFP=_VSPG\PostBuildSyncOutput4.bat
+set BAT_HFP=_VSPG\PostBuild-SyncOutput4.bat
 if exist %ProjectDir%\%BAT_HFP% (
 	call :Echos Now exec [ProjectDir]\%BAT_HFP%
 	call %ProjectDir%\%BAT_HFP% %BuildConf% %PlatformName% %TargetDir% %TargetName%

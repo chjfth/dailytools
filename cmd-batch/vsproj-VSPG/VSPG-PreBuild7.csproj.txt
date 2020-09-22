@@ -1,7 +1,8 @@
+REM Paste these text into .csproj project-settings -> Pre-build event command line.
 REM TODO: Change Program.cs below to be an existing file in your VS-project.
 set FILE_TOUCH=$(ProjectDir)Program.cs
 REM
-set BatFilenam=Pre-BuildGeneric7.bat
+set BatFilenam=VSPG-PreBuild7.bat
 if not exist "%FILE_TOUCH%" (
   echo [VSPG]ERROR: The filepath defined by FILE_TOUCH does NOT exist: %FILE_TOUCH%
   exit /b 4
