@@ -19,6 +19,9 @@ set COPY_TO_DIRS=z:\bin y:\bin2
 REM
 REM =========================================================================
 
+if "%COPY_TO_DIRS%" == "" (
+	call :Echos COPY_TO_DIRS is empty, nothing to copy.
+)
 
 for %%d in (%COPY_TO_DIRS%) do (
 	set d_final=%%d\__%BuildConf%\%PlatformName%
