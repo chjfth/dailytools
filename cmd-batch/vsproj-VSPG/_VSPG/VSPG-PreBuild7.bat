@@ -75,5 +75,10 @@ exit /b
   for /F %%i in ('echo %%%_Varname%%%') do echo [%batfilenam%] %_Varname% = %%i
 exit /b
 
+:SetErrorlevel
+  REM Usage example:
+  REM call :SetErrorlevel 4
+exit /b %1
+
 :END
 rem echo [%batfilenam%] END for %ProjectDir%
