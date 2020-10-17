@@ -3,7 +3,7 @@
 export CHJHOST=10.22.3.84
 export PYTHONPATH=~/gitw/pyutils/pycode
 
-_irsync_="--datetime-pattern=YYYYMMDD --max-retry=3 --old-days=30"
+_irsync_="--datetime-pattern=YYYYMMDD --max-retry=3 --old-days=60"
 _rsync_="--rsync --progress --exclude-from=excludes.list"
 
 modlist=(myd myk mym) # define a Bash array
