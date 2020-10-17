@@ -10,3 +10,6 @@ WpSystem
 */Default/Current Tabs
 
 *文件名太长，Everything搜不出*
+
+*.crc-error.*
+*.crc-error
