@@ -6,7 +6,7 @@ export PYTHONPATH=~/gitw/pyutils/pycode
 _irsync_="--datetime-pattern=YYYYMMDD --max-retry=3 --old-days=60"
 _rsync_="--rsync --progress --exclude-from=excludes.list"
 
-modlist=(myd myk mym) # define a Bash array
+modlist=(myd myk mym myn) # define a Bash array
 	
 for mod in "${modlist[@]}"; do 
 	echo ""
