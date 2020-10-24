@@ -7,7 +7,7 @@ set batdir=%batdir:~0,-1%
 set batdir_fs=%batdir:\=/%
 pushd %batdir%
 
-set MYCMD=C:\Windows\System32\wsl.exe rsync --daemon --port=1873 --config=rsyncd.conf --no-detach
+set MYCMD=C:\Windows\System32\wsl.exe rsync --daemon --port=1873 --config=wsl-rsyncd.conf --no-detach
 echo %MYCMD%
 %MYCMD%
 
