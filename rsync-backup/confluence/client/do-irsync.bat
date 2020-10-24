@@ -5,7 +5,7 @@ set batdir=%batdir:~0,-1%
 pushd %batdir%
 
 REM ~~~~~~~~~~~~~~~~~~~~~~~~~~
-REM Use these .bat files to backup and lab-restore my Confluence site.
+REM Use this .bat files to backup and lab-restore my Confluence site.
 REM Run it in my VM T:\_vms\CF673-export\Ws2012-CF-6.7.3.vmx
 REM And it can be launched by dosched0.bat via Windows Task Scheduler.
 set CFDIR=d:\CF-6.7
