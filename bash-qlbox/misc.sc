@@ -15,14 +15,14 @@ function addpath()
   PATH="$1:$PATH"
 }
 
-alias lpath="python -c \"for p in __import__('os').environ['PATH'].split(':'): print p\""
+alias lpath="python -c \"for p in __import__('os').environ['PATH'].split(':'): print(p)\""
 
 function L()
 {
   # Usage example: 
   # L PATH
   # L LD_LIBRARY_PATH
-  python -c "for p in __import__('os').environ['$1'].split(':'): print p"
+  python -c "for p in __import__('os').environ['$1'].split(':'): print(p)"
 }
 
 
@@ -40,3 +40,7 @@ run-to-death()
 		sleep 1
 	done
 }
+
+if [ ! -f ~/.inputrc ]; then
+	cp "${BASH_SOURCE%/*}"/chj.input.rc ~/.inputrc
+fi
