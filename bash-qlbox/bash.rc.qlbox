@@ -39,8 +39,24 @@ if [ $UID != 0 ]; then PS1fmtcwd='[33m'; else PS1fmtcwd='[1;31m'; fi
 if [ $UID != 0 ]; then PS1char='$'; else PS1char='#'; fi
 PS1_err_bell='$(if [ $? != 0 ];then echo -e \a; fi)'
 PS1_TERM='$TERM'
-PS1_ERRCODE='$?'
-PS1_chj="\n[\[\033[32m\]`tty`($PS1_TERM) \D{%G-%m-%d} \t\[\033[31m\] jobs:\j\[\033[0m\] ERR:$PS1_ERRCODE]$PS1_err_bell\n[$PS1fmtuser @\h \[\033$PS1fmtcwd\w\033[0m\]]\n\[\033[1;37;44m\]$PS1char\[\033[0m\] "
+PS1_DQ='$?'
+_ShowOnErr1()
+{
+	# The input $1, is the actual value of $? from the outside world.
+	if [ "$1" != 0 ]; then
+		echo "ERR:$1"
+	fi
+	return $1
+}
+_ShowOnErr0()
+{
+	# The input $1, is the actual value of $? from the outside world.
+	if [ "$1" = 0 ]; then
+		echo "ERR:0"
+	fi
+	return $1 # relay the outside $? to _ShowOnErr0
+}
+# _ClearMyErr(){ return 0; } # [2020-11-04]no-effect on clearing inherited error
+PS1_chj="\n[\[\033[32m\]`tty`($PS1_TERM) \D{%G-%m-%d} \t \[\033[1;31m\]\$(_ShowOnErr1 $PS1_DQ)\[\033[0m\]\$(_ShowOnErr0 $PS1_DQ)]$PS1_err_bell\n[$PS1fmtuser @\h \[\033$PS1fmtcwd\w\033[0m\]]\n\[\033[1;37;44m\]$PS1char\[\033[0m\] "
 PS1=$PS1_chj
-
 
