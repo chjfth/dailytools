@@ -1,4 +1,3 @@
-chja20 is the rsync-server that provides the source data to backup.
+This irsync client shows how to do Local-to-Local rsync backups on a single machine.
 
-do-irsync.bat and do-irsync.sh are run from a rsync-client machine that will store backup data of chja20.
-
+do-irsync.bat and/or do-irsync-wsl.bat are the bat file for use with Windows Task scheduler.
