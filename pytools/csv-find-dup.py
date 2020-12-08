@@ -2,6 +2,7 @@
 #coding: utf-8
 
 import os, sys
+import argparse
 import csv
 
 def count_dups(fh):
@@ -45,6 +46,35 @@ def count_dups(fh):
 	return 0
 	
 
+def my_parse_args():
+	
+	ap = argparse.ArgumentParser(
+		add_help=False, # bcz we need to define -h ourselves
+		description='Check for text duplicates for all/some CSV columns.'
+	)
+	
+	ap.add_argument('csv_filename', type=str,
+		help='Input a CSV file name to check.'
+	)
+	
+	ap.add_argument('-h', '--header', type=str, action='append',
+		help='Tell which CSV fields to check. A CSV field is identified by its header value, that is, the field text from its first line.\n'
+			'If no -h option is provided, scan every field for duplicates, and prints a summary. \n'
+			'If one or more -h options are provided, only those headers(fields) are scanned.\n'
+	)
+	
+	ap.add_argument('-v', '--verbose', action='store_true',
+		help='Enable verbose output.\n'
+			'Without -h, \n'
+			' * non-verbose mode only list count of duplicate groups.\n'
+			' * verbose mode as well list duplicate text from each dup-group.\n'
+			'With -h, \n'
+			' * non-verbose mode only list duplicate text and dup-count from each dup-group.\n'
+			' * verbose mode as well list #line of those duplicates.\n'
+	)
+
+
+	args = ap.parse_args()
 
 if __name__=="__main__":
 
