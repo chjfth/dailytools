@@ -16,7 +16,7 @@ class VerboseLevel(IntEnum):
 	vb2 = 2
 	vb3 = 3
 
-def find_dups(fh, fields_to_chk, vb, vblines_list_max=10):
+def find_dups(fh, fields_to_chk, vb, vblines_list_max=10, need_sort=None):
 
 	assert(type(fields_to_chk)==list and (len(fields_to_chk)==0 or type(fields_to_chk[0])==int))
 
@@ -80,7 +80,15 @@ def find_dups(fh, fields_to_chk, vb, vblines_list_max=10):
 				))
 		
 			if vb>=VerboseLevel.vb1:
-				for dup_text, dup_count in dict_dupcount.items():
+
+				dup_items = dict_dupcount.items()
+
+				if need_sort=='duptext':
+					dup_items = sorted(dup_items, key=lambda x: x[0])
+				elif need_sort=='dupcount':
+					dup_items = sorted(dup_items, key=lambda x: x[1])
+
+				for dup_text, dup_count in dup_items:
 					print("  (%d*) %s"%(dup_count, dup_text))
 
 					if vb>=VerboseLevel.vb2:
@@ -88,7 +96,6 @@ def find_dups(fh, fields_to_chk, vb, vblines_list_max=10):
 							ar_field_stats[idx_field][dup_text], 
 							vblines_list_max,
 							fh)
-
 	return 0
 	
 def print_vb23_detail(vb, ar_idxlines, list_max, fh):
@@ -154,6 +161,11 @@ def my_parse_args():
 			'Typical encodings: utf8, gbk, big5, utf16le.'
 	)
 
+	ap.add_argument('--sort', choices=['dupcount', 'duptext'], 
+		help='When listing duplicate items, sort by duplicate-count or duplicate-text.\n'
+			'If omitted, list as the duplicate-text appears in CSV.'
+	)
+
 	ap.add_argument('-x', '--max-verbose-lines', type=int, dest='max_verbose_lines', default=10,
 		help='When -vv, showing duplicate lines is limited to this number.'
 	)
@@ -184,9 +196,9 @@ def main():
 	fh = open(csvfile, "r", encoding=text_encoding)
 	
 	if fields_to_chk==None:
-		ret = find_dups(fh, [], vb)
+		ret = find_dups(fh, [], vb, need_sort=args.sort)
 	else:
-		ret = find_dups(fh, fields_to_chk, vb, args.max_verbose_lines)
+		ret = find_dups(fh, fields_to_chk, vb, args.max_verbose_lines, need_sort=args.sort)
 
 	if vb==VerboseLevel.vb0:
 		print("")
