@@ -5,6 +5,7 @@ import os, sys, locale
 import argparse
 import csv
 import bisect
+import datetime
 from enum import Enum,IntEnum # since Python 3.4
 
 #print("sys.getdefaultencoding()=%s"%(sys.getdefaultencoding()))
@@ -163,11 +164,17 @@ def my_parse_args():
 
 	ap.add_argument('--sort', choices=['dupcount', 'duptext'], 
 		help='When listing duplicate items, sort by duplicate-count or duplicate-text.\n'
-			'If omitted, list as the duplicate-text appears in CSV.'
+			'If omitted, use natural order in CSV.'
 	)
 
 	ap.add_argument('-x', '--max-verbose-lines', type=int, dest='max_verbose_lines', default=10,
 		help='When -vv, showing duplicate lines is limited to this number.'
+	)
+	
+	ap.add_argument('-t', '--timing', action='store_true',
+		help='Print timing result to stderr.\n'
+			'Hint: To eliminate the time cost of printing bluk text to screen,\n'
+			'it is suggested to redirect print output to a file or to null device.'
 	)
 
 	if len(sys.argv)==1:
@@ -195,16 +202,24 @@ def main():
 
 	fh = open(csvfile, "r", encoding=text_encoding)
 	
+	tstart = datetime.datetime.now()
+	
 	if fields_to_chk==None:
 		ret = find_dups(fh, [], vb, need_sort=args.sort)
 	else:
 		ret = find_dups(fh, fields_to_chk, vb, args.max_verbose_lines, need_sort=args.sort)
+
+	tend = datetime.datetime.now()
 
 	if vb==VerboseLevel.vb0 and fields_to_chk==None:
 		print("")
 		print("Hint:")
 		print(" * add option -v, -vv or -vvv to show more duplicate details.")
 		print(" * add option -f 0 -f 2 etc to focus on fields of interest.")
+
+	if args.timing:
+		tcost = tend - tstart
+		sys.stderr.write("Time cost: {} seconds\n".format(tcost.total_seconds()))
 
 
 if __name__=="__main__":
