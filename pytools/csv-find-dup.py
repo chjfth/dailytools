@@ -14,7 +14,7 @@ class VerboseLevel(IntEnum):
 	vb1 = 1
 	vb2 = 2
 
-def count_dups(fh, fields_to_chk, vb):
+def find_dups(fh, fields_to_chk, vb):
 
 	assert(type(fields_to_chk)==list and (len(fields_to_chk)==0 or type(fields_to_chk[0])==int))
 
@@ -26,12 +26,12 @@ def count_dups(fh, fields_to_chk, vb):
 	ar_headers = next(ireader)
 	count_fields = len(ar_headers)
 
-	# find longest header chars
-	max_header_width = max([len(x) for x in ar_headers])
-	max_header_prnwidth = min(max_header_width, 40)
-
 	if len(fields_to_chk)==0:
 		fields_to_chk = list(range(0, len(ar_headers)))
+
+	# find longest header chars
+	max_header_width = max([len(ar_headers[fidx]) for fidx in fields_to_chk])
+	max_header_prnwidth = min(max_header_width, 40)
 
 	ar_field_stats = [ { header_name : [0] } for header_name in ar_headers ]
 		# [0] above means, the header text appears in line #0
@@ -49,6 +49,7 @@ def count_dups(fh, fields_to_chk, vb):
 				dict_stat[field_text] = [idx_line]
 
 	ar_dupcount = [ {} for header_name in ar_headers ]
+	#
 	for idx_field, dict_stat in enumerate(ar_field_stats):
 		for key, text2idxlines in dict_stat.items():
 			dupcount = len(text2idxlines)
@@ -94,28 +95,28 @@ def print_vb2_detail(ar_idxlines):
 def my_parse_args():
 	
 	ap = argparse.ArgumentParser(
-		add_help=False, # bcz we need to define -h ourselves
+		add_help=False, # bcz we (once) need to define -h ourselves
+		formatter_class=argparse.RawTextHelpFormatter,
 		description='Check for text duplicates for all/some CSV columns.'
 	)
+	# --use RawTextHelpFormatter so that "\n" in help="..." will be preserved.
+	# https://stackoverflow.com/a/3853776/151453
 	
 	ap.add_argument('csv_filename', type=str, # nargs='?',
 		help='Input a CSV file name to check.'
 	)
 	
-	ap.add_argument('-h', '--header', type=int, action='append',
-		help='Tell which CSV fields to check, identified by index(0, 1, 2 etc).\n'
-			'If no -h option is provided, scan every field for duplicates, and prints a summary. \n'
-			'If one or more -h options are provided, only those headers(fields) are scanned.\n'
+	ap.add_argument('-f', '--field', type=int, action='append',
+		help='Tell which CSV fields to check, identified by field index(0, 1, 2 etc).\n'
+			' * If no -f option is provided, scan every field for duplicates. \n'
+			' * If one or more -f options are provided, only those fields are scanned.\n'
 	)
 	
 	ap.add_argument('-v', '--verbose', action='count', default=0,
 		help='Enable verbose output.\n'
-			'Without -h, \n'
-			' * non-verbose mode only list count of duplicate groups.\n'
-			' * verbose mode as well list duplicate text from each dup-group.\n'
-			'With -h, \n'
-			' * non-verbose mode only list duplicate text and dup-count from each dup-group.\n'
-			' * verbose mode as well list #line of those duplicates.\n'
+			' * No -v : list only count of duplicate groups.\n'
+			' *    -v : list duplicate text as well.\n'
+			' *   -vv : list #line of each duplicate appearance.\n'
 	)
 
 	ap.add_argument('-e', '--encoding', type=str, default='',
@@ -142,16 +143,16 @@ def main():
 	args = my_parse_args()
 
 	csvfile = args.csv_filename
-	headers_to_chk = args.header
+	fields_to_chk = args.field
 	text_encoding = locale.getpreferredencoding() if not args.encoding else args.encoding
 	vb = VerboseLevel(args.verbose)
 
 	fh = open(csvfile, "r", encoding=text_encoding)
 	
-	if headers_to_chk==None:
-		ret = count_dups(fh, [], vb)
+	if fields_to_chk==None:
+		ret = find_dups(fh, [], vb)
 	else:
-		ret = count_dups(fh, headers_to_chk, vb)
+		ret = find_dups(fh, fields_to_chk, vb)
 
 	if vb==VerboseLevel.vb0:
 		print("")
