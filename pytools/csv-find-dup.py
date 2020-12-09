@@ -4,6 +4,7 @@
 import os, sys, locale
 import argparse
 import csv
+import bisect
 from enum import Enum,IntEnum # since Python 3.4
 
 #print("sys.getdefaultencoding()=%s"%(sys.getdefaultencoding()))
@@ -13,8 +14,9 @@ class VerboseLevel(IntEnum):
 	vb0 = 0
 	vb1 = 1
 	vb2 = 2
+	vb3 = 3
 
-def find_dups(fh, fields_to_chk, vb):
+def find_dups(fh, fields_to_chk, vb, vblines_list_max=10):
 
 	assert(type(fields_to_chk)==list and (len(fields_to_chk)==0 or type(fields_to_chk[0])==int))
 
@@ -83,14 +85,42 @@ def find_dups(fh, fields_to_chk, vb):
 					print("  (%d*) %s"%(dup_count, dup_text))
 
 					if vb>=VerboseLevel.vb2:
-						print_vb2_detail( ar_field_stats[idx_field][dup_text] )
+						print_vb23_detail(vb, 
+							ar_field_stats[idx_field][dup_text], 
+							vblines_list_max,
+							fh)
 
 	return 0
 	
-def print_vb2_detail(ar_idxlines):
-	s = ",".join(["%d"%(idx) for idx in ar_idxlines])
-	print("    Appears at #lines: %s"%(s))
+def print_vb23_detail(vb, ar_idxlines, list_max, fh):
+	total = len(ar_idxlines)
+	list_count = min(total, list_max)
+	is_elps = total>list_max 
 	
+	s = ",".join(["%d"%(idx) for idx in ar_idxlines[0:list_count]])
+	elps = "..." if is_elps else ""
+	
+	print("    Appears at #lines: %s %s"%(s, elps))
+
+	if vb>=VerboseLevel.vb3:
+		
+		# For each field, we have to rescan the csv file again.
+		# And we know that int-s in ar_idxlines are already sorted.
+
+		fh.seek(0)
+		done = 0
+		for idx_line, row in enumerate(fh):
+			idx = bisect.bisect_left(ar_idxlines, idx_line)
+			
+			if idx<len(ar_idxlines) and ar_idxlines[idx]==idx_line: # found
+				print("    [#%d] %s"%(idx_line, row), end="")
+
+				done += 1
+				if done==list_count:
+					break
+		if is_elps:
+			print("    ...")
+
 
 def my_parse_args():
 	
@@ -117,11 +147,16 @@ def my_parse_args():
 			' * No -v : list only count of duplicate groups.\n'
 			' *    -v : list duplicate text as well.\n'
 			' *   -vv : list #line of each duplicate appearance.\n'
+			' *  -vvv : list line content as well.\n'
 	)
 
 	ap.add_argument('-e', '--encoding', type=str, default='',
 		help='Assign text encoding of the input csv file. If omitted, system default will be used.\n'
 			'Typical encodings: utf8, gbk, big5, utf16le.'
+	)
+
+	ap.add_argument('-x', '--max-verbose-lines', type=int, dest='max_verbose_lines', default=10,
+		help='When -vv, showing duplicate lines is limited to this number.'
 	)
 
 	if len(sys.argv)==1:
@@ -152,7 +187,7 @@ def main():
 	if fields_to_chk==None:
 		ret = find_dups(fh, [], vb)
 	else:
-		ret = find_dups(fh, fields_to_chk, vb)
+		ret = find_dups(fh, fields_to_chk, vb, args.max_verbose_lines)
 
 	if vb==VerboseLevel.vb0:
 		print("")
