@@ -117,8 +117,12 @@ def print_vb23_detail(vb, ar_idxlines, list_max, fh):
 		fh.seek(0)
 		done = 0
 		for idx_line, row in enumerate(fh):
-			idx = bisect.bisect_left(ar_idxlines, idx_line)
 			
+			# check if current-file-line(idx_line) is in ar_idxlines
+			# if so, print this line's content.
+			
+			idx = bisect.bisect_left(ar_idxlines, idx_line)
+			#
 			if idx<len(ar_idxlines) and ar_idxlines[idx]==idx_line: # found
 				print("    [#%d] %s"%(idx_line, row), end="")
 
@@ -154,7 +158,7 @@ def my_parse_args():
 			' * No -v : list only count of duplicate groups.\n'
 			' *    -v : list duplicate text as well.\n'
 			' *   -vv : list #line of each duplicate appearance.\n'
-			' *  -vvv : list line content as well.\n'
+			' *  -vvv : list line content as well (time consuming).\n'
 	)
 
 	ap.add_argument('-e', '--encoding', type=str, default='',
