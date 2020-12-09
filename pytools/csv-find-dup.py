@@ -200,9 +200,11 @@ def main():
 	else:
 		ret = find_dups(fh, fields_to_chk, vb, args.max_verbose_lines, need_sort=args.sort)
 
-	if vb==VerboseLevel.vb0:
+	if vb==VerboseLevel.vb0 and fields_to_chk==None:
 		print("")
-		print("Hint: add option -v or -vv to show more duplicate details.")
+		print("Hint:")
+		print(" * add option -v, -vv or -vvv to show more duplicate details.")
+		print(" * add option -f 0 -f 2 etc to focus on fields of interest.")
 
 
 if __name__=="__main__":

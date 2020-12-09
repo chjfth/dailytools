@@ -4,7 +4,7 @@
 import re, os, sys
 
 if len(sys.argv)==1:
-	print("Need an .vtt filename as input.")
+	print("Need a .vtt filename as input.")
 	exit(1)
 
 infile = sys.argv[1]
