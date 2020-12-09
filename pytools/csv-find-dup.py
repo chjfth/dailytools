@@ -58,10 +58,9 @@ def find_dups(fh, fields_to_chk, vb, vblines_list_max=10):
 			if dupcount>1 :
 				ar_dupcount[idx_field][key] = dupcount
 
-	for idx_field, dict_dupcount in enumerate(ar_dupcount):
+	for idx_field in fields_to_chk:
 		
-		if not idx_field in fields_to_chk:
-			continue
+		dict_dupcount = ar_dupcount[idx_field]
 
 		headertext = ar_headers[idx_field]
 
