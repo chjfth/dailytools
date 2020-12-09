@@ -53,7 +53,7 @@ def my_parse_args():
 		description='Check for text duplicates for all/some CSV columns.'
 	)
 	
-	ap.add_argument('csv_filename', type=str,
+	ap.add_argument('csv_filename', type=str, # nargs='?',
 		help='Input a CSV file name to check.'
 	)
 	
@@ -73,14 +73,32 @@ def my_parse_args():
 			' * verbose mode as well list #line of those duplicates.\n'
 	)
 
+	ap.add_argument('-e', '--encoding', type=str,
+		help='Assign text encoding of the input csv file. If omitted, system default will be used.\n'
+			'Typical encodings: utf8, gbk, big5, utf16le.'
+	)
+
+	if len(sys.argv)==1:
+		# If no command-line parameter given, display help and quit.
+		print("You must provide a csv filename.")
+		print("To see full program options, run:\n")
+		print("  %s --help"%(__file__))
+		exit(1)
+
+	if sys.argv[1]=='--help':
+		ap.print_help()
+		exit(1)
 
 	args = ap.parse_args()
 
+	return args
+
 if __name__=="__main__":
 
-	if len(sys.argv)==1:
-		print("Need a csv filename as parameter.")
-		exit(1)
+	
+	
+	
+	args = my_parse_args()
 
 	csvfile = sys.argv[1]
 	fh = open(csvfile, "r")
