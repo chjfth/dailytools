@@ -17,7 +17,9 @@ class VerboseLevel(IntEnum):
 	vb2 = 2
 	vb3 = 3
 
-def find_dups(fh, fields_to_chk, vb, vblines_list_max=10, need_sort=None):
+def find_dups(fh, fields_to_chk, 
+	is_single_as_group=False,
+	vb=0, vblines_list_max=10, need_sort=None):
 
 	assert(type(fields_to_chk)==list and (len(fields_to_chk)==0 or type(fields_to_chk[0])==int))
 
@@ -56,7 +58,7 @@ def find_dups(fh, fields_to_chk, vb, vblines_list_max=10, need_sort=None):
 	for idx_field, dict_stat in enumerate(ar_field_stats):
 		for key, text2idxlines in dict_stat.items():
 			dupcount = len(text2idxlines)
-			if dupcount>1 :
+			if dupcount > (0 if is_single_as_group else 1) :
 				ar_dupcount[idx_field][key] = dupcount
 
 	for idx_field in fields_to_chk:
@@ -162,13 +164,13 @@ def my_parse_args():
 	)
 
 	ap.add_argument('-e', '--encoding', type=str, default='',
-		help='Assign text encoding of the input csv file. If omitted, system default will be used.\n'
+		help='Assign text encoding of the input csv file. If omit, system default will be used.\n'
 			'Typical encodings: utf8, gbk, big5, utf16le.'
 	)
 
 	ap.add_argument('--sort', choices=['dupcount', 'duptext'], 
 		help='When listing duplicate items, sort by duplicate-count or duplicate-text.\n'
-			'If omitted, use natural order in CSV.'
+			'If omit, use natural order in CSV.'
 	)
 
 	ap.add_argument('-x', '--max-verbose-lines', type=int, dest='max_verbose_lines', default=10,
@@ -179,6 +181,11 @@ def my_parse_args():
 		help='Print timing result to stderr.\n'
 			'Hint: To eliminate the time cost of printing bluk text to screen,\n'
 			'it is suggested to redirect print output to a file or to null device.'
+	)
+	
+	ap.add_argument('-1', '--single-as-group', action='store_true', dest='single_as_group',
+		help='This is counter-literal. Consider each distinct field text as "duplicate",\n'
+			'so that we are not counting duplicates, but counting distincts.'
 	)
 
 	if len(sys.argv)==1:
@@ -206,12 +213,19 @@ def main():
 
 	fh = open(csvfile, "r", encoding=text_encoding)
 	
+	if fields_to_chk==None:
+		fields_to_chk = []
+		
+	if args.single_as_group:
+		print('NOTE: Operating in "single-as-group" mode.')
+
 	tstart = datetime.datetime.now()
 	
-	if fields_to_chk==None:
-		ret = find_dups(fh, [], vb, need_sort=args.sort)
-	else:
-		ret = find_dups(fh, fields_to_chk, vb, args.max_verbose_lines, need_sort=args.sort)
+	ret = find_dups(fh, fields_to_chk, 
+		args.single_as_group,
+		vb, 
+		args.max_verbose_lines, 
+		need_sort=args.sort)
 
 	tend = datetime.datetime.now()
 
