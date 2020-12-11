@@ -11,6 +11,11 @@ from enum import Enum,IntEnum # since Python 3.4
 #print("sys.getdefaultencoding()=%s"%(sys.getdefaultencoding()))
 #print("locale.getpreferredencoding()=%s"%(locale.getpreferredencoding()))
 
+"""
+Memo: 
+ * celt: csv cell text
+"""
+
 class VerboseLevel(IntEnum):
 	vb0 = 0
 	vb1 = 1
@@ -44,20 +49,20 @@ def find_dups(fh, fields_to_chk,
 	for idx_line, row in enumerate(ireader, start=1):
 		for i in fields_to_chk:
 
-			field_text = row[i]
-			if field_text=="":
+			celt = row[i]
+			if celt=="":
 				continue
 			dict_stat = ar_field_stats[i]
-			if field_text in dict_stat:
-				dict_stat[field_text].append(idx_line)
+			if celt in dict_stat:
+				dict_stat[celt].append(idx_line)
 			else:
-				dict_stat[field_text] = [idx_line]
+				dict_stat[celt] = [idx_line]
 
 	ar_dupcount = [ {} for header_name in ar_headers ]
 	#
 	for idx_field, dict_stat in enumerate(ar_field_stats):
-		for key, text2idxlines in dict_stat.items():
-			dupcount = len(text2idxlines)
+		for key, celt2idxlines in dict_stat.items():
+			dupcount = len(celt2idxlines)
 			if dupcount > (0 if is_single_as_group else 1) :
 				ar_dupcount[idx_field][key] = dupcount
 
