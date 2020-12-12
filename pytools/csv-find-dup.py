@@ -185,7 +185,7 @@ def print_vb23_detail(vb, ar_linex, text_encoding, list_max, fh):
 	list_count = min(total, list_max)
 	is_elps = total>list_max 
 	
-	s = ",".join(["%d"%(x.idxline) for x in ar_linex[0:list_count]])
+	s = ",".join(["%d"%(x.idxline+1) for x in ar_linex[0:list_count]])
 	elps = "..." if is_elps else ""
 	
 	print("    Appears at #lines: %s %s"%(s, elps))
@@ -199,7 +199,7 @@ def print_vb23_detail(vb, ar_linex, text_encoding, list_max, fh):
 			fh.seek(linex.ofs)
 			octets = fh.readline()
 			linetext = codecs.decode(octets, text_encoding)
-			print("    [#%d] %s"%(linex.idxline, linetext), end="")
+			print("    [#%d] %s"%(linex.idxline+1, linetext), end="")
 
 			done += 1
 			if done==list_count:
