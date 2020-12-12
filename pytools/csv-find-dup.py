@@ -14,6 +14,7 @@ from enum import Enum,IntEnum # since Python 3.4
 """
 Memo: 
  * celt: csv cell text
+ * celx: csv cell's eXtra info (#line and file-offset)
 """
 
 class VerboseLevel(IntEnum):
@@ -22,6 +23,18 @@ class VerboseLevel(IntEnum):
 	vb2 = 2
 	vb3 = 3
 
+def enum_csv_rows_by_filehandle(fh):
+	while True:
+		filepos = fh.tell()
+		linetext = fh.readline()
+		
+		if linetext=='':
+			return # meet end of file
+		
+		csv_row = next( csv.reader([linetext]) )
+		# -- csv_row is a list of celt.
+		yield filepos, csv_row 
+
 def find_dups(fh, fields_to_chk, 
 	is_single_as_group=False,
 	vb=0, vblines_list_max=10, need_sort=None):
@@ -29,11 +42,10 @@ def find_dups(fh, fields_to_chk,
 	assert(type(fields_to_chk)==list and (len(fields_to_chk)==0 or type(fields_to_chk[0])==int))
 
 	fh.seek(0)
-	reader = csv.reader(fh)
-	ireader = iter(reader)
+	csv_spliter = enum_csv_rows_by_filehandle(fh)
 	
-	# read the first line(line #0)
-	ar_headers = next(ireader)
+	# read the first line(line #0), take it as csv header text.
+	_, ar_headers = next(csv_spliter)
 	count_fields = len(ar_headers)
 
 	if len(fields_to_chk)==0:
@@ -46,7 +58,7 @@ def find_dups(fh, fields_to_chk,
 	ar_field_stats = [ { header_name : [0] } for header_name in ar_headers ]
 		# [0] above means, the header text appears in line #0
 	
-	for idx_line, row in enumerate(ireader, start=1):
+	for idx_line, (ofs, row) in enumerate(csv_spliter, start=1):
 		for i in fields_to_chk:
 
 			celt = row[i]
@@ -195,7 +207,8 @@ def my_parse_args():
 
 	if len(sys.argv)==1:
 		# If no command-line parameter given, display help and quit.
-		print("You must provide a csv filename.")
+		print("csv-find-dup.py version 1.1 .")
+		print("You must provide a csv filename to process.")
 		print("To see full program options, run:\n")
 		print("  %s --help"%(os.path.basename(__file__)))
 		exit(1)
