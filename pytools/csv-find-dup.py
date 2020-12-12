@@ -104,6 +104,15 @@ def find_dups(csv_filename, fields_to_chk,
 		# [0] above means, the header text appears in line #0
 	
 	for idx_line, ofs, row in csv_spliter:
+
+		if len(row)<count_fields:
+			if len(row)==0:
+				continue # meet empty line, skip it
+			else:
+				errmsg = 'Meet abnormal CSV line(#%d). Field count %d, required %d.'%(
+					idx_line+1, len(row), count_fields)
+				raise ValueError(errmsg)
+
 		for i in fields_to_chk:
 
 			celt = row[i]
