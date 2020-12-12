@@ -4,12 +4,16 @@
 import os, sys, locale
 import argparse
 import csv
+import codecs
 import bisect
 import datetime
 from enum import Enum,IntEnum # since Python 3.4
+from collections import namedtuple
 
 #print("sys.getdefaultencoding()=%s"%(sys.getdefaultencoding()))
 #print("locale.getpreferredencoding()=%s"%(locale.getpreferredencoding()))
+
+g_default_encoding = locale.getpreferredencoding()
 
 """
 Memo: 
@@ -17,35 +21,76 @@ Memo:
  * celx: csv cell's eXtra info (#line and file-offset)
 """
 
+LineExtra = namedtuple('LineExtra', 'idxline ofs')
+
 class VerboseLevel(IntEnum):
 	vb0 = 0
 	vb1 = 1
 	vb2 = 2
 	vb3 = 3
 
-def enum_csv_rows_by_filehandle(fh):
+def enum_csv_rows_by_filehandle(fh, is_yield_offset=False, text_encoding=''):
+	
+	idx_line = 0
 	while True:
-		filepos = fh.tell()
-		linetext = fh.readline()
 		
-		if linetext=='':
-			return # meet end of file
-		
+		if is_yield_offset:
+			
+			assert('b' in fh.mode)
+			
+			filepos = fh.tell()
+			
+			_octets_ = fh.readline() # binary mode readline()
+			if _octets_==b'':
+				return # meet end of file
+			
+			octets = _octets_.strip()
+			if octets==b'':
+				idx_line += 1
+				continue # meet an empty line, skip it
+			
+			# todo: strip leading \r and fix filepos
+			
+			linetext = codecs.decode(octets, text_encoding if text_encoding else g_default_encoding)
+			
+		else:
+			
+			assert(not 'b' in fh.mode)
+			
+			filepos = -1
+			linetext = fh.readline()
+			
+			if linetext=='':
+				return # meet end of file
+			
 		csv_row = next( csv.reader([linetext]) )
 		# -- csv_row is a list of celt.
-		yield filepos, csv_row 
+		
+		yield idx_line, filepos, csv_row
+		idx_line += 1
 
-def find_dups(fh, fields_to_chk, 
+
+def find_dups(csv_filename, fields_to_chk, 
 	is_single_as_group=False,
+	is_force_binary_fh=False, text_encoding='',
 	vb=0, vblines_list_max=10, need_sort=None):
 
 	assert(type(fields_to_chk)==list and (len(fields_to_chk)==0 or type(fields_to_chk[0])==int))
 
+	if vb>=VerboseLevel.vb3:
+		is_force_binary_fh = True
+
+	if is_force_binary_fh:
+		fh = open(csv_filename, 'rb')
+	else:
+		fh = open(csv_filename, 'r', encoding=text_encoding)
+
+
 	fh.seek(0)
-	csv_spliter = enum_csv_rows_by_filehandle(fh)
+	csv_spliter = enum_csv_rows_by_filehandle(fh, is_force_binary_fh, text_encoding)
 	
 	# read the first line(line #0), take it as csv header text.
-	_, ar_headers = next(csv_spliter)
+	_, _, ar_headers = next(csv_spliter)
 	count_fields = len(ar_headers)
 
 	if len(fields_to_chk)==0:
@@ -58,7 +103,7 @@ def find_dups(fh, fields_to_chk,
 	ar_field_stats = [ { header_name : [0] } for header_name in ar_headers ]
 		# [0] above means, the header text appears in line #0
 	
-	for idx_line, (ofs, row) in enumerate(csv_spliter, start=1):
+	for idx_line, ofs, row in csv_spliter:
 		for i in fields_to_chk:
 
 			celt = row[i]
@@ -66,15 +111,20 @@ def find_dups(fh, fields_to_chk,
 				continue
 			dict_stat = ar_field_stats[i]
 			if celt in dict_stat:
-				dict_stat[celt].append(idx_line)
+				dict_stat[celt].append(LineExtra(idx_line, ofs))
 			else:
-				dict_stat[celt] = [idx_line]
+				dict_stat[celt] = [LineExtra(idx_line, ofs)]
 
 	ar_dupcount = [ {} for header_name in ar_headers ]
 	#
 	for idx_field, dict_stat in enumerate(ar_field_stats):
-		for key, celt2idxlines in dict_stat.items():
-			dupcount = len(celt2idxlines)
+		#>>>
+		#Chj memo: Each run of csv-find-dup.py with the SAME input csv, 
+		#we get different list order from dict_stat.items(), why?
+		#print(">>> %s"%(dict_stat.items()))
+		#<<<
+		for key, celt2celx in dict_stat.items():
+			dupcount = len(celt2celx)
 			if dupcount > (0 if is_single_as_group else 1) :
 				ar_dupcount[idx_field][key] = dupcount
 
@@ -114,40 +164,39 @@ def find_dups(fh, fields_to_chk,
 					if vb>=VerboseLevel.vb2:
 						print_vb23_detail(vb, 
 							ar_field_stats[idx_field][dup_text], 
+							text_encoding,
 							vblines_list_max,
 							fh)
 	return 0
 	
-def print_vb23_detail(vb, ar_idxlines, list_max, fh):
-	total = len(ar_idxlines)
+def print_vb23_detail(vb, ar_linex, text_encoding, list_max, fh):
+	
+	# ar_linex is LineExtra[] array
+	
+	total = len(ar_linex)
 	list_count = min(total, list_max)
 	is_elps = total>list_max 
 	
-	s = ",".join(["%d"%(idx) for idx in ar_idxlines[0:list_count]])
+	s = ",".join(["%d"%(x.idxline) for x in ar_linex[0:list_count]])
 	elps = "..." if is_elps else ""
 	
 	print("    Appears at #lines: %s %s"%(s, elps))
 
 	if vb>=VerboseLevel.vb3:
 		
-		# For each field, we have to rescan the csv file again.
-		# And we know that int-s in ar_idxlines are already sorted.
-
-		fh.seek(0)
+		assert('b' in fh.mode)
 		done = 0
-		for idx_line, row in enumerate(fh):
-			
-			# check if current-file-line(idx_line) is in ar_idxlines
-			# if so, print this line's content.
-			
-			idx = bisect.bisect_left(ar_idxlines, idx_line)
-			#
-			if idx<len(ar_idxlines) and ar_idxlines[idx]==idx_line: # found
-				print("    [#%d] %s"%(idx_line, row), end="")
 
-				done += 1
-				if done==list_count:
-					break
+		for linex in ar_linex:
+			fh.seek(linex.ofs)
+			octets = fh.readline()
+			linetext = codecs.decode(octets, text_encoding)
+			print("    [#%d] %s"%(linex.idxline, linetext), end="")
+
+			done += 1
+			if done==list_count:
+				break
+		
 		if is_elps:
 			print("    ...")
 
@@ -177,7 +226,7 @@ def my_parse_args():
 			' * No -v : list only count of duplicate groups.\n'
 			' *    -v : list duplicate text as well.\n'
 			' *   -vv : list #line of each duplicate appearance.\n'
-			' *  -vvv : list line content as well (time consuming).\n'
+			' *  -vvv : list line content as well (a bit time consuming).\n'
 	)
 
 	ap.add_argument('-e', '--encoding', type=str, default='',
@@ -204,6 +253,10 @@ def my_parse_args():
 		help='This is counter-literal. Consider each distinct field text as "duplicate",\n'
 			'so that we are not counting duplicates, but counting distincts.'
 	)
+	
+	ap.add_argument('--binary', action='store_true',
+		help='[Developer] Force binary-mode file reading.'
+	)
 
 	if len(sys.argv)==1:
 		# If no command-line parameter given, display help and quit.
@@ -224,13 +277,11 @@ def my_parse_args():
 def main():
 	args = my_parse_args()
 
-	csvfile = args.csv_filename
+	csv_filename = args.csv_filename
 	fields_to_chk = args.field
-	text_encoding = locale.getpreferredencoding() if not args.encoding else args.encoding
+	text_encoding = g_default_encoding if not args.encoding else args.encoding
 	vb = VerboseLevel(args.verbose)
 
-	fh = open(csvfile, "r", encoding=text_encoding)
-	
 	if fields_to_chk==None:
 		fields_to_chk = []
 		
@@ -239,11 +290,13 @@ def main():
 
 	tstart = datetime.datetime.now()
 	
-	ret = find_dups(fh, fields_to_chk, 
+	ret = find_dups(csv_filename, fields_to_chk, 
 		args.single_as_group,
-		vb, 
-		args.max_verbose_lines, 
-		need_sort=args.sort)
+		is_force_binary_fh = args.binary,
+		text_encoding = text_encoding,
+		vb = vb, 
+		vblines_list_max = args.max_verbose_lines, 
+		need_sort = args.sort)
 
 	tend = datetime.datetime.now()
 
