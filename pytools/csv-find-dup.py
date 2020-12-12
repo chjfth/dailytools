@@ -208,7 +208,7 @@ def print_vb23_detail(vb, ar_linex, text_encoding, list_max, fh):
 			fh.seek(linex.ofs)
 			octets = fh.readline()
 			linetext = codecs.decode(octets, text_encoding)
-			print("    [#%d] %s"%(linex.idxline+1, linetext), end="")
+			print("    [#%d] %s"%(linex.idxline+1, linetext.rstrip()))
 
 			done += 1
 			if done==list_count:
