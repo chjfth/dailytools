@@ -119,6 +119,7 @@ def find_dups(csv_filename, fields_to_chk,
 	#
 	for idx_field, dict_stat in enumerate(ar_field_stats):
 		#>>>
+		#[[UNSTABLE1]]
 		#Chj memo: Each run of csv-find-dup.py with the SAME input csv, 
 		#we get different list order from dict_stat.items(), why?
 		#print(">>> %s"%(dict_stat.items()))
@@ -152,10 +153,17 @@ def find_dups(csv_filename, fields_to_chk,
 			if vb>=VerboseLevel.vb1:
 
 				dup_items = dict_dupcount.items()
-
+				# -- dup_item[0] is celt string, dup_item[1] is dupcount
+				
 				if need_sort=='duptext':
 					dup_items = sorted(dup_items, key=lambda x: x[0])
 				elif need_sort=='dupcount':
+					# Due to [[UNSTABLE1]] comment above, we sort unimportant field first 
+					# then sort important field, to make output stable.
+					
+					dup_items = sorted(dup_items, key=lambda x: x[0]) 
+					# -- comment this line to see unstable result on each run
+
 					dup_items = sorted(dup_items, key=lambda x: x[1])
 
 				for dup_text, dup_count in dup_items:
