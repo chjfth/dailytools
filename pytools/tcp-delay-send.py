@@ -15,6 +15,8 @@ Content-Length: 13
 
 Hello, world!"""
 
+default_tcp_response_bytes = default_tcp_response.replace(b'\n', b'\r\n')
+
 class MyTCPHandler(socketserver.BaseRequestHandler):
     """
     The request handler class for our server.
@@ -41,7 +43,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         if sendfile:
             fh = open(sendfile, 'rb')
         else:
-            fh = io.BytesIO(default_tcp_response)
+            fh = io.BytesIO(default_tcp_response_bytes)
 
         with fh:
             for spec in specs:
@@ -98,20 +100,24 @@ def my_parse_args():
         description='This is a TCP server that sends response to client with delays.'
     )
 
-    ap.add_argument('-p', '--port', type=int, required=True,
+    ap.add_argument('-p', dest='port', type=int, required=True,
         help='TCP listen port.'
     )
 
-    ap.add_argument('-f', '--sendfile', type=str,
+    ap.add_argument('-f', dest='sendfile', type=str,
         help='The content of this file will be sent to clients. '
             'If not provided, an piece of internal content will be used.'
     )
 
+    nheader = default_tcp_response_bytes.find(b'\r\n\r\n')
+    assert(nheader>0)
+    nheader += 4
     ap.add_argument('delayspecs', type=str, nargs='*',
         help='Assign one or more delay parameters.\n'
-            'For example: "1000,500ms" means sending 1000 bytes then delay 500 milliseconds. '
+            'For example: "{nheader},500ms" means sending {nheader} bytes then delay 500 milliseconds(as a chunk). '
             'You can pass in multiple delay-params, separated by a space on the command line, '
-            'so that chunks of bytes will be sent sequentially until all file is sent.'
+            'so that chunks of bytes will be sent sequentially. If there are remaining bytes, '
+            'those will be sent as the final chunk.'.format(nheader=nheader)
     )
 
     args = ap.parse_args()
@@ -126,7 +132,15 @@ def main():
         # interrupt the program with Ctrl-C
         server.serve_forever()
 
+def sanity_check():
+	global default_tcp_response
+	if b'\r' in default_tcp_response:
+		raise ValueError(r'PANIC! There should not be 0x0D(\r) byte in default_tcp_response string.')
+	
+	
+
 if __name__=="__main__":
+	sanity_check()
 	ret = main()
 	exit(ret)
 
