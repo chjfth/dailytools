@@ -2,18 +2,22 @@ import os, sys, time
 import io
 import argparse
 import socketserver
+from datetime import datetime,tzinfo,timedelta,timezone
 
 args = None
 
 socketserver.ThreadingMixIn.daemon_threads = True
 
+hms_pattern = b"[hh:mm:ss.000]"
+
 default_tcp_response = b"""\
 HTTP/1.0 200 OK
 Server: My simple server
 Content-type: text/plain
-Content-Length: 13
+Content-Length: 29
 
-Hello, world!"""
+%s
+Hello, world!"""%(hms_pattern)
 
 default_tcp_response_bytes = default_tcp_response.replace(b'\n', b'\r\n')
 
@@ -35,9 +39,8 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         sendfile = args.sendfile
         specs = args.delayspecs
 
-#       self.data = self.request.recv(1024).strip()
-        prefix = "[{}:{}]".format(self.client_address[0], self.client_address[1])
-        print(prefix+"Client connected.")
+        self.prefix = "[{}:{}]".format(self.client_address[0], self.client_address[1])
+        print(self.prefix+"Client connected.")
 
         fh = None
         if sendfile:
@@ -47,17 +50,35 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 
         with fh:
             for spec in specs:
-                is_continue = self.send_chunk(fh, prefix, spec)
+                is_continue = self.send_chunk(fh, spec)
                 if not is_continue:
                     break
 
-            bytes = fh.read()
-            nbyte_to_send = len(bytes)
+            bytes_to_send = fh.read()
+            nbyte_to_send = len(bytes_to_send)
             if nbyte_to_send>0:
-                print("%s[send final %d bytes]"%(prefix, nbyte_to_send))
-                self.request.sendall(bytes)
+                tsprefix, bytes_to_send = self.translate_bytes2send(bytes_to_send)
+                self.print_one_chunk(tsprefix, "send final %d bytes"%(nbyte_to_send))
+                self.request.sendall(bytes_to_send)
 
-    def send_chunk(self, fh, prefix, spec):
+    @staticmethod
+    def dtnow_prefix():
+        dtnow = datetime.now()
+        tsprefix = dtnow.strftime('%H:%M:%S.') + dtnow.strftime('%f')[0:3] # 08:30:00.123
+        tsprefix = '['+tsprefix+']'
+        return tsprefix
+
+    def translate_bytes2send(self, bytes_to_send):
+        tsprefix = __class__.dtnow_prefix()
+        tsnow = bytes(tsprefix, 'ascii')
+
+        if args.inject_timestamp:
+            assert (len(hms_pattern) == len(tsnow))
+            bytes_to_send = bytes_to_send.replace(hms_pattern, tsnow)
+
+        return (tsprefix, bytes_to_send)
+
+    def send_chunk(self, fh, spec):
         sbyte, sdelay = spec.split(',')
 
         if sbyte.endswith('kb'):
@@ -75,24 +96,31 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             delay_sec = int(sdelay)
 
         if nbyte==0:
-            print("%s[delay %gs]" % (prefix, delay_sec))
+            self.print_one_chunk(None, "delay %gs"%(delay_sec))
             time.sleep(delay_sec)
             return True
         else:
-            bytes = fh.read(nbyte)
-            nbyte_to_send = len(bytes)
+            bytes_to_send = fh.read(nbyte)
+            nbyte_to_send = len(bytes_to_send)
 
             if nbyte_to_send>0:
-                print("%s[send %db, delay %gs]"%(prefix, nbyte_to_send, delay_sec))
-                self.request.sendall(bytes)
+                tsprefix, bytes_to_send = self.translate_bytes2send(bytes_to_send)
+                self.print_one_chunk(tsprefix, "send %db, delay %gs"%(nbyte_to_send, delay_sec))
+                self.request.sendall(bytes_to_send)
 
                 if delay_sec > 0:
                     time.sleep(delay_sec)
                 return True
 
             else:
-                print("%s[all bytes sent]"%(prefix))
+                self.print_one_chunk(None, "all bytes sent")
                 return False
+
+    def print_one_chunk(self, tsprefix, info):
+        if not tsprefix:
+            tsprefix = __class__.dtnow_prefix()
+
+        print("%s%s%s"%(tsprefix, self.prefix, info))
 
 def my_parse_args():
 
@@ -107,6 +135,12 @@ def my_parse_args():
     ap.add_argument('-f', dest='sendfile', type=str,
         help='The content of this file will be sent to clients. '
             'If not provided, an piece of internal content will be used.'
+    )
+
+    ap.add_argument('-t', dest='inject_timestamp', action='store_true',
+        help='Check for "{}" in each sent chunk, if present, replace it with current time. '
+            'With this time substitution feature, client will receive different bytes each time.'.format(
+            hms_pattern.decode('ascii'))
     )
 
     nheader = default_tcp_response_bytes.find(b'\r\n\r\n')
@@ -128,6 +162,9 @@ def main():
     args = my_parse_args()
 
     with socketserver.ThreadingTCPServer(("0.0.0.0", args.port), MyTCPHandler) as server:
+
+        print("Delay-send TCP server started on port %d..."%(args.port))
+
         # Activate the server; this will keep running until you
         # interrupt the program with Ctrl-C
         server.serve_forever()
@@ -137,15 +174,11 @@ def sanity_check():
 	if b'\r' in default_tcp_response:
 		raise ValueError(r'PANIC! There should not be 0x0D(\r) byte in default_tcp_response string.')
 	
-	
-
 if __name__=="__main__":
 	sanity_check()
 	ret = main()
 	exit(ret)
 
 """
-TODO: For default_tcp_response, Linux source will give only \n as separator, right? If so, make it all \r\n .
-
-TODO: With delay spec `0,100ms 86,2s`, why Chrome 87 shows TTFB is 2.1s? I think it should be 0.1s .
+python tcp-delay-send.py -p 8800 -t 0,100ms 91,1000ms 16,1000ms
 """
