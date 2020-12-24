@@ -39,7 +39,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         # at moment TCP connection is *accepted* .
 
         sendfile = args.sendfile
-        specs = args.delayspecs
+        specs = args.delayspec
 
         self.idxchunk = 0
         self.prefix = "[{}:{}]".format(self.client_address[0], self.client_address[1])
@@ -190,7 +190,7 @@ def my_parse_args():
     nheader = default_tcp_response_bytes.find(b'\r\n\r\n')
     assert(nheader>0)
     nheader += 4
-    ap.add_argument('delayspecs', type=str, nargs='*',
+    ap.add_argument('delayspec', type=str, nargs='*',
         help='Assign one or more delay parameters.\n'
             'For example: "{nheader},500ms" means sending {nheader} bytes then delay 500 milliseconds(as a chunk). '
             'You can pass in multiple delay-params, separated by a space on the command line, '
@@ -205,8 +205,8 @@ def my_parse_args():
         # We print addition example usages here. We print it ourselves so that \n can be preserved.
         example = """
 Usage examples:
-
     tcp-delay-send.py -p 8800 -t 0,100ms 91,900ms 16,1s
+    tcp-delay-send.py -p 8800    0,100ms 91,900ms 8,0s 8,1s 1111,5s
 """
         print(example, end='')
         raise
@@ -234,6 +234,3 @@ if __name__=="__main__":
 	ret = main()
 	exit(ret)
 
-"""
-python tcp-delay-send.py -p 8800 -t 0,100ms 91,1000ms 16,1000ms
-"""
