@@ -64,7 +64,13 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 
     def send_chunk(self, fh, spec):
         # Return(bool): is final chunk sent
-        sbyte, sdelay = spec.split(',')
+
+        try:
+            sbyte, sdelay = spec.split(',')
+        except ValueError:
+            # in case the spec does not contain a comma, or contains more than one comma
+            print('Warning: Bad-format spec "%s" ignored.'%(spec))
+            return False
 
         if sbyte.endswith('kb'):
             nbyte = int(sbyte[0:-2])
