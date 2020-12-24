@@ -21,6 +21,8 @@ Hello, world!"""%(hms_pattern)
 
 default_tcp_response_bytes = default_tcp_response.replace(b'\n', b'\r\n')
 
+hexdmp = lambda bytes : ' '.join('{:02X}'.format(x) for x in bytes)
+
 class MyTCPHandler(socketserver.BaseRequestHandler):
     """
     The request handler class for our server.
@@ -59,7 +61,9 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             nbyte_to_send = len(bytes_to_send)
             if nbyte_to_send>0:
                 tsprefix, bytes_to_send = self.translate_bytes2send(bytes_to_send)
-                self.print_one_chunk(tsprefix, "send final %d bytes"%(nbyte_to_send))
+                self.print_one_chunk(tsprefix,
+                                     "send final %d bytes"%(nbyte_to_send),
+                                     bytes_to_send)
                 self.request.sendall(bytes_to_send)
 
     @staticmethod
@@ -106,7 +110,9 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 
             if nbyte_to_send>0:
                 tsprefix, bytes_to_send = self.translate_bytes2send(bytes_to_send)
-                self.print_one_chunk(tsprefix, "send %db, delay %gs"%(nbyte_to_send, delay_sec))
+                self.print_one_chunk(tsprefix,
+                                     "send %db, delay %gs"%(nbyte_to_send, delay_sec),
+                                     bytes_to_send)
                 self.request.sendall(bytes_to_send)
 
                 if delay_sec > 0:
@@ -117,12 +123,26 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                 self.print_one_chunk(None, "all bytes sent")
                 return False
 
-    def print_one_chunk(self, tsprefix, info):
+    def print_one_chunk(self, tsprefix, info, bytes_to_send=None):
         if not tsprefix:
             tsprefix = __class__.dtnow_prefix()
 
         self.idxchunk += 1
         print("%s%s#%d %s"%(tsprefix, self.prefix, self.idxchunk, info))
+
+        nbyte2dump = args.dump_bytes
+        if nbyte2dump>0 and bytes_to_send:
+            # If all bytes are printable ascii, we print ascii,
+            # otherwise, we do hex dump.
+            dumpbytes = bytes_to_send[0:nbyte2dump]
+            str_to_print = ''
+            try:
+                str_to_print = dumpbytes.decode('ascii')
+                if not str_to_print.isprintable():
+                    str_to_print = "(HEX) " + hexdmp(dumpbytes)
+            except ValueError as e: # including UnicodeDecodeError
+                str_to_print = "(HEX) "+ hexdmp(dumpbytes)
+            print("    "+str_to_print)
 
 def my_parse_args():
 
@@ -143,6 +163,11 @@ def my_parse_args():
         help='Check for "{}" in each sent chunk, if present, replace it with current time. '
             'With this time substitution feature, client will receive different bytes each time.'.format(
             hms_pattern.decode('ascii'))
+    )
+
+    ap.add_argument('-d', dest='dump_bytes', type=int, default=0,
+        help='For each send, print count of DUMP_BYTES to console, so that user can verify '
+            'whether each chunk position is correct. Default to 0, no dump print.'
     )
 
     nheader = default_tcp_response_bytes.find(b'\r\n\r\n')
