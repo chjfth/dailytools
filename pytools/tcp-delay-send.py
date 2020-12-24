@@ -8,7 +8,7 @@ args = None
 
 socketserver.ThreadingMixIn.daemon_threads = True
 
-hms_pattern = b"[hh:mm:ss.000]"
+hms_pattern = b"{hh:mm:ss.000}"
 
 default_tcp_response = b"""\
 HTTP/1.0 200 OK
@@ -70,18 +70,18 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
     def dtnow_prefix():
         dtnow = datetime.now()
         tsprefix = dtnow.strftime('%H:%M:%S.') + dtnow.strftime('%f')[0:3] # 08:30:00.123
-        tsprefix = '['+tsprefix+']'
         return tsprefix
 
     def translate_bytes2send(self, bytes_to_send):
-        tsprefix = __class__.dtnow_prefix()
-        tsnow = bytes(tsprefix, 'ascii')
+        tsprefix_bare = __class__.dtnow_prefix()
+        tsnow_bare = bytes(tsprefix_bare, 'ascii')
 
         if args.inject_timestamp:
-            assert (len(hms_pattern) == len(tsnow))
-            bytes_to_send = bytes_to_send.replace(hms_pattern, tsnow)
+            tsnow_with_brackets = b'{'+tsnow_bare+b'}'
+            assert (len(hms_pattern) == len(tsnow_with_brackets))
+            bytes_to_send = bytes_to_send.replace(hms_pattern, tsnow_with_brackets)
 
-        return (tsprefix, bytes_to_send)
+        return ('['+tsprefix_bare+']', bytes_to_send)
 
     def send_chunk(self, fh, spec):
         sbyte, sdelay = spec.split(',')
@@ -138,11 +138,15 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             str_to_print = ''
             try:
                 str_to_print = dumpbytes.decode('ascii')
-                if not str_to_print.isprintable():
+                if not self.can_print(str_to_print):
                     str_to_print = "(HEX) " + hexdmp(dumpbytes)
             except ValueError as e: # including UnicodeDecodeError
                 str_to_print = "(HEX) "+ hexdmp(dumpbytes)
             print("    "+str_to_print)
+
+    @staticmethod
+    def can_print(s):
+        return all([c.isprintable() or c in "\r\n" for c in s])
 
 def my_parse_args():
 
