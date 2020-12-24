@@ -39,8 +39,9 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         sendfile = args.sendfile
         specs = args.delayspecs
 
+        self.idxchunk = 0
         self.prefix = "[{}:{}]".format(self.client_address[0], self.client_address[1])
-        print(self.prefix+"Client connected.")
+        self.print_one_chunk(None, "Client connected.")
 
         fh = None
         if sendfile:
@@ -120,7 +121,8 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         if not tsprefix:
             tsprefix = __class__.dtnow_prefix()
 
-        print("%s%s%s"%(tsprefix, self.prefix, info))
+        self.idxchunk += 1
+        print("%s%s#%d %s"%(tsprefix, self.prefix, self.idxchunk, info))
 
 def my_parse_args():
 
@@ -154,7 +156,18 @@ def my_parse_args():
             'those will be sent as the final chunk.'.format(nheader=nheader)
     )
 
-    args = ap.parse_args()
+    try:
+        args = ap.parse_args()
+    except SystemExit as e:
+        # User has requested -h/--help to print help message.
+        # We print addition example usages here. We print it ourselves so that \n can be preserved.
+        example = """
+Usage examples:
+
+    tcp-delay-send.py -p 8800 -t 0,100ms 91,900ms 16,1s
+"""
+        print(example, end='')
+        raise
     return args
 
 def main():
