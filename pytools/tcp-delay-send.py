@@ -125,7 +125,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 
     def print_one_chunk(self, tsprefix, info, bytes_to_send=None):
         if not tsprefix:
-            tsprefix = __class__.dtnow_prefix()
+            tsprefix = '['+__class__.dtnow_prefix()+']'
 
         self.idxchunk += 1
         print("%s%s#%d %s"%(tsprefix, self.prefix, self.idxchunk, info))
@@ -138,7 +138,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             str_to_print = ''
             try:
                 str_to_print = dumpbytes.decode('ascii')
-                if not self.can_print(str_to_print):
+                if not __class__.can_print(str_to_print):
                     str_to_print = "(HEX) " + hexdmp(dumpbytes)
             except ValueError as e: # including UnicodeDecodeError
                 str_to_print = "(HEX) "+ hexdmp(dumpbytes)
