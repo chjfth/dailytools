@@ -52,19 +52,39 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             fh = io.BytesIO(default_tcp_response_bytes)
 
         with fh:
+            is_final_sent = False
             for spec in specs:
-                is_continue = self.send_chunk(fh, spec)
-                if not is_continue:
+                is_final_sent = self.send_chunk(fh, spec)
+                if is_final_sent:
                     break
 
-            bytes_to_send = fh.read()
-            nbyte_to_send = len(bytes_to_send)
-            if nbyte_to_send>0:
-                tsprefix, bytes_to_send = self.translate_bytes2send(bytes_to_send)
-                self.print_one_chunk(tsprefix,
-                                     "send final %d bytes"%(nbyte_to_send),
-                                     bytes_to_send)
-                self.request.sendall(bytes_to_send)
+            if not is_final_sent:
+                bytes_to_send = fh.read()
+                self.print_and_send_one_chunk(bytes_to_send, 0, True)
+
+    def print_and_send_one_chunk(self, bytes_to_send, delay_sec, is_final=False):
+        # Note: bytes_to_send can be empty
+        # Return(bool): is final chunk sent
+        nbyte_to_send = len(bytes_to_send)
+        if nbyte_to_send > 0:
+            if not is_final:
+                text = "send %db, delay %gs"%(nbyte_to_send, delay_sec)
+            else: # final chunk
+                text = "send remaining %db" % (nbyte_to_send)
+
+            tsprefix, bytes_to_send = self.translate_bytes2send(bytes_to_send)
+
+            self.print_one_chunk(tsprefix, text, bytes_to_send)
+            self.request.sendall(bytes_to_send)
+
+            if delay_sec>0:
+                time.sleep(delay_sec)
+
+        if nbyte_to_send==0 or is_final:
+            self.print_one_chunk(None, "all bytes sent, closing TCP")
+            return True
+        else:
+            return False
 
     @staticmethod
     def dtnow_prefix():
@@ -84,6 +104,8 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         return ('['+tsprefix_bare+']', bytes_to_send)
 
     def send_chunk(self, fh, spec):
+        # Return(bool): is final chunk sent
+
         sbyte, sdelay = spec.split(',')
 
         if sbyte.endswith('kb'):
@@ -101,27 +123,13 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             delay_sec = int(sdelay)
 
         if nbyte==0:
+            # just pure sleep
             self.print_one_chunk(None, "delay %gs"%(delay_sec))
             time.sleep(delay_sec)
-            return True
+            return False
         else:
             bytes_to_send = fh.read(nbyte)
-            nbyte_to_send = len(bytes_to_send)
-
-            if nbyte_to_send>0:
-                tsprefix, bytes_to_send = self.translate_bytes2send(bytes_to_send)
-                self.print_one_chunk(tsprefix,
-                                     "send %db, delay %gs"%(nbyte_to_send, delay_sec),
-                                     bytes_to_send)
-                self.request.sendall(bytes_to_send)
-
-                if delay_sec > 0:
-                    time.sleep(delay_sec)
-                return True
-
-            else:
-                self.print_one_chunk(None, "all bytes sent")
-                return False
+            return self.print_and_send_one_chunk(bytes_to_send, delay_sec)
 
     def print_one_chunk(self, tsprefix, info, bytes_to_send=None):
         if not tsprefix:
