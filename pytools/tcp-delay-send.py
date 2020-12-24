@@ -62,6 +62,33 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                 bytes_to_send = fh.read()
                 self.print_and_send_one_chunk(bytes_to_send, 0, True)
 
+    def send_chunk(self, fh, spec):
+        # Return(bool): is final chunk sent
+        sbyte, sdelay = spec.split(',')
+
+        if sbyte.endswith('kb'):
+            nbyte = int(sbyte[0:-2])
+        elif sbyte.endswith('b'):
+            nbyte = int(sbyte[0:-1])
+        else:
+            nbyte = int(sbyte)
+
+        if sdelay.endswith('ms'):
+            delay_sec = int(sdelay[0:-2])/1000
+        elif sdelay.endswith('s'):
+            delay_sec = int(sdelay[0:-1])
+        else:
+            delay_sec = int(sdelay)
+
+        if nbyte==0:
+            # just pure sleep
+            self.print_one_chunk(None, "delay %gs"%(delay_sec))
+            time.sleep(delay_sec)
+            return False
+        else:
+            bytes_to_send = fh.read(nbyte)
+            return self.print_and_send_one_chunk(bytes_to_send, delay_sec)
+
     def print_and_send_one_chunk(self, bytes_to_send, delay_sec, is_final=False):
         # Note: bytes_to_send can be empty
         # Return(bool): is final chunk sent
@@ -102,34 +129,6 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             bytes_to_send = bytes_to_send.replace(hms_pattern, tsnow_with_brackets)
 
         return ('['+tsprefix_bare+']', bytes_to_send)
-
-    def send_chunk(self, fh, spec):
-        # Return(bool): is final chunk sent
-
-        sbyte, sdelay = spec.split(',')
-
-        if sbyte.endswith('kb'):
-            nbyte = int(sbyte[0:-2])
-        elif sbyte.endswith('b'):
-            nbyte = int(sbyte[0:-1])
-        else:
-            nbyte = int(sbyte)
-
-        if sdelay.endswith('ms'):
-            delay_sec = int(sdelay[0:-2])/1000
-        elif sdelay.endswith('s'):
-            delay_sec = int(sdelay[0:-1])
-        else:
-            delay_sec = int(sdelay)
-
-        if nbyte==0:
-            # just pure sleep
-            self.print_one_chunk(None, "delay %gs"%(delay_sec))
-            time.sleep(delay_sec)
-            return False
-        else:
-            bytes_to_send = fh.read(nbyte)
-            return self.print_and_send_one_chunk(bytes_to_send, delay_sec)
 
     def print_one_chunk(self, tsprefix, info, bytes_to_send=None):
         if not tsprefix:
