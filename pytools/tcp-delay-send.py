@@ -127,8 +127,11 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         assert nbytes>0
 
         split_size = args.splitsize
-        nparts = (nbytes-1)//split_size +1
-        nbytes_sent = 0
+        if split_size==0:
+            nparts = 1
+        else:
+            nparts = (nbytes-1)//split_size +1
+            nbytes_sent = 0
 
         if nparts==1:
             self.request.sendall(bytes_to_send)
@@ -249,7 +252,7 @@ def my_parse_args():
             'If not provided, an piece of internal content will be used.'
     )
 
-    ap.add_argument('-s', dest='splitsize', type=int,
+    ap.add_argument('-s', dest='splitsize', type=int, default=0,
         help='Split a big-size TCP send API call into smaller sendsize. '
             'This tells each small sendsize, in bytes.'
     )
