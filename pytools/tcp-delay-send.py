@@ -109,7 +109,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             tsprefix, bytes_to_send = self.translate_bytes2send(bytes_to_send)
 
             self.print_one_chunk(tsprefix, text, bytes_to_send)
-            self.request.sendall(bytes_to_send)
+            self.sendall_in_parts(bytes_to_send)
 
             if delay_sec>0:
                 time.sleep(delay_sec)
@@ -119,6 +119,24 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             return True
         else:
             return False
+
+    def sendall_in_parts(self, bytes_to_send):
+        nbytes = len(bytes_to_send)
+        assert nbytes>0
+
+        split_size = args.splitsize
+        nparts = (nbytes-1)//split_size +1
+        nbytes_sent = 0
+
+        if nparts==1:
+            self.request.sendall(bytes_to_send)
+
+        else:
+            for i in range(nparts):
+                send_size = min(split_size, nbytes-nbytes_sent)
+                self.print_one_chunk(None, '  sending part.%d, %d bytes'%(i, send_size))
+                self.request.sendall(bytes_to_send[nbytes_sent:nbytes_sent+send_size])
+                nbytes_sent += send_size
 
     @staticmethod
     def dtnow_prefix():
@@ -176,6 +194,11 @@ def my_parse_args():
     ap.add_argument('-f', dest='sendfile', type=str,
         help='The content of this file will be sent to clients. '
             'If not provided, an piece of internal content will be used.'
+    )
+
+    ap.add_argument('-s', dest='splitsize', type=int,
+        help='Split a big-size TCP send API call into smaller sendsize. '
+            'This tells each small sendsize, in bytes.'
     )
 
     ap.add_argument('-t', dest='inject_timestamp', action='store_true',
