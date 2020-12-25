@@ -52,15 +52,18 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             fh = io.BytesIO(default_tcp_response_bytes)
 
         with fh:
-            is_final_sent = False
-            for spec in specs:
-                is_final_sent = self.send_chunk(fh, spec)
-                if is_final_sent:
-                    break
+            try:
+                is_final_sent = False
+                for spec in specs:
+                    is_final_sent = self.send_chunk(fh, spec)
+                    if is_final_sent:
+                        break
 
-            if not is_final_sent:
-                bytes_to_send = fh.read()
-                self.print_and_send_one_chunk(bytes_to_send, 0, True)
+                if not is_final_sent:
+                    bytes_to_send = fh.read()
+                    self.print_and_send_one_chunk(bytes_to_send, 0, True)
+            except ConnectionError:
+                self.print_one_chunk(None, "TCP connection lost.")
 
     def send_chunk(self, fh, spec):
         # Return(bool): is final chunk sent
@@ -143,6 +146,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         self.idxchunk += 1
         print("%s%s#%d %s"%(tsprefix, self.prefix, self.idxchunk, info))
 
+        # verbose byte-dumping below
         nbyte2dump = args.dump_bytes
         if nbyte2dump>0 and bytes_to_send:
             # If all bytes are printable ascii, we print ascii,
