@@ -75,10 +75,8 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             print('Warning: Bad-format spec "%s" ignored.'%(spec))
             return False
 
-        if sbyte.endswith('kb'):
-            nbyte = int(sbyte[0:-2])
-        elif sbyte.endswith('b'):
-            nbyte = int(sbyte[0:-1])
+        if sbyte.endswith('k'):
+            nbyte = int(sbyte[0:-1]) * 1000
         else:
             nbyte = int(sbyte)
 
@@ -211,6 +209,7 @@ def my_parse_args():
 Usage examples:
     tcp-delay-send.py -p 8800 -t 0,100ms 91,900ms 16,1s
     tcp-delay-send.py -p 8800    0,100ms 91,900ms 8,0s 8,1s 1111,5s
+    tcp-delay-send.py -p 5000    10k,2s 10k,2s   -f bigfile.txt
 """
         print(example, end='')
         raise
