@@ -8,6 +8,8 @@ args = None
 
 socketserver.ThreadingMixIn.daemon_threads = True
 
+gen_http_response_filename = "WHR.txt"
+
 hms_pattern = b"{hh:mm:ss.000}"
 
 default_tcp_response = b"""\
@@ -181,6 +183,57 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
     def can_print(s):
         return all([c.isprintable() or c in "\r\n" for c in s])
 
+def non_negative_int(x):
+    i = int(x)
+    if i < 0:
+        raise argparse.ArgumentTypeError('Negative values are not allowed')
+    return i
+
+def yield_http_response(http_content_length):
+    httpheaders0 = b"""\
+HTTP/1.0 200 OK
+Server: My simple server
+Content-type: text/plain
+Content-Length: %d
+
+"""%(http_content_length)
+
+    httpheaders = httpheaders0.replace(b'\n', b'\r\n')
+    header_length = len(httpheaders)
+
+    yield httpheaders
+
+    # Now generating http body, each line 100 bytes.
+    bytes_per_line = 100
+    dot_pattern = '........'
+    assert len(dot_pattern)==8
+    totlines = (http_content_length-1)//bytes_per_line + 1
+
+    for iline in range(totlines):
+
+        # construct a line
+        linetext = '#'  # append later
+        for cval in range(ord('A'), ord('A')+12):
+            cfill = '%d%s'%(iline, chr(cval))
+            clen = len(cfill)
+            snippet = cfill + dot_pattern[clen:]
+            linetext += snippet
+        linetext += '#\r\n'
+
+        if iline < totlines-1:
+            yield linetext.encode('ascii')
+        else:
+            remain = http_content_length % bytes_per_line
+            if remain==0:
+                remain = bytes_per_line
+            yield linetext[:remain].encode('ascii')
+
+def generate_http_response_file(content_length):
+    with open(gen_http_response_filename, 'wb') as fh:
+        for btext in yield_http_response(content_length):
+            fh.write(btext)
+    print("File generated: %s"%(gen_http_response_filename))
+
 def my_parse_args():
 
     ap =argparse.ArgumentParser(
@@ -212,6 +265,10 @@ def my_parse_args():
             'whether each chunk position is correct. Default to 0, no dump print.'
     )
 
+    ap.add_argument('--WHR', type=non_negative_int, default=0, help=argparse.SUPPRESS)
+        # Write a sample Http Response file. The arg-value assigns its HTTP Content-Length.
+        # This file is named by gen_http_response_filename.
+
     nheader = default_tcp_response_bytes.find(b'\r\n\r\n')
     assert(nheader>0)
     nheader += 4
@@ -236,6 +293,11 @@ Usage examples:
 """
         print(example, end='')
         raise
+
+    if args.WHR>0:
+        generate_http_response_file(args.WHR)
+        exit(0)
+
     return args
 
 def main():
