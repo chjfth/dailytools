@@ -11,6 +11,7 @@ args = None
 socketserver.ThreadingMixIn.daemon_threads = True
 
 gen_http_response_filename = "WHR.txt"
+gen_http_response_filename_chunked = "WHRC.txt"
 
 hms_pattern = b"{hh:mm:ss.000}"
 
@@ -247,17 +248,25 @@ def ensure_integer_ms(argval):
             'Argument value("%s") is in wrong format, should be sth like 1000ms.'%(argval)
         )
 
-def yield_http_response(http_content_length):
-    httpheaders0 = b"""\
+def yield_http_response(http_content_length, is_chunked):
+    if not is_chunked:
+        httpheaders0 = b"""\
 HTTP/1.0 200 OK
 Server: My simple server
 Content-type: text/plain
 Content-Length: %d
 
 """%(http_content_length)
+    else:
+        httpheaders0 = b"""\
+HTTP/1.0 200 OK
+Server: My simple server
+Content-type: text/plain
+Transfer-encoding: chunked
 
+"""
     httpheaders = httpheaders0.replace(b'\n', b'\r\n')
-    header_length = len(httpheaders)
+#   header_length = len(httpheaders)
 
     yield httpheaders
 
@@ -279,18 +288,34 @@ Content-Length: %d
         linetext += '#\r\n'
 
         if iline < totlines-1:
-            yield linetext.encode('ascii')
+            seg_payload = linetext.encode('ascii')
+            if not is_chunked:
+                yield seg_payload
+            else:
+                yield b'%x\r\n%s\r\n'%(len(linetext), seg_payload)
         else:
             remain = http_content_length % bytes_per_line
             if remain==0:
                 remain = bytes_per_line
-            yield linetext[:remain].encode('ascii')
 
-def generate_http_response_file(content_length):
-    with open(gen_http_response_filename, 'wb') as fh:
-        for btext in yield_http_response(content_length):
+            seg_payload = linetext[:remain].encode('ascii')
+            if not is_chunked:
+                yield seg_payload
+            else:
+                yield b'%x\r\n%s\r\n'%(remain, seg_payload)
+
+    if is_chunked:
+        # Add last-chunk
+        yield b'0\r\n\r\n'
+
+
+def generate_http_response_file(content_length, is_chunked):
+    filename = gen_http_response_filename if not is_chunked else gen_http_response_filename_chunked
+    with open(filename, 'wb') as fh:
+        for btext in yield_http_response(content_length, is_chunked):
             fh.write(btext)
-    print("File generated: %s"%(gen_http_response_filename))
+    print("File generated: %s"%(filename))
+
 
 def my_parse_args():
 
@@ -339,7 +364,10 @@ def my_parse_args():
         help='Write a sample Http Response to disk file. The arg-value assigns its HTTP Content-Length. '
             'This file is named %s.'%(gen_http_response_filename)
     )
-
+    ap.add_argument('--WHRC', type=ensure_non_negative_int, metavar='bodybytes', default=0,
+        help='Similar to --WHRC, but in `Transfer-Encoding: Chunked` form. '
+            'The file is named %s.'%(gen_http_response_filename_chunked)
+    )
     nheader = default_tcp_response_bytes.find(b'\r\n\r\n')
     assert(nheader>0)
     nheader += 4
@@ -368,8 +396,17 @@ Usage examples:
             print(example, end='')
         raise
 
+    is_exit_now = False
+
     if args.WHR>0:
-        generate_http_response_file(args.WHR)
+        generate_http_response_file(args.WHR, False)
+        is_exit_now = True
+
+    if args.WHRC>0:
+        generate_http_response_file(args.WHRC, True)
+        is_exit_now = True
+
+    if is_exit_now:
         exit(0)
 
     if args.sendfile and not os.path.isfile(args.sendfile):
