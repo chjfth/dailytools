@@ -335,7 +335,7 @@ def my_parse_args():
             'If there are unread bytes, our TCP stack will set RST to client, which is probably not desired.'
     )
 
-    ap.add_argument('--WHR', type=ensure_non_negative_int, default=0,
+    ap.add_argument('--WHR', type=ensure_non_negative_int, metavar='bodybytes', default=0,
         help='Write a sample Http Response to disk file. The arg-value assigns its HTTP Content-Length. '
             'This file is named %s.'%(gen_http_response_filename)
     )
@@ -371,6 +371,10 @@ Usage examples:
     if args.WHR>0:
         generate_http_response_file(args.WHR)
         exit(0)
+
+    if args.sendfile and not os.path.isfile(args.sendfile):
+        print('ERROR: The file does not exist: %s'%(args.sendfile))
+        exit(4)
 
     return args
 
