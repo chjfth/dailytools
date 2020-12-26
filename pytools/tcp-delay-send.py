@@ -193,7 +193,19 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 
         return ('['+tsprefix_bare+']', bytes_to_send)
 
+    s_last_print_sec = 0
+
     def print_one_chunk(self, tsprefix, info, bytes_to_send=None):
+
+        # print time-gap line.
+        # If this print is N seconds away from previous print, a line of N dots will be printed(max 10 dots).
+        #
+        now_sec = time.monotonic()
+        gap_seconds = int(now_sec - __class__.s_last_print_sec)
+        if gap_seconds>0 and __class__.s_last_print_sec!=0:
+            print('.'*min(10, gap_seconds))
+        __class__.s_last_print_sec = now_sec
+
         if not tsprefix:
             tsprefix = '['+__class__.dtnow_prefix()+']'
 
