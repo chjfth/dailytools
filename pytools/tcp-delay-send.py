@@ -4,6 +4,8 @@ import argparse
 import socket, socketserver
 from datetime import datetime,tzinfo,timedelta,timezone
 
+verstr = 'v1.0'
+
 args = None
 
 socketserver.ThreadingMixIn.daemon_threads = True
@@ -293,7 +295,7 @@ def generate_http_response_file(content_length):
 def my_parse_args():
 
     ap =argparse.ArgumentParser(
-        description='This is a TCP server that sends response to client with delays.'
+        description='[%s] This is a TCP server that sends response to client with delays.'%(verstr)
     )
 
     ap.add_argument('-p', dest='port', type=int, required=True,
