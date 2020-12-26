@@ -332,15 +332,18 @@ def my_parse_args():
     try:
         args = ap.parse_args()
     except SystemExit as e:
-        # User has requested -h/--help to print help message.
-        # We print addition example usages here. We print it ourselves so that \n can be preserved.
-        example = """
+        # This may due to user requesting -h/--help to print help message, or,
+        # argparse encounters a parsing error(wrong parameter format etc).
+        if '-h' in sys.argv or '--help' in sys.argv:
+            # For the -h/--help case,
+            # we print addition example usages here. We print it ourselves so that \n can be preserved.
+            example = """
 Usage examples:
     tcp-delay-send.py -p 8800 -t 0,100ms 91,900ms 16,1s
     tcp-delay-send.py -p 8800    0,100ms 91,900ms 8,0s 8,1s 1111,5s
     tcp-delay-send.py -p 5000    10k,2s 10k,2s   -f bigfile.txt
 """
-        print(example, end='')
+            print(example, end='')
         raise
 
     if args.WHR>0:
