@@ -1,7 +1,7 @@
 import os, sys, time
 import io
 import argparse
-import socketserver
+import socket, socketserver
 from datetime import datetime,tzinfo,timedelta,timezone
 
 args = None
@@ -38,10 +38,11 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         # self.request is the TCP socket connected to the client
 
         # Chj: This is called from BaseRequestHandler.__init__(),
-        # at moment TCP connection is *accepted* .
+        # at the moment TCP connection is *accepted* .
 
         sendfile = args.sendfile
         specs = args.delayspec
+        msec_wait_first_byte = args.msec_wait_first_byte
 
         self.idxchunk = 0
         self.prefix = "[{}:{}]".format(self.client_address[0], self.client_address[1])
@@ -53,8 +54,27 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         else:
             fh = io.BytesIO(default_tcp_response_bytes)
 
+        sec_start = time.monotonic()
+
         with fh:
-            try:
+            try: # around tcp connection
+                if msec_wait_first_byte>0:
+                    try:
+                        self.request.settimeout(msec_wait_first_byte/1000)
+                        rbytes = self.request.recv(4096)
+                        sec_elapsed = time.monotonic() - sec_start
+                        if len(rbytes)>0:
+                            self.print_one_chunk(None, 'Seen first-byte from client in %gs (%d bytes)'%(
+                                sec_elapsed, len(rbytes)
+                            ))
+                        else:
+                            self.print_one_chunk(None, 'Client is closing TCP connection.')
+                    except socket.timeout:
+                        self.print_one_chunk(None,
+                            'Timeout! No bytes received from client in %dms.'%(msec_wait_first_byte))
+                    finally:
+                        self.request.settimeout(None)
+
                 is_final_sent = False
                 for spec in specs:
                     is_final_sent = self.send_chunk(fh, spec)
@@ -64,8 +84,19 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                 if not is_final_sent:
                     bytes_to_send = fh.read()
                     self.print_and_send_one_chunk(bytes_to_send, 0, True)
+
+                self.discard_incoming()
+
             except ConnectionError:
                 self.print_one_chunk(None, "TCP connection lost.")
+
+    def discard_incoming(self): # todo
+        # TODO: need to catch exception
+        while True:
+            rbytes = self.request.recv(1024)
+            print("len(rbytes)=%d"%len(rbytes))
+            if not rbytes:
+                break
 
     def send_chunk(self, fh, spec):
         # Return(bool): is final chunk sent
@@ -186,11 +217,19 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
     def can_print(s):
         return all([c.isprintable() or c in "\r\n" for c in s])
 
-def non_negative_int(x):
-    i = int(x)
+def ensure_non_negative_int(argval):
+    i = int(argval)
     if i < 0:
         raise argparse.ArgumentTypeError('Negative values are not allowed')
     return i
+
+def ensure_integer_ms(argval):
+    if argval.endswith('ms'):
+        return int(argval[:-2])
+    else:
+        raise argparse.ArgumentTypeError(
+            'Argument value("%s") is in wrong format, should be sth like 1000ms.'%(argval)
+        )
 
 def yield_http_response(http_content_length):
     httpheaders0 = b"""\
@@ -247,6 +286,13 @@ def my_parse_args():
         help='TCP listen port.'
     )
 
+    ap.add_argument('-w', dest='msec_wait_first_byte', type=ensure_integer_ms, metavar='ms', default=0,
+        help='Tells how many millisec to wait for first received byte before sending out contents. '
+            'If the TCP client is an HTTP client, I suggest "-w 1000ms", so to avoid sending out '
+            'HTTP respone prematurely before HTTP request is issued by client. '
+            'Default is 0ms, no waiting.'
+    )
+
     ap.add_argument('-f', dest='sendfile', type=str,
         help='The content of this file will be sent to clients. '
             'If not provided, an piece of internal content will be used.'
@@ -268,7 +314,7 @@ def my_parse_args():
             'whether each chunk position is correct. Default to 0, no dump print.'
     )
 
-    ap.add_argument('--WHR', type=non_negative_int, default=0, help=argparse.SUPPRESS)
+    ap.add_argument('--WHR', type=ensure_non_negative_int, default=0, help=argparse.SUPPRESS)
         # Write a sample Http Response file. The arg-value assigns its HTTP Content-Length.
         # This file is named by gen_http_response_filename.
 
