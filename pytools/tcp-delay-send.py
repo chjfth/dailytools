@@ -85,18 +85,20 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                     bytes_to_send = fh.read()
                     self.print_and_send_one_chunk(bytes_to_send, 0, True)
 
-                self.discard_incoming()
+                if args.is_clean_tcp:
+                    self.discard_incoming()
 
             except ConnectionError:
                 self.print_one_chunk(None, "TCP connection lost.")
 
-    def discard_incoming(self): # todo
-        # TODO: need to catch exception
-        while True:
-            rbytes = self.request.recv(1024)
-            print("len(rbytes)=%d"%len(rbytes))
-            if not rbytes:
-                break
+    def discard_incoming(self):
+        self.request.settimeout(0) # non-blocking mode
+        try:
+            while True:
+                rbytes = self.request.recv(4096)
+                self.print_one_chunk(None, "Discarding incoming bytes %d"%len(rbytes))
+        except BlockingIOError: # when no byte in TCP-read-buffer
+            pass
 
     def send_chunk(self, fh, spec):
         # Return(bool): is final chunk sent
@@ -314,9 +316,15 @@ def my_parse_args():
             'whether each chunk position is correct. Default to 0, no dump print.'
     )
 
-    ap.add_argument('--WHR', type=ensure_non_negative_int, default=0, help=argparse.SUPPRESS)
-        # Write a sample Http Response file. The arg-value assigns its HTTP Content-Length.
-        # This file is named by gen_http_response_filename.
+    ap.add_argument('--clean-tcp', dest='is_clean_tcp', action='store_true',
+        help='Before closing TCP, I will clear TCP read buffer(read and discard all bytes). '
+            'If there are unread bytes, our TCP stack will set RST to client, which is probably not desired.'
+    )
+
+    ap.add_argument('--WHR', type=ensure_non_negative_int, default=0,
+        help='Write a sample Http Response to disk file. The arg-value assigns its HTTP Content-Length. '
+            'This file is named %s.'%(gen_http_response_filename)
+    )
 
     nheader = default_tcp_response_bytes.find(b'\r\n\r\n')
     assert(nheader>0)
