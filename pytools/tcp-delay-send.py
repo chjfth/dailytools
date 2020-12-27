@@ -253,16 +253,16 @@ def yield_http_response(http_content_length, is_chunked):
         httpheaders0 = b"""\
 HTTP/1.0 200 OK
 Server: My simple server
-Content-type: text/plain
+Content-Type: text/plain
 Content-Length: %d
 
 """%(http_content_length)
     else:
         httpheaders0 = b"""\
-HTTP/1.0 200 OK
+HTTP/1.1 200 OK
 Server: My simple server
 Content-type: text/plain
-Transfer-encoding: chunked
+Transfer-Encoding: Chunked
 
 """
     httpheaders = httpheaders0.replace(b'\n', b'\r\n')
