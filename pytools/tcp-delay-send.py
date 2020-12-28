@@ -420,13 +420,28 @@ def main():
     global args
     args = my_parse_args()
 
-    with socketserver.ThreadingTCPServer(("0.0.0.0", args.port), MyTCPHandler) as server:
+    server = socketserver.ThreadingTCPServer(("0.0.0.0", args.port),
+            MyTCPHandler,
+            bind_and_activate=False)
+    with server:
 
-        print("Delay-send TCP server started on port %d..."%(args.port))
+        try:
+            server.server_bind()
+        except OSError as e:
+            print("Fail to bind to TCP listen port %d ."%(args.port))
+            print("  %s"%(e))
+            print("Suggestion: Using -p <port> to select a different listen port.")
+            return 4
+
+        server.server_activate()
+
+        print("Delay-send TCP server started on port %d ..."%(args.port))
 
         # Activate the server; this will keep running until you
         # interrupt the program with Ctrl-C
         server.serve_forever()
+
+    return 0
 
 def sanity_check():
 	global default_tcp_response
