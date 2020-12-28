@@ -10,6 +10,7 @@ args = None
 
 socketserver.ThreadingMixIn.daemon_threads = True
 
+g_default_servport = 8000
 gen_http_response_filename = "WHR.txt"
 gen_http_response_filename_chunked = "WHRC.txt"
 
@@ -323,8 +324,8 @@ def my_parse_args():
         description='[%s] This is a TCP server that sends response to client with delays.'%(verstr)
     )
 
-    ap.add_argument('-p', dest='port', type=int, required=True,
-        help='TCP listen port.'
+    ap.add_argument('-p', dest='port', type=int, default=8000,
+        help='TCP listen port. Default is %d'%(g_default_servport)
     )
 
     ap.add_argument('-w', dest='msec_wait_first_byte', type=ensure_integer_ms, metavar='ms', default=0,
