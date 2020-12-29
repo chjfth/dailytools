@@ -103,9 +103,10 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                 nbytes = len(rbytes)
                 if nbytes>0:
                     info = "Discarded incoming bytes %d"%(nbytes)
+                    self.print_one_chunk(None, info)
                 else:
                     assert nbytes==0
-                    info = "The peer has closed TCP; we are in CLOSE_WAIT(half-close). Nothing to discard."
+                    info = "The peer has closed TCP; we are in CLOSE_WAIT(half-close). No more to discard."
                     self.print_one_chunk(None, info)
                     break
 
