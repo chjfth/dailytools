@@ -100,7 +100,15 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         try:
             while True:
                 rbytes = self.request.recv(4096)
-                self.print_one_chunk(None, "Discarded incoming bytes %d"%len(rbytes))
+                nbytes = len(rbytes)
+                if nbytes>0:
+                    info = "Discarded incoming bytes %d"%(nbytes)
+                else:
+                    assert nbytes==0
+                    info = "The peer has closed TCP; we are in CLOSE_WAIT(half-close). Nothing to discard."
+                    self.print_one_chunk(None, info)
+                    break
+
         except BlockingIOError: # when no byte in TCP-read-buffer
             pass
 
