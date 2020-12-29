@@ -100,7 +100,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         try:
             while True:
                 rbytes = self.request.recv(4096)
-                self.print_one_chunk(None, "Discarding incoming bytes %d"%len(rbytes))
+                self.print_one_chunk(None, "Discarded incoming bytes %d"%len(rbytes))
         except BlockingIOError: # when no byte in TCP-read-buffer
             pass
 
@@ -380,6 +380,10 @@ def my_parse_args():
             'those will be sent as the final chunk.'.format(nheader=nheader)
     )
 
+    if len(sys.argv)==1:
+        # When no argument given, just print help and exit, so that user knows how to use it.
+        sys.argv.append('-h')
+
     try:
         args = ap.parse_args()
     except SystemExit as e:
@@ -390,9 +394,12 @@ def my_parse_args():
             # we print addition example usages here. We print it ourselves so that \n can be preserved.
             example = """
 Usage examples:
-    tcp-delay-send.py -p 8800 -t 0,100ms 91,900ms 16,1s
-    tcp-delay-send.py -p 8800    0,100ms 91,900ms 8,0s 8,1s 1111,5s
-    tcp-delay-send.py -p 5000    10k,2s 10k,2s   -f bigfile.txt
+    tcp-delay-send.py -p 8000
+    tcp-delay-send.py 0,100ms 91,900ms 16,1s
+    tcp-delay-send.py 0,100ms 91,900ms 8,0s 8,1s 1111,5s
+    
+    tcp-delay-send.py --WHR=50000 --WHRC=50000
+    tcp-delay-send.py 10k,2s 10k,2s  -f WHR.txt -w 1000ms --clean-tcp 
 """
             print(example, end='')
         raise
