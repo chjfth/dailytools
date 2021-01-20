@@ -408,7 +408,7 @@ Usage examples:
     tcp-delay-send.py 0,100ms 91,900ms 8,0s 8,1s 1111,5s
     
     tcp-delay-send.py --WHR=50000 --WHRC=50000
-    tcp-delay-send.py 10k,2s 10k,2s  -f WHR.txt -w 1000ms --clean-tcp 
+    tcp-delay-send.py -w 1000ms 10k,2s 10k,3s -f WHR.txt
 """
             print(example, end='')
         raise
