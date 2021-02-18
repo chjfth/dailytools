@@ -90,6 +90,11 @@ def make_gnx(R):
 	return gen_nextX
 
 def do_plot_iter_Rs(Rs, x0s, itercount):
+	
+	if itercount>10000:
+		print("Info： itercount is too large, I cannot do plotting.")
+		return
+	
 	Rs = Rs if is_iter(Rs) else [Rs]
 	x0s = x0s if is_iter(x0s) else [x0s]*len(Rs)
 	
@@ -130,15 +135,41 @@ def breed(R, x, gens):
 
 
 if __name__=='__main__':
-	
+	if len(sys.argv)==1:
+		# Use examples from Dedao.cn Joker 2016.11.18 《卓克·卓老板聊科技》
+		
+		do_plot_iter_Rs(
+			[2, 2],
+			[0.2, 0.7],
+			10)
+		
+		# 13:00
+		do_plot_iter_Rs([2.5]*2, [0.2, 0.7], 10)
+		
+		# 13:48
+		do_plot_iter_Rs([3.1]*2, [0.2, 0.7], 10)
+
+		do_plot_iter_Rs([3.4]*2, [0.2, 0.7], 50)
+
+		do_plot_iter_Rs([3.5]*2, [0.2, 0.7], 50)
+
+		do_plot_iter_Rs([3.55]*2, [0.2, 0.7], 200)
+		
+		# 15:50 chaos
+		do_plot_iter_Rs([3.58]*2, [0.2, 0.20000001], 200)
+		do_plot_iter_Rs([4.00]*2, [0.2, 0.20000001], 200)
+		
+	else:
+		# Use parameters from command line
 		R = float(sys.argv[1])
 		x0 = float(sys.argv[2])
 		itercount = int(sys.argv[3])
+		
 		breed(R, x0, itercount)
 		
-		do_plot_iter(make_gnx(R), x0, itercount)
+		do_plot_iter_Rs(R, x0, itercount)
 		
-		do_plot_iter_Rs([R, R+0.2], x0, itercount) # you can try this
+		# do_plot_iter_Rs([R, R+0.2], x0, itercount) # you can try this: chaos_iter.py 2.9 0.1 100
 	
 # 3.445 -> 3.45
 # 3.0 -> 3.01
