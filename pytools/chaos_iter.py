@@ -29,7 +29,9 @@ def breed(R, x, gens):
 			print_next += print_hop
 
 	# fine print final `tail_details` values one by one, no skip
-	print('---- fine print final %d values ----'%(min(tail_details, gens)))
+	if tail_details<gens:
+		print('---- fine print final %d values ----'%(min(tail_details, gens)))
+	
 	for i in range(max(0, gens-tail_details), gens):
 		x = nextX(R, x)
 		print("[%d] %.8f"%(i+1, x))
