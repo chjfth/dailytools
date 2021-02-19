@@ -5,10 +5,9 @@ import os, sys, locale
 import argparse
 import csv
 import codecs
-import bisect
 import datetime
 from enum import Enum,IntEnum # since Python 3.4
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 
 #print("sys.getdefaultencoding()=%s"%(sys.getdefaultencoding()))
 #print("locale.getpreferredencoding()=%s"%(locale.getpreferredencoding()))
@@ -21,36 +20,98 @@ Memo:
  * celx: csv cell's eXtra info (#line and file-offset)
 """
 
+class CsvRow:
+	def __init__(self, idxline, rowdict):
+		self.idxline = idxline # zero based line number
+		self.rowdict = rowdict # row content in dict type
+		# Q: can I get rowtext as well with Python csv module?
+
 class CsvFieldInfo:
 	def __init__(self, exists, keys=None, compares=None):
 		self.exists = exists
 		self.keys = keys
 		self.cmps = compares
 
+	def itemkey(self, csvrow):
+		# csvrow is a dict-object representing a csv row.
+		# return the string that should be used as dict-key indexing a specific csv row
+		return ",".join([ csvrow[field] for field in self.keys ])
+
 class CsvWork:
 	def __init__(self, csvfilename):
+		self.csvfilename = csvfilename
 		self.fh = open(csvfilename, encoding=g_default_encoding)
 		self.csvreader = csv.DictReader(self.fh)
 		self.csvfieldinfo = CsvFieldInfo(self.csvreader.fieldnames)
+		self.rows = {} # each item in this dict is a CsvRow
 
 	def close(self):
 		if self.fh:
 			self.fh.close()
 
+	def LoadDict(self):
+		for idxline, row_now in enumerate(self.csvreader, start=1): # skip 1 due to CSV header line
+			key = self.csvfieldinfo.itemkey(row_now)
+			if key in self.rows.keys():
+				keyvalues = "\n".join(["  [%s] %s"%(field, row_now[field]) for field in self.csvfieldinfo.keys ])
+				oldline = "  #%d : %s"%(self.rows[key].idxline+1, ",".join(self.rows[key].rowdict.values()))
+				newline = "  #%d : %s"%(idxline+1, ",".join(row_now.values()))
+				raise SystemExit("Not allowed duplicate key(s) in %s:\n%s\n%s\n%s"%(
+					self.csvfilename, keyvalues, oldline, newline))
+			else:
+				self.rows[key] = CsvRow(idxline, row_now)
+
 class DiffWork:
-	def __init__(self, csvworkA, csvworkB):
-		self.csvworks = [csvworkA, csvworkB]
+	def __init__(self, args):
+		# args is from my_parse_args()
+		self.csvworkA = CsvWork(args.csvfileA)
+		self.csvworkB = CsvWork(args.csvfileB)
 		self.csvfieldinfo = None # set later
 
+		# Check two csv field names match
+		if self.csvworkA.csvfieldinfo.exists != self.csvworkB.csvfieldinfo.exists:
+			msg = "Two csv files do NOT have the same header fields, so I cannot compare them."
+			raise SystemExit(msg)
+
+		existfields = self.csvworkA.csvfieldinfo.exists
+
+		# Check if key-field is assigned.
+
+		if args.key_fields == None:
+			print_csv_header(existfields)
+			raise SystemExit("No key-field(s) assigned. Please assign one or more from above(-k).")
+
+		# Check if user-given field names are valid.
+
+		keyfields = args.key_fields.split(',')
+		invalid_fields = set(keyfields) - set(existfields)
+		if invalid_fields:
+			raise SystemExit("Some key-fields are invalid: " + ",".join(invalid_fields))
+
+		# If -c is not given, assume all fields for comparing
+		cmpfields = args.comparing_fields.split(',') if args.comparing_fields else existfields
+
+		# ensure that cmpfields does not contain key fields, which is meaningless
+		cmpfields = [f for f in cmpfields if f not in keyfields]
+
+		invalid_fields = set(cmpfields) - set(existfields)
+		if invalid_fields:
+			raise SystemExit("Some comparing-fields are invalid: " + ",".join(invalid_fields))
+
+		# OK. csv fields validated.
+		#
+		self.csvfieldinfo = CsvFieldInfo(self.csvworkA.csvfieldinfo.exists, keyfields, cmpfields)
+		self.csvworkA.csvfieldinfo = self.csvworkB.csvfieldinfo = self.csvfieldinfo
+
 	def close(self):
-		self.csvworks[0].close()
-		self.csvworks[1].close()
+		self.csvworkA.close()
+		self.csvworkB.close()
 
-	def itemkey(self, csvrow):
-		# csvrow is a dict-object representing a csv row
-		# return the string that should be used as dict-key indexing a specific csv row
-		return ",".join([ csvrow[field] for field in self.csvfieldinfo.keys ])
+	def StartDiff(self):
+		self.csvworkA.LoadDict()
+		self.csvworkB.LoadDict()
 
+		PENDING...
 
 def my_parse_args():
 	
@@ -74,13 +135,14 @@ def my_parse_args():
 	)
 
 	ap.add_argument('-e', '--encoding', type=str, default='',
-		help='Assign text encoding of the input csv file. If omit, system default will be used.\n'
+		help='Assign text encoding of the input csv file. If omit, system default will be used. '
 			'Typical encodings: utf8, gbk, big5, utf16le.'
 	)
 
 	args = ap.parse_args()
 
 	if args.encoding:
+		global g_default_encoding
 		g_default_encoding = args.encoding
 
 	return args
@@ -90,69 +152,18 @@ def print_csv_header(fieldnames):
 	for i, f in enumerate(fieldnames):
 		print("[%d] %s"%(i+1, f))
 
-def check_csv_validity(args):
-
-	csvworkA = CsvWork(args.csvfileA)
-	csvworkB = CsvWork(args.csvfileB)
-
-	dw = DiffWork(csvworkA, csvworkB)
-
-
-	# Check two csv field names match
-	if dw.readerA.fieldnames != dw.readerB.fieldnames:
-		msg = "Two csv files do NOT have the same header fields, so I cannot compare them."
-		raise SystemExit(msg)
-
-	dw.existfields = dw.readerA.fieldnames
-
-	# Check if key-field is assigned.
-
-	if args.key_fields == None:
-		print_csv_header(dw.existfields)
-		raise SystemExit("No key-field(s) assigned. Please assign one or more from above(-k).")
-
-	# Check if user-given field names are valid.
-
-	dw.keyfields = args.key_fields.split(',')
-	invalid_fields = set(dw.keyfields) - set(dw.existfields)
-	if invalid_fields:
-		raise SystemExit("Some key-fields are invalid: " + ",".join(invalid_fields))
-
-	# If -c is not given, assume all fields for comparing
-	dw.cmpfields = args.comparing_fields.split(',') if args.comparing_fields else dw.existfields
-
-	# ensure that cmpfields does not contain key fields, which is meaningless
-	dw.cmpfields = [f for f in dw.cmpfields if f not in dw.keyfields]
-
-	invalid_fields = set(dw.cmpfields) - set(dw.existfields)
-	if invalid_fields:
-		raise SystemExit("Some comparing-fields are invalid: " + ",".join(invalid_fields))
-
-	return dw
-
 #def make_key_dict(csvreader, ):
-
-def StartDiff(dw):
-
-	dictA = {}
-	dictB = {}
-
-	for row in dw.readerA:
-
-
 
 def main():
 	args = my_parse_args()
 
 	try:
-		dw = check_csv_validity(args) # get DiffWork object
-		StartDiff(dw)
+		dw = DiffWork(args) # create DiffWork object
+		dw.StartDiff()
 		dw.close() # close csv file handle // todo: use with... ctx manager
 	except SystemExit as e:
 		print("ERROR EXIT: "+str(e.code))
-		raise
-
-
+		exit(1) # raise // `raise` will print the error message again
 
 	print("ok")
 
