@@ -17,8 +17,8 @@ g_default_encoding = locale.getpreferredencoding()
 class ReportFileID(IntEnum):
 	changedA = 0
 	changedB = 1
-	added = 2
-	deleted = 3
+	deletedA = 2
+	addedB = 3
 
 class ReportFiles:
 	def __init__(self, prefix):
@@ -163,7 +163,7 @@ class DiffWork:
 
 		added_keys = self.csvworkB.keyset - self.csvworkA.keyset
 
-		removed_keys = self.csvworkA.keyset - self.csvworkB.keyset
+		deleted_keys = self.csvworkA.keyset - self.csvworkB.keyset
 
 		common_keys = self.csvworkA.keyset & self.csvworkB.keyset
 
@@ -180,13 +180,13 @@ class DiffWork:
 		is_sort = args.sort
 
 		print("Diff summary:")
-		print("  csvfileA %d items => csvfileB %d items"%(
+		print("  csvfileA %d rows => csvfileB %d rows"%(
 			len(self.csvworkA.keyset), len(self.csvworkB.keyset)))
 
-		print("  Unchanged items: %d"%(len(unchanged_keylist)))
-		print("    Changed items: %d"%(len(changed_keylist)))
-		print("      Added items: %d"%(len(added_keys)))
-		print("    Removed items: %d"%(len(removed_keys)))
+		print("  Unchanged rows: %d"%(len(unchanged_keylist)))
+		print("    Changed rows: %d"%(len(changed_keylist)))
+		print("    Deleted rows: %d"%(len(deleted_keys)))
+		print("      Added rows: %d"%(len(added_keys)))
 
 		with ReportFiles(args.report_prefix) as rptfiles:
 
@@ -201,7 +201,7 @@ class DiffWork:
 
 			if changed_keylist:
 				print()
-				print("Changed items report in:")
+				print("Changed rows report file:")
 				print("  " + rptfiles.getfilename(ReportFileID.changedA))
 				print("  " + rptfiles.getfilename(ReportFileID.changedB))
 
@@ -213,7 +213,7 @@ class DiffWork:
 				fhB.write(csvheader+"\n")
 				#
 				if verbose:
-					print("Changed items detail:")
+					print("Changed rows detail:")
 				#
 				for key in sorted(changed_keylist,
 						key=lambda k:(k if is_sort else self.csvworkA[k].idxline)
@@ -232,16 +232,40 @@ class DiffWork:
 								csvrowB.idxline1b, csvrowB.getvalues(cmpfields)
 						))
 
-			if added_keys:
+			if deleted_keys:
 				print()
-				print("Added items report in:")
-				print("  " + rptfiles.getfilename(ReportFileID.added))
+				print("Deleted rows report file:")
+				print("  " + rptfiles.getfilename(ReportFileID.deletedA))
 
-				fh = rptfiles[ReportFileID.added]
+				fh = rptfiles[ReportFileID.deletedA]
 				fh.write(csvheader + "\n")
 				#
 				if verbose:
-					print("Added items detail:")
+					print("Deleted rows detail:")
+				#
+				for key in sorted(deleted_keys,
+				        key=lambda k: (k if is_sort else self.csvworkA[k].idxline)
+					):
+					csvrow = self.csvworkA[key]
+					rptrow = csvrow.getvalues(bothfields)
+					fh.write(rptrow+"\n")
+
+					if verbose:
+						print("  -[%s] (L#%d)%s"%(
+							csvrow.getvalues(keyfields),
+							csvrow.idxline1b, csvrow.getvalues(cmpfields)
+						))
+
+			if added_keys:
+				print()
+				print("Added rows report file:")
+				print("  " + rptfiles.getfilename(ReportFileID.addedB))
+
+				fh = rptfiles[ReportFileID.addedB]
+				fh.write(csvheader + "\n")
+				#
+				if verbose:
+					print("Added rows detail:")
 				#
 				for key in sorted(added_keys,
 				        key=lambda k:(k if is_sort else self.csvworkB[k].idxline)
@@ -254,30 +278,6 @@ class DiffWork:
 						print("  +[%s] (L#%d)%s"%(
 								csvrow.getvalues(keyfields),
 								csvrow.idxline1b, csvrow.getvalues(cmpfields)
-						))
-
-			if removed_keys:
-				print()
-				print("Deleted items report in:")
-				print("  " + rptfiles.getfilename(ReportFileID.deleted))
-
-				fh = rptfiles[ReportFileID.deleted]
-				fh.write(csvheader + "\n")
-				#
-				if verbose:
-					print("Deleted items detail:")
-				#
-				for key in sorted(removed_keys,
-				        key=lambda k: (k if is_sort else self.csvworkA[k].idxline)
-					):
-					csvrow = self.csvworkA[key]
-					rptrow = csvrow.getvalues(bothfields)
-					fh.write(rptrow+"\n")
-
-					if verbose:
-						print("  -[%s] (L#%d)%s"%(
-							csvrow.getvalues(keyfields),
-							csvrow.idxline1b, csvrow.getvalues(cmpfields)
 						))
 
 def my_parse_args():
