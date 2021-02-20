@@ -183,10 +183,20 @@ class DiffWork:
 		print("  csvfileA %d rows => csvfileB %d rows"%(
 			len(self.csvworkA.keyset), len(self.csvworkB.keyset)))
 
-		print("  Unchanged rows: %d"%(len(unchanged_keylist)))
-		print("    Changed rows: %d"%(len(changed_keylist)))
-		print("    Deleted rows: %d"%(len(deleted_keys)))
-		print("      Added rows: %d"%(len(added_keys)))
+		Acount = len(self.csvworkA.keyset)
+		Bcount = len(self.csvworkB.keyset)
+		#
+		n = len(unchanged_keylist)
+		print("  Unchanged rows: %d (%.4g%%)"%(n, 100*n/Acount))
+		#
+		n = len(changed_keylist)
+		print("    Changed rows: %d (%.4g%%)"%(n, 100*n/Acount))
+		#
+		n = len(deleted_keys)
+		print("    Deleted rows: %d (%.4g%%)"%(n, 100*n/Acount))
+		#
+		n = len(added_keys)
+		print("      Added rows: %d (%.4g%%)"%(n, 100*n/Acount))
 
 		with ReportFiles(args.report_prefix) as rptfiles:
 
