@@ -26,6 +26,9 @@ class CsvRow:
 		self.rowdict = rowdict # row content in dict type
 		# Q: can I get rowtext as well with Python csv module?
 
+	def __getitem__(self, key):
+		return self.rowdict[key]
+
 class CsvFieldInfo:
 	def __init__(self, exists, keys=None, compares=None):
 		self.exists = exists
@@ -34,8 +37,14 @@ class CsvFieldInfo:
 
 	def itemkey(self, csvrow):
 		# csvrow is a dict-object representing a csv row.
-		# return the string that should be used as dict-key indexing a specific csv row
+		# return the string that will be used as dict-key indexing a specific csv row
 		return ",".join([ csvrow[field] for field in self.keys ])
+
+	def is_csvrow_equal(self, rowA, rowB):
+		for cmpfield in self.cmps:
+			if rowA[cmpfield] != rowB[cmpfield]:
+				return False
+		return True
 
 class CsvWork:
 	def __init__(self, csvfilename):
@@ -44,6 +53,16 @@ class CsvWork:
 		self.csvreader = csv.DictReader(self.fh)
 		self.csvfieldinfo = CsvFieldInfo(self.csvreader.fieldnames)
 		self.rows = {} # each item in this dict is a CsvRow
+
+	def __getitem__(self, key):
+		return self.rows[key]
+
+	@property
+	def keyset(self):
+		"""For the dict-object representing the whole csv file,
+		return all the keys as a set.
+		"""
+		return set(self.rows.keys())
 
 	def close(self):
 		if self.fh:
@@ -111,7 +130,35 @@ class DiffWork:
 		self.csvworkA.LoadDict()
 		self.csvworkB.LoadDict()
 
-		PENDING...
+		added_keys = self.csvworkB.keyset - self.csvworkA.keyset
+#		print(added_keys)
+
+		removed_keys = self.csvworkA.keyset - self.csvworkB.keyset
+#		print(removed_keys)
+
+		common_keys = self.csvworkA.keyset & self.csvworkB.keyset
+#		print(common_keys)
+
+		# Check which common-keys has changed content
+		unchanged_keylist = []
+		changed_keylist = []
+		for key in common_keys:
+			if self.csvfieldinfo.is_csvrow_equal(self.csvworkA[key], self.csvworkB[key]):
+				unchanged_keylist.append(key)
+			else:
+				changed_keylist.append(key)
+
+		print("Diff summary:")
+		print("  csvfileA %d items => csvfileB %d items"%(
+			len(self.csvworkA.keyset), len(self.csvworkB.keyset)))
+
+		print("  Unchanged items: %d"%(len(unchanged_keylist)))
+		print("    Changed items: %d"%(len(changed_keylist)))
+
+		print("      Added items: %d"%(len(added_keys)))
+
+		print("    Removed items: %d"%(len(removed_keys)))
+
 
 def my_parse_args():
 	
