@@ -61,8 +61,8 @@ class CsvRow:
 		return self.idxline+1
 
 class CsvFieldInfo:
-	def __init__(self, exists, keys=None, compares=None):
-		self.exists = exists
+	def __init__(self, stocks, keys=None, compares=None):
+		self.stocks = stocks
 		self.keys = keys
 		self.cmps = compares
 
@@ -119,11 +119,11 @@ class DiffWork:
 		self.csvfieldinfo = None # set later
 
 		# Check two csv field names match
-		if self.csvworkA.csvfieldinfo.exists != self.csvworkB.csvfieldinfo.exists:
+		if self.csvworkA.csvfieldinfo.stocks != self.csvworkB.csvfieldinfo.stocks:
 			msg = "Two csv files do NOT have the same header fields, so I cannot compare them."
 			raise SystemExit(msg)
 
-		existfields = self.csvworkA.csvfieldinfo.exists
+		existfields = self.csvworkA.csvfieldinfo.stocks
 
 		# Check if key-field is assigned.
 
@@ -150,7 +150,7 @@ class DiffWork:
 
 		# OK. csv fields validated.
 		#
-		self.csvfieldinfo = CsvFieldInfo(self.csvworkA.csvfieldinfo.exists, keyfields, cmpfields)
+		self.csvfieldinfo = CsvFieldInfo(self.csvworkA.csvfieldinfo.stocks, keyfields, cmpfields)
 		self.csvworkA.csvfieldinfo = self.csvworkB.csvfieldinfo = self.csvfieldinfo
 
 	def close(self):
@@ -333,8 +333,6 @@ def print_csv_header(fieldnames):
 	for i, f in enumerate(fieldnames):
 		print("[%d] %s"%(i+1, f))
 
-#def make_key_dict(csvreader, ):
-
 def main():
 	args = my_parse_args()
 
@@ -350,5 +348,4 @@ if __name__=="__main__":
 	ret = main()
 	exit(ret)
 
-# todo: .exists rename to .original
 # todo: Use csv.DictWriter to generate report csv
