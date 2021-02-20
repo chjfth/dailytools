@@ -56,6 +56,10 @@ class CsvRow:
 	def getvalues(self, keyfields):
 		return ",".join([self.rowdict[key] for key in keyfields])
 
+	@property
+	def idxline1b(self):
+		return self.idxline+1
+
 class CsvFieldInfo:
 	def __init__(self, exists, keys=None, compares=None):
 		self.exists = exists
@@ -173,6 +177,7 @@ class DiffWork:
 				changed_keylist.append(key)
 
 		verbose = args.verbose
+		is_sort = args.sort
 
 		print("Diff summary:")
 		print("  csvfileA %d items => csvfileB %d items"%(
@@ -212,7 +217,9 @@ class DiffWork:
 				if verbose:
 					print("Changed items detail:")
 				#
-				for key in changed_keylist:
+				for key in sorted(changed_keylist,
+						key=lambda k:(k if is_sort else self.csvworkA[k].idxline)
+					):
 					csvrowA = self.csvworkA[key]
 					csvrowB = self.csvworkB[key]
 					rptrowA = csvrowA.getvalues(bothfields)
@@ -221,10 +228,10 @@ class DiffWork:
 					fhB.write(rptrowB+"\n")
 
 					if verbose:
-						print("  *[%s] %s => %s"%(
+						print("  *[%s] (L#%d)%s => (L#%d)%s"%(
 								csvrowA.getvalues(keyfields),
-								csvrowA.getvalues(cmpfields),
-								csvrowB.getvalues(cmpfields)
+								csvrowA.idxline1b, csvrowA.getvalues(cmpfields),
+								csvrowB.idxline1b, csvrowB.getvalues(cmpfields)
 						))
 
 			if added_keys:
@@ -238,15 +245,17 @@ class DiffWork:
 				if verbose:
 					print("Added items detail:")
 				#
-				for key in added_keys:
+				for key in sorted(added_keys,
+				        key=lambda k:(k if is_sort else self.csvworkB[k].idxline)
+					):
 					csvrow = self.csvworkB[key]
 					rptrow = csvrow.getvalues(bothfields)
 					fh.write(rptrow+"\n")
 
 					if verbose:
-						print("  +[%s] %s"%(
+						print("  +[%s] (L#%d)%s"%(
 								csvrow.getvalues(keyfields),
-								csvrow.getvalues(cmpfields)
+								csvrow.idxline1b, csvrow.getvalues(cmpfields)
 						))
 
 			if removed_keys:
@@ -260,15 +269,17 @@ class DiffWork:
 				if verbose:
 					print("Deleted items detail:")
 				#
-				for key in removed_keys:
+				for key in sorted(removed_keys,
+				        key=lambda k: (k if is_sort else self.csvworkA[k].idxline)
+					):
 					csvrow = self.csvworkA[key]
 					rptrow = csvrow.getvalues(bothfields)
 					fh.write(rptrow+"\n")
 
 					if verbose:
-						print("  -[%s] %s"%(
+						print("  -[%s] (L#%d)%s"%(
 							csvrow.getvalues(keyfields),
-							csvrow.getvalues(cmpfields)
+							csvrow.idxline1b, csvrow.getvalues(cmpfields)
 						))
 
 def my_parse_args():
@@ -295,6 +306,11 @@ def my_parse_args():
 	ap.add_argument('-e', '--encoding', type=str, default='',
 		help='Assign text encoding of the input csv file. If omit, system default will be used. '
 			'Typical encodings: utf8, gbk, big5, utf16le.'
+	)
+
+	ap.add_argument('--sort', action="store_true",
+		help='Sort reported result by key-fields content. '
+		'If not given, Result is the same order as input csv.'
 	)
 
 	ap.add_argument('-v', '--verbose', action='count', default=0,
