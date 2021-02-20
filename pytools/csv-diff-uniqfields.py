@@ -21,11 +21,11 @@ class ReportFileID(IntEnum):
 	deleted = 3
 
 class ReportFiles:
-	def __init__(self):
+	def __init__(self, prefix):
 		self.reportfilenames = []
 		self.reportfh = []
 		for en in ReportFileID:
-			filename = "%s.csv"%(en.name)
+			filename = "%s%s.csv"%(prefix, en.name)
 			self.reportfilenames.append( filename )
 			fh = open(filename, "w", encoding=g_default_encoding)
 			self.reportfh.append(fh)
@@ -188,12 +188,10 @@ class DiffWork:
 		print("      Added items: %d"%(len(added_keys)))
 		print("    Removed items: %d"%(len(removed_keys)))
 
-		with ReportFiles() as rptfiles:
+		with ReportFiles(args.report_prefix) as rptfiles:
 
 			# Report CSV should contain keyfield and cmpfield, but NOT those uncared fields.
 			# So, when the user compares out changedA.csv and changedB.csv, he gets only cared content.
-
-			# todo: may add original line idx.
 
 			csvheader = ",".join(self.csvfieldinfo.keys + self.csvfieldinfo.cmps)
 
@@ -292,7 +290,7 @@ def my_parse_args():
 			'other comparing-field(s) at your will.'
 	)
 
-	ap.add_argument('csvfileA', type=str, help='First csv filename to compare.')
+	ap.add_argument('csvfileA', type=str, help='First csv filename to compare. First csv filename to compare. First csv filename to compare.')
 	ap.add_argument('csvfileB', type=str, help='Second csv filename to compare.')
 
 	ap.add_argument('-k', '--key-fields', type=str,
@@ -316,6 +314,12 @@ def my_parse_args():
 	ap.add_argument('-v', '--verbose', action='count', default=0,
 		help='Will print detailed diff result to console, otherwise, only print to file.'
 	)
+
+	prefix_default = 'DIFF-'
+	ap.add_argument('--report-prefix', type=str, default=prefix_default,
+	    help='Add prefix to report filename, default is "%s".'%(prefix_default)
+	)
+
 	args = ap.parse_args()
 
 	if args.encoding:
