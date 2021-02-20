@@ -47,14 +47,14 @@ class ReportFiles:
 class CsvRow:
 	def __init__(self, idxline, rowdict):
 		self.idxline = idxline # zero based line number
-		self.rowdict = rowdict # row content in dict type
-		# Q: can I get rowtext as well with Python csv module?
+		self.dictOfFields = rowdict # row content in dict type
+		# Todo: can I get rowtext as well with Python csv module?
 
 	def __getitem__(self, item):
-		return self.rowdict[item]
+		return self.dictOfFields[item]
 
 	def getvalues(self, keyfields):
-		return ",".join([self.rowdict[key] for key in keyfields])
+		return ",".join([self.dictOfFields[key] for key in keyfields])
 
 	@property
 	def idxline1b(self):
@@ -62,11 +62,11 @@ class CsvRow:
 
 class CsvFieldInfo:
 	def __init__(self, stocks, keys=None, compares=None):
-		self.stocks = stocks
-		self.keys = keys
-		self.cmps = compares
+		self.stocks = stocks # stock fields
+		self.keys = keys     # key fields
+		self.cmps = compares # comparing fields.
 
-	def itemkey(self, csvrow):
+	def rowkey(self, csvrow):
 		# csvrow is a dict-object representing a csv row.
 		# return the string that will be used as dict-key indexing a specific csv row
 		return ",".join([ csvrow[field] for field in self.keys ])
@@ -101,15 +101,15 @@ class CsvWork:
 
 	def LoadDict(self):
 		for idxline, row_now in enumerate(self.csvreader, start=1): # skip 1 due to CSV header line
-			key = self.csvfieldinfo.itemkey(row_now)
-			if key in self.rows.keys():
+			rowkey = self.csvfieldinfo.rowkey(row_now)
+			if rowkey in self.rows.keys():
 				keyvalues = "\n".join(["  [%s] %s"%(field, row_now[field]) for field in self.csvfieldinfo.keys ])
-				oldline = "  #%d : %s"%(self.rows[key].idxline+1, ",".join(self.rows[key].rowdict.values()))
+				oldline = "  #%d : %s"%(self.rows[rowkey].idxline+1, ",".join(self.rows[rowkey].dictOfFields.values()))
 				newline = "  #%d : %s"%(idxline+1, ",".join(row_now.values()))
 				raise SystemExit("Not allowed duplicate key(s) in %s:\n%s\n%s\n%s"%(
 					self.csvfilename, keyvalues, oldline, newline))
 			else:
-				self.rows[key] = CsvRow(idxline, row_now)
+				self.rows[rowkey] = CsvRow(idxline, row_now)
 
 class DiffWork:
 	def __init__(self, args):
