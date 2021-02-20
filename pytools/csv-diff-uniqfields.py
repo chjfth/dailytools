@@ -14,11 +14,35 @@ from collections import namedtuple, OrderedDict
 
 g_default_encoding = locale.getpreferredencoding()
 
-"""
-Memo: 
- * celt: csv cell text
- * celx: csv cell's eXtra info (#line and file-offset)
-"""
+class ReportFileID(IntEnum):
+	changedA = 0
+	changedB = 1
+	added = 2
+	deleted = 3
+
+class ReportFiles:
+	def __init__(self):
+		self.reportfilenames = []
+		self.reportfh = []
+		for en in ReportFileID:
+			filename = "%s.csv"%(en.name)
+			self.reportfilenames.append( filename )
+			fh = open(filename, "w", encoding=g_default_encoding)
+			self.reportfh.append(fh)
+		# todo: On partial open() failure, we should close already opened file.
+
+	def __enter__(self):
+		return self
+
+	def __exit__(self, exc_type, exc_val, exc_tb):
+		for en in ReportFileID:
+			self.reportfh[en].close()
+
+	def __getitem__(self, reportid):
+		return self.reportfh[reportid]
+
+	def getfilename(self, reportid):
+		return self.reportfilenames[reportid]
 
 class CsvRow:
 	def __init__(self, idxline, rowdict):
@@ -26,8 +50,11 @@ class CsvRow:
 		self.rowdict = rowdict # row content in dict type
 		# Q: can I get rowtext as well with Python csv module?
 
-	def __getitem__(self, key):
-		return self.rowdict[key]
+	def __getitem__(self, item):
+		return self.rowdict[item]
+
+	def getvalues(self, keyfields):
+		return ",".join([self.rowdict[key] for key in keyfields])
 
 class CsvFieldInfo:
 	def __init__(self, exists, keys=None, compares=None):
@@ -54,8 +81,8 @@ class CsvWork:
 		self.csvfieldinfo = CsvFieldInfo(self.csvreader.fieldnames)
 		self.rows = {} # each item in this dict is a CsvRow
 
-	def __getitem__(self, key):
-		return self.rows[key]
+	def __getitem__(self, item):
+		return self.rows[item]
 
 	@property
 	def keyset(self):
@@ -126,18 +153,15 @@ class DiffWork:
 		self.csvworkA.close()
 		self.csvworkB.close()
 
-	def StartDiff(self):
+	def StartDiff(self, args):
 		self.csvworkA.LoadDict()
 		self.csvworkB.LoadDict()
 
 		added_keys = self.csvworkB.keyset - self.csvworkA.keyset
-#		print(added_keys)
 
 		removed_keys = self.csvworkA.keyset - self.csvworkB.keyset
-#		print(removed_keys)
 
 		common_keys = self.csvworkA.keyset & self.csvworkB.keyset
-#		print(common_keys)
 
 		# Check which common-keys has changed content
 		unchanged_keylist = []
@@ -148,17 +172,104 @@ class DiffWork:
 			else:
 				changed_keylist.append(key)
 
+		verbose = args.verbose
+
 		print("Diff summary:")
 		print("  csvfileA %d items => csvfileB %d items"%(
 			len(self.csvworkA.keyset), len(self.csvworkB.keyset)))
 
 		print("  Unchanged items: %d"%(len(unchanged_keylist)))
 		print("    Changed items: %d"%(len(changed_keylist)))
-
 		print("      Added items: %d"%(len(added_keys)))
-
 		print("    Removed items: %d"%(len(removed_keys)))
 
+		with ReportFiles() as rptfiles:
+
+			# Report CSV should contain keyfield and cmpfield, but NOT those uncared fields.
+			# So, when the user compares out changedA.csv and changedB.csv, he gets only cared content.
+
+			# todo: may add original line idx.
+
+			csvheader = ",".join(self.csvfieldinfo.keys + self.csvfieldinfo.cmps)
+
+			keyfields = self.csvfieldinfo.keys
+			cmpfields = self.csvfieldinfo.cmps
+			bothfields = keyfields + cmpfields
+
+			if changed_keylist:
+				print()
+				print("Changed items report in:")
+				print("  " + rptfiles.getfilename(ReportFileID.changedA))
+				print("  " + rptfiles.getfilename(ReportFileID.changedB))
+
+				# The changed thing is cmpfields' value, not "key-fields" itself.
+				fhA = rptfiles[ReportFileID.changedA]
+				fhB = rptfiles[ReportFileID.changedB]
+				#
+				fhA.write(csvheader+"\n")
+				fhB.write(csvheader+"\n")
+				#
+				if verbose:
+					print("Changed items detail:")
+				#
+				for key in changed_keylist:
+					csvrowA = self.csvworkA[key]
+					csvrowB = self.csvworkB[key]
+					rptrowA = csvrowA.getvalues(bothfields)
+					rptrowB = csvrowB.getvalues(bothfields)
+					fhA.write(rptrowA+"\n")
+					fhB.write(rptrowB+"\n")
+
+					if verbose:
+						print("  *[%s] %s => %s"%(
+								csvrowA.getvalues(keyfields),
+								csvrowA.getvalues(cmpfields),
+								csvrowB.getvalues(cmpfields)
+						))
+
+			if added_keys:
+				print()
+				print("Added items report in:")
+				print("  " + rptfiles.getfilename(ReportFileID.added))
+
+				fh = rptfiles[ReportFileID.added]
+				fh.write(csvheader + "\n")
+				#
+				if verbose:
+					print("Added items detail:")
+				#
+				for key in added_keys:
+					csvrow = self.csvworkB[key]
+					rptrow = csvrow.getvalues(bothfields)
+					fh.write(rptrow+"\n")
+
+					if verbose:
+						print("  +[%s] %s"%(
+								csvrow.getvalues(keyfields),
+								csvrow.getvalues(cmpfields)
+						))
+
+			if removed_keys:
+				print()
+				print("Deleted items report in:")
+				print("  " + rptfiles.getfilename(ReportFileID.deleted))
+
+				fh = rptfiles[ReportFileID.deleted]
+				fh.write(csvheader + "\n")
+				#
+				if verbose:
+					print("Deleted items detail:")
+				#
+				for key in removed_keys:
+					csvrow = self.csvworkA[key]
+					rptrow = csvrow.getvalues(bothfields)
+					fh.write(rptrow+"\n")
+
+					if verbose:
+						print("  -[%s] %s"%(
+							csvrow.getvalues(keyfields),
+							csvrow.getvalues(cmpfields)
+						))
 
 def my_parse_args():
 	
@@ -186,6 +297,9 @@ def my_parse_args():
 			'Typical encodings: utf8, gbk, big5, utf16le.'
 	)
 
+	ap.add_argument('-v', '--verbose', action='count', default=0,
+		help='Will print detailed diff result to console, otherwise, only print to file.'
+	)
 	args = ap.parse_args()
 
 	if args.encoding:
@@ -206,14 +320,15 @@ def main():
 
 	try:
 		dw = DiffWork(args) # create DiffWork object
-		dw.StartDiff()
+		dw.StartDiff(args)
 		dw.close() # close csv file handle // todo: use with... ctx manager
 	except SystemExit as e:
 		print("ERROR EXIT: "+str(e.code))
 		exit(1) # raise // `raise` will print the error message again
 
-	print("ok")
-
 if __name__=="__main__":
 	ret = main()
 	exit(ret)
+
+# todo: .exists rename to .original
+# todo: Use csv.DictWriter to generate report csv
