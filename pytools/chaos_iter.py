@@ -2,9 +2,14 @@
 #coding: utf-8
 
 import os, sys
+from collections import namedtuple
 
 import math
+import matplotlib
 import matplotlib.pyplot as plt
+
+fontname_subscript = "Tahoma" # For character of ₙ ₀
+fontname_chs = "Microsoft YaHei" # 微软雅黑
 
 mycolors = ['#50a0e0', '#f86030', '#50c878', '#c030dd']
 mycolors_dark = ['#90e0ff', '#ffe8e0', '#b0e0b0', '#e0c0ff']
@@ -15,8 +20,7 @@ def getcolor_dark(idx): return mycolors_dark[idx%len(mycolors)]
 
 def Enable_chs_font(fontname='Microsoft YaHei'):
     # Thanks https://my.oschina.net/u/1180306/blog/279818
-    from pylab import mpl
-    mpl.rcParams['font.sans-serif'] = fontname
+    matplotlib.rcParams['font.sans-serif'] = fontname
 
 def is_iter(obj):
     try:
@@ -25,7 +29,7 @@ def is_iter(obj):
     except TypeError:
         return False
 
-def do_plot_iter(fx, yinits, xcount, ylimit=None, fr=False, draw_axis=None):
+def do_plot_iter(fx, yinits, xcount, title=None, ylimit=None, fr=False, draw_axis=None):
     
     # fx(t) is the function to calculate next iteration-value
     
@@ -73,8 +77,12 @@ def do_plot_iter(fx, yinits, xcount, ylimit=None, fr=False, draw_axis=None):
     
     plt.xlabel("Iteration count (n)")
     plt.ylabel("X Value after iteration (Xₙ)")
-    
-    Enable_chs_font('Tahoma')
+
+    #Enable_chs_font() # Sigh, I cannot use CHS font as default
+
+    if title:
+        plt.title(title, fontname=fontname_chs)
+
     plt.show()
 
 
@@ -89,22 +97,32 @@ def make_gnx(R):
 		return R*x*(1-x)
 	return gen_nextX
 
-def do_plot_iter_Rs(Rs, x0s, itercount):
-	
+#ChaosDraw = namedtuple('ChaosDraw', 'R X0 text') # cannot support default member value?
+class ChaosDraw:
+	def __init__(self, R, X0, text=None):
+		self.R = R
+		self.X0 = X0
+		self.text = text
+
+def do_plot_iter_Rs(params, itercount, title):
+
+	chaosdraws = [ChaosDraw(*p) for p in params]
+
 	if itercount>10000:
 		print("Info： itercount is too large, I cannot do plotting.")
 		return
-	
-	Rs = Rs if is_iter(Rs) else [Rs]
-	x0s = x0s if is_iter(x0s) else [x0s]*len(Rs)
-	
+
+	x0s = [c.X0 for c in chaosdraws]
+
 	list_gnx = []
-	for i, R in enumerate(Rs):
-		gnx = make_gnx(R)
-		gnx.label = 'R={} , X₀={}'.format(R, x0s[i])
+	for i, draw in enumerate(chaosdraws):
+		gnx = make_gnx(draw.R)
+		gnx.label = 'R={} , X₀={}%'.format(draw.R, draw.X0*100)
+		if draw.text:
+			gnx.label += " (%s)"%(draw.text)
 		list_gnx.append(gnx)
 	
-	do_plot_iter(list_gnx, x0s, itercount)
+	do_plot_iter(list_gnx, x0s, itercount, title=title)
 
 def breed(R, x, gens):
 	
@@ -136,38 +154,79 @@ def breed(R, x, gens):
 
 if __name__=='__main__':
 	if len(sys.argv)==1:
-		# Use examples from Dedao.cn Joker 2016.11.18 《卓克·卓老板聊科技》
-		
-		do_plot_iter_Rs(
-			[2, 2],
-			[0.2, 0.7],
-			10)
-		
-		# 13:00
-		do_plot_iter_Rs([2.5]*2, [0.2, 0.7], 10)
-		
-		# 13:48
-		do_plot_iter_Rs([3.1]*2, [0.2, 0.7], 10)
+		# Use examples from Dedao.cn Joker 2016.11.18
+		# 《卓克·卓老板聊科技》混沌世界是怎么出现的？
 
-		do_plot_iter_Rs([3.4]*2, [0.2, 0.7], 50)
+		R = 2
+		do_plot_iter_Rs([
+			[R, 0.2, "@11:44"],
+			[R, 0.9999, "@12:22"],
+			], 16, f"R={R}时, 迭代结果很快稳定在 0.5, 不论初始百分比")
 
-		do_plot_iter_Rs([3.5]*2, [0.2, 0.7], 50)
+		R = 2.5
+		do_plot_iter_Rs([
+			[R, 0.2, "@13:00"],
+			[R, 0.9, ""],
+			], 10, f"R={R}, 结果稳定在 0.6")
 
-		do_plot_iter_Rs([3.55]*2, [0.2, 0.7], 200)
-		
-		# 15:50 chaos
-		do_plot_iter_Rs([3.58]*2, [0.2, 0.20000001], 200)
-		do_plot_iter_Rs([4.00]*2, [0.2, 0.20000001], 200)
-		
+		R = 3.1
+		do_plot_iter_Rs([
+			[R, 0.2, "@13:46"],
+			[R, 0.7, ""],
+			], 10, f"R={R}, 结果在 2 个数值上跳变")
+
+		# 卓老板 14:10 说 R=3.4 时就会出现4个跳变值，很可能是说错了,
+		# 需要 R=3.45 才行.
+		R = 3.4
+		do_plot_iter_Rs([
+			[R, 0.2, "@14:10 *"],
+			[R, 0.7, ""],
+			], 100, f"R={R}, 结果在 2 个数值上来回跳变")
+		#
+		R = 3.45
+		do_plot_iter_Rs([
+			[R, 0.2, "@14:10"],
+			[R, 0.7, ""],
+			], 100, f"R={R}, 结果在 4 个数值上来回跳变")
+
+		R = 3.56
+		do_plot_iter_Rs([
+			[R, 0.2, ""],
+			[R, 0.7, ""],
+			], 200, f"R={R}, 结果在 8 个数值上来回跳变")
+
+		R = 3.567
+		do_plot_iter_Rs([
+			[R, 0.2, ""],
+			], 1000, f"R={R}, 结果在 16 个数值上来回跳变")
+
+		R = 3.572
+		do_plot_iter_Rs([
+			[R, 0.2, "@14:25"],
+			], 2000, "R 刚刚超过混沌临界点的样子")
+
+		R = 3.572
+		do_plot_iter_Rs([
+			[R, 0.2, "@15:50"],
+			[R, 0.2000000001, "@15:50"],
+		], 500, f"R={R}, 两根曲线伴随迭代200多次后突然分道扬镳")
+
+		R = 4.0
+		do_plot_iter_Rs([
+			[R, 0.2, "@16:28"],
+			[R, 0.2000000001, "@16:28"],
+			], 100, f"R={R}, R值越大, 两曲线分道越早")
+
 	else:
-		# Use parameters from command line
+		# Use parameters from command line, e.g.
+		# 2.2 0.1 10
 		R = float(sys.argv[1])
 		x0 = float(sys.argv[2])
 		itercount = int(sys.argv[3])
 		
 		breed(R, x0, itercount)
 		
-		do_plot_iter_Rs(R, x0, itercount)
+		do_plot_iter_Rs([[R, x0]], itercount, "混沌演示")
 		
 		# do_plot_iter_Rs([R, R+0.2], x0, itercount) # you can try this: chaos_iter.py 2.9 0.1 100
 	
