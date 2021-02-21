@@ -10,6 +10,11 @@ import math
 import matplotlib
 import matplotlib.pyplot as plt
 
+from decimal import *
+decimal_context = getcontext()
+decimal_context.traps[FloatOperation] = True # Raise error on truncation
+decimal_context.prec = 56 # fractional precision (default 28 is not enough)
+
 fontname_subscript = "Tahoma" # For character of ₙ ₀
 fontname_chs = "Microsoft YaHei" # 微软雅黑
 
@@ -61,6 +66,7 @@ def do_plot_iter(fx, yinits, xcount, title=None, ylimit=None, fr=False, draw_axi
         for i in range(1, xcount+1):
             # Each point:
             try:
+	            ### ITERATION ###
                 y = fx(y)
                 if ylimits and (y<ylimits[0] or y>ylimits[1]):
                     y = math.nan
@@ -96,7 +102,7 @@ def nextX(R, x):
 
 def make_gnx(R):
 	def gen_nextX(x):
-		return R*x*(1-x)
+		return R * x * (1-x)
 	return gen_nextX
 
 #ChaosDraw = namedtuple('ChaosDraw', 'R X0 text') # cannot support default member value?
@@ -119,7 +125,12 @@ def do_plot_iter_Rs(params, itercount, title=None):
 	list_gnx = []
 	for i, draw in enumerate(chaosdraws):
 		gnx = make_gnx(draw.R)
-		gnx.label = 'R={} , X₀={}%'.format(draw.R, draw.X0*100)
+		gnx.label = 'R={} , X₀={}%'.format(draw.R, float(draw.X0*100))
+		# -- note: if not casting to float,
+		#   "{}%".format( Decimal("0.12034")*100 )
+		# will be result in
+		#   12.03400%
+		# which is weird.
 		if draw.text:
 			gnx.label += " (%s)"%(draw.text)
 		list_gnx.append(gnx)
@@ -142,7 +153,7 @@ def breed(R, x, gens):
 		x = nextX(R, x)
 		
 		if i+1==print_next:
-			print("[%d] %.8f"%(i+1, x))
+			print("[{}] {}".format(i+1, x))
 			print_next += print_hop
 
 	# fine print final `tail_details` values one by one, no skip
@@ -151,7 +162,7 @@ def breed(R, x, gens):
 	
 	for i in range(max(0, gens-tail_details), gens):
 		x = nextX(R, x)
-		print("[%d] %.8f"%(i+1, x))
+		print("[{}] {}".format(i+1, x))
 
 
 if __name__=='__main__':
@@ -159,67 +170,76 @@ if __name__=='__main__':
 		# Use examples from Dedao.cn Joker 2016.11.18
 		# 《卓克·卓老板聊科技》混沌世界是怎么出现的？
 
-		R = 2
 		do_plot_iter_Rs([
-			[2, 0.2, "@11:44"],
-			[2, 0.9999, "@12:22"],
-			[2.5, 0.2, "@13:00"],
-			[2.5, 0.9, ""],
-			], 16, f"R=2,迭代结果很快稳定于0.5, R=2.5,稳定于0.6")
+			[2, Decimal("0.2"), "@11:44"],
+			[2, Decimal("0.9999"), "@12:22"],
+			[Decimal("2.5"), Decimal("0.2"), "@13:00"],
+			[Decimal("2.5"), Decimal("0.9"), ""],
+			], 16, f"R=2,迭代结果很快稳定于0.5 ; R=2.5,稳定于0.6")
 
-		R = 3.1
+		R = Decimal("3.1")
 		do_plot_iter_Rs([
-			[R, 0.2, "@13:46"],
-			[R, 0.7, ""],
+			[R, Decimal("0.2"), "@13:46"],
+			[R, Decimal("0.7"), ""],
 			], 10, f"R={R}, 结果在 2 个数值上跳变")
 
-		# 卓老板 14:10 说 R=3.4 时就会出现4个跳变值，很可能是说错了,
-		# 需要 R=3.45 才行.
-		R = 3.4
+		# 卓老板 14:10 说 R=3.4 时就会出现4个跳变值，应该是说错了,
+		# 经计算只会收敛到两个点.
+		# 0.4519632476261529500520627804
+		# 0.8421543994326705793597019256
+		R = Decimal("3.4")
 		do_plot_iter_Rs([
-			[R, 0.2, "@14:10 *"],
-			[R, 0.7, ""],
-			], 100, f"R={R}, 结果在 2 个数值上来回跳变")
+			[R, Decimal("0.2"), "@14:10 *"],
+			[R, Decimal("0.7"), ""],
+			], 100, f"R={R}, 结果在 2 个数值上跳变")
 		#
-		R = 3.45
+		# R=3.45 时, 才会收敛到四个点.
+		# 0.4459676567920559802834429045
+		# 0.8524277453117333628737654796
+		# 0.4339916609539836091945485465
+		# 0.8474680021585322104281798105
+		R = Decimal("3.45")
 		do_plot_iter_Rs([
-			[R, 0.2, "@14:10"],
-			[R, 0.7, ""],
-			], 100, f"R={R}, 结果在 4 个数值上来回跳变")
+			[R, Decimal("0.2"), "@14:10"],
+			[R, Decimal("0.7"), ""],
+			], 100, f"R={R}, 结果在 4 个数值上跳变")
 
-		R = 3.56
+		R = Decimal("3.56")
 		do_plot_iter_Rs([
-			[R, 0.2, ""],
-			[R, 0.7, ""],
-			], 200, f"R={R}, 结果在 8 个数值上来回跳变")
+			[R, Decimal("0.2"), ""],
+			[R, Decimal("0.7"), ""],
+			], 200, f"R={R}, 结果在 8 个数值上跳变")
 
-		R = 3.567
+		R = Decimal("3.567")
 		do_plot_iter_Rs([
-			[R, 0.2, ""],
-			], 1000, f"R={R}, 结果在 16 个数值上来回跳变")
+			[R, Decimal("0.2"), ""],
+			], 1000, f"R={R}, 结果在 16 个数值上跳变")
 
-		R = 3.572
+		# Memo:
+		# R=3.569 , 32 个跳变点
+
+		R = Decimal("3.572")
 		do_plot_iter_Rs([
-			[R, 0.2, "@14:25"],
+			[R, Decimal("0.2"), "@14:25"],
 			], 2000, "R 刚刚超过混沌临界点的样子")
 
-		R = 3.572
+		R = Decimal("3.572")
 		do_plot_iter_Rs([
-			[R, 0.2, "@15:50"],
-			[R, 0.2000000001, "@15:50"],
+			[R, Decimal("0.2"), "@15:50"],
+			[R, Decimal("0.2000000001"), "@15:50"],
 		], 500, f"R={R}, 两根曲线伴随迭代200多次后突然分道扬镳")
 
-		R = 4.0
+		R = Decimal("4.0")
 		do_plot_iter_Rs([
-			[R, 0.2, "@16:28"],
-			[R, 0.2000000001, "@16:28"],
+			[R, Decimal("0.2"), "@16:28"],
+			[R, Decimal("0.2000000001"), "@16:28"],
 			], 100, f"R={R}, R值越大, 两曲线分道越早")
 
 	else:
 		# Use parameters from command line, e.g.
 		# 2.2 0.1 10
-		R = float(sys.argv[1])
-		x0 = float(sys.argv[2])
+		R = Decimal(sys.argv[1])
+		x0 = Decimal(sys.argv[2])
 		itercount = int(sys.argv[3])
 
 		title = None if len(sys.argv)<=4 else sys.argv[4]
@@ -227,8 +247,6 @@ if __name__=='__main__':
 		breed(R, x0, itercount)
 		
 		do_plot_iter_Rs([[R, x0]], itercount, title)
-		
-		# do_plot_iter_Rs([R, R+0.2], x0, itercount) # you can try this: chaos_iter.py 2.9 0.1 100
-	
+
 # 3.445 -> 3.45
 # 3.0 -> 3.01
