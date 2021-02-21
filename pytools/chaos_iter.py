@@ -162,25 +162,36 @@ def breed(R, x, itercount):
 			# Check if we've got looped value. If so, we can stop iteration.
 			if x == checkloop_value:
 				print("==== Loop value(s) found ====")
-				dump_looped_values(i_+1, R, x)
+				dump_final_values(i_, R, x)
 				break
 			else:
 				checkloop_value = x
 
 			checkloop_inext = i_ + CHECKLOOP_HOP
 	else:
-		print("No looping result found yet.")
+		print("==== No looping result found yet ====")
+		dump_final_values(i_, R, x)
 
-def dump_looped_values(istart, R, xstart):
-	x = xstart
+def dump_final_values(iprev, R, xprev):
+	x = xprev
+	istart = iprev + 1
 	iend = istart
 	for j in range(CHECKLOOP_HOP):
 		x = nextX(R, x)
-		print("[{}] {}".format(j+istart, x))
+		print("[{}] {}".format(istart+j, x))
 		iend += 1
-		if x == xstart:
-			break
-	print("Count of looped values: {} (precision: {})".format(iend - istart, decimal_context.prec))
+		if x == xprev:
+			print("Count of looped values: {} (R={} precision: {})".format(
+					iend - istart,
+					R, decimal_context.prec
+			))
+			return
+	else:
+		print("No loop found. Final {} values are dumped above. (R={} precision: {})".format(
+			CHECKLOOP_HOP,
+			R, decimal_context.prec
+		))
+
 
 if __name__=='__main__':
 	if len(sys.argv)==1:
@@ -234,8 +245,8 @@ if __name__=='__main__':
 
 		# Memo:
 		# R=3.56789 , prec=28,  [1728] 显示 64 跳变点 (精度不够的假象)
-		# R=3.56789 , prec=280, [18528] 32 跳变点, 精度继续提高是否会变成 64 未有定论
-		# R=3.569 ,   ...
+		# R=3.56789 , prec=280, [18528] 显示 32 跳变点, 精度继续提高是否会变成 64 未有定论
+		# R=3.569 ,   prec=280, [30560] 显示 32 跳变点 (也许依然是精度不够的假象)
 
 		R = Decimal("3.572")
 		do_plot_iter_Rs([
