@@ -4,7 +4,6 @@
 """TODO: To get really precise results, I should use Decimal instead of float."""
 
 import os, sys
-from collections import namedtuple
 
 import math
 import matplotlib
@@ -13,7 +12,9 @@ import matplotlib.pyplot as plt
 from decimal import *
 decimal_context = getcontext()
 decimal_context.traps[FloatOperation] = True # Raise error on truncation
-decimal_context.prec = 56 # fractional precision (default 28 is not enough)
+decimal_context.prec = 28 # fractional precision (sys default is 28, we can increase it to 2800)
+
+CHECKLOOP_HOP = 64 # must be power of 2
 
 fontname_subscript = "Tahoma" # For character of ₙ ₀
 fontname_chs = "Microsoft YaHei" # 微软雅黑
@@ -137,33 +138,49 @@ def do_plot_iter_Rs(params, itercount, title=None):
 	
 	do_plot_iter(list_gnx, x0s, itercount, title=title)
 
-def breed(R, x, gens):
-	
+def breed(R, x, itercount):
+
 	# Calculate print_hop so that total coarse print is limited to 100~1000 lines.
-	scale = (gens-1)//1000
+	scale = (itercount - 1) // 1000
 	print_hop = 1
 	if scale>0:
 		print_hop = 10**len("%d"%scale)
-	
+
+	checkloop_inext = CHECKLOOP_HOP
+	checkloop_value = -1 # init to any negative value
+
 	print_next = print_hop
 
-	tail_details = 50
-	
-	for i in range(gens-tail_details):
+	for i_ in range(itercount+1):
 		x = nextX(R, x)
-		
-		if i+1==print_next:
-			print("[{}] {}".format(i+1, x))
+
+		if i_==print_next:
+			print("[{}] {}".format(i_, x))
 			print_next += print_hop
 
-	# fine print final `tail_details` values one by one, no skip
-	if tail_details<gens:
-		print('---- fine print final %d values ----'%(min(tail_details, gens)))
-	
-	for i in range(max(0, gens-tail_details), gens):
-		x = nextX(R, x)
-		print("[{}] {}".format(i+1, x))
+		if i_==checkloop_inext:
+			# Check if we've got looped value. If so, we can stop iteration.
+			if x == checkloop_value:
+				print("==== Loop value(s) found ====")
+				dump_looped_values(i_+1, R, x)
+				break
+			else:
+				checkloop_value = x
 
+			checkloop_inext = i_ + CHECKLOOP_HOP
+	else:
+		print("No looping result found yet.")
+
+def dump_looped_values(istart, R, xstart):
+	x = xstart
+	iend = istart
+	for j in range(CHECKLOOP_HOP):
+		x = nextX(R, x)
+		print("[{}] {}".format(j+istart, x))
+		iend += 1
+		if x == xstart:
+			break
+	print("Count of looped values: {} (precision: {})".format(iend - istart, decimal_context.prec))
 
 if __name__=='__main__':
 	if len(sys.argv)==1:
@@ -183,21 +200,21 @@ if __name__=='__main__':
 			[R, Decimal("0.7"), ""],
 			], 10, f"R={R}, 结果在 2 个数值上跳变")
 
-		# 卓老板 14:10 说 R=3.4 时就会出现4个跳变值，应该是说错了,
-		# 经计算只会收敛到两个点.
-		# 0.4519632476261529500520627804
-		# 0.8421543994326705793597019256
+		# 卓老板 14:10 说 R=3.4 时就会出现4个跳变值，本图只看到收敛到2个值,
+		# 0.4519632476261529500520627804...
+		# 0.8421543994326705793597019256...
+		# 这是因为计算精度不够. 将 decimal_context.prec 设到 81, 迭代1408次将看到4个跳变值。
 		R = Decimal("3.4")
 		do_plot_iter_Rs([
 			[R, Decimal("0.2"), "@14:10 *"],
 			[R, Decimal("0.7"), ""],
-			], 100, f"R={R}, 结果在 2 个数值上跳变")
+			], 100, f"R={R}, 看到在 2 个数值上跳变（提高精度可看到 4 个跳变点）")
 		#
-		# R=3.45 时, 才会收敛到四个点.
-		# 0.4459676567920559802834429045
-		# 0.8524277453117333628737654796
-		# 0.4339916609539836091945485465
-		# 0.8474680021585322104281798105
+		# R=3.45 时, 会比较明显地看到收敛到四个点.
+		# 0.4459676567920559802834429045...
+		# 0.8524277453117333628737654796...
+		# 0.4339916609539836091945485465...
+		# 0.8474680021585322104281798105...
 		R = Decimal("3.45")
 		do_plot_iter_Rs([
 			[R, Decimal("0.2"), "@14:10"],
@@ -216,7 +233,9 @@ if __name__=='__main__':
 			], 1000, f"R={R}, 结果在 16 个数值上跳变")
 
 		# Memo:
-		# R=3.569 , 32 个跳变点
+		# R=3.56789 , prec=28,  [1728] 显示 64 跳变点 (精度不够的假象)
+		# R=3.56789 , prec=280, [18528] 32 跳变点, 精度继续提高是否会变成 64 未有定论
+		# R=3.569 ,   ...
 
 		R = Decimal("3.572")
 		do_plot_iter_Rs([
@@ -247,6 +266,3 @@ if __name__=='__main__':
 		breed(R, x0, itercount)
 		
 		do_plot_iter_Rs([[R, x0]], itercount, title)
-
-# 3.445 -> 3.45
-# 3.0 -> 3.01
