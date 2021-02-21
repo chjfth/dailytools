@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 #coding: utf-8
 
+"""TODO: To get really precise results, I should use Decimal instead of float."""
+
 import os, sys
 from collections import namedtuple
 
@@ -104,7 +106,7 @@ class ChaosDraw:
 		self.X0 = X0
 		self.text = text
 
-def do_plot_iter_Rs(params, itercount, title):
+def do_plot_iter_Rs(params, itercount, title=None):
 
 	chaosdraws = [ChaosDraw(*p) for p in params]
 
