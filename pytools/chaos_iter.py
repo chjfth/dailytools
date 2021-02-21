@@ -219,10 +219,12 @@ if __name__=='__main__':
 		R = float(sys.argv[1])
 		x0 = float(sys.argv[2])
 		itercount = int(sys.argv[3])
+
+		title = None if len(sys.argv)<=4 else sys.argv[4]
 		
 		breed(R, x0, itercount)
 		
-		do_plot_iter_Rs([[R, x0]], itercount, "混沌演示")
+		do_plot_iter_Rs([[R, x0]], itercount, title)
 		
 		# do_plot_iter_Rs([R, R+0.2], x0, itercount) # you can try this: chaos_iter.py 2.9 0.1 100
 	
