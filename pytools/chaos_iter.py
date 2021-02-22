@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from decimal import *
 decimal_context = getcontext()
 decimal_context.traps[FloatOperation] = True # Raise error on truncation
-decimal_context.prec = 28 # fractional precision (sys default is 28, we can increase it to 2800)
+decimal_context.prec = 56 # fractional precision (sys default is 28, we can increase it to 2800)
 
 CHECKLOOP_HOP = 64 # must be power of 2
 
@@ -169,7 +169,7 @@ def breed(R, x, itercount):
 
 			checkloop_inext = i_ + CHECKLOOP_HOP
 	else:
-		print("==== No looping result found yet ====")
+		print("==== Dumping some final values ====") # may or may-not see looped values
 		dump_final_values(i_, R, x)
 
 def dump_final_values(iprev, R, xprev):
@@ -181,13 +181,13 @@ def dump_final_values(iprev, R, xprev):
 		print("[{}] {}".format(istart+j, x))
 		iend += 1
 		if x == xprev:
-			print("Count of looped values: {} (R={} precision: {})".format(
+			print("Recurrence values found. Recurrence-count={} (R={} precision: {})".format(
 					iend - istart,
 					R, decimal_context.prec
 			))
 			return
 	else:
-		print("No loop found. Final {} values are dumped above. (R={} precision: {})".format(
+		print("No recurrence found. Final {} values are dumped above. (R={} precision: {})".format(
 			CHECKLOOP_HOP,
 			R, decimal_context.prec
 		))
