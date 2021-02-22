@@ -14,7 +14,7 @@ decimal_context = getcontext()
 decimal_context.traps[FloatOperation] = True # Raise error on truncation
 decimal_context.prec = 56 # fractional precision (sys default is 28, we can increase it to 2800)
 
-CHECKLOOP_HOP = 64 # must be power of 2
+CHKRECUR_HOP = 64 # must be power of 2
 
 fontname_subscript = "Tahoma" # For character of ₙ ₀
 fontname_chs = "Microsoft YaHei" # 微软雅黑
@@ -146,8 +146,10 @@ def breed(R, x, itercount):
 	if scale>0:
 		print_hop = 10**len("%d"%scale)
 
-	checkloop_inext = CHECKLOOP_HOP
-	checkloop_value = -1 # init to any negative value
+	chkrecur_inext = CHKRECUR_HOP
+	chkrecur_value__3 = -3 # init to any negative value
+	chkrecur_value__2 = -2 # init to any negative value
+	chkrecur_value__1 = -1 # init to any negative value
 
 	print_next = print_hop
 
@@ -158,29 +160,68 @@ def breed(R, x, itercount):
 			print("[{}] {}".format(i_, x))
 			print_next += print_hop
 
-		if i_==checkloop_inext:
-			# Check if we've got looped value. If so, we can stop iteration.
-			if x == checkloop_value:
-				print("==== Loop value(s) found ====")
-				dump_final_values(i_, R, x)
+		if i_==chkrecur_inext:
+			# Time to check: if we've met recurrence value. If so, we can stop iteration.
+			if x == chkrecur_value__1:
+				print("==== Recurrence value encountered ====")
+				find_first_recurrence_value(R, i_-CHKRECUR_HOP*3, chkrecur_value__3,
+				                            print_next-print_hop, print_hop)
 				break
 			else:
-				checkloop_value = x
+				chkrecur_value__3 = chkrecur_value__2;
+				chkrecur_value__2 = chkrecur_value__1;
+				chkrecur_value__1 = x
 
-			checkloop_inext = i_ + CHECKLOOP_HOP
+			chkrecur_inext = i_ + CHKRECUR_HOP
 	else:
 		print("==== Dumping some final values ====") # may or may-not see looped values
 		dump_final_values(i_, R, x)
+
+def find_first_recurrence_value(R, istart, xstart, i_prevprint, print_hop):
+	xarray = []
+	istart_ = istart+1
+	x = xstart
+	CHKRECUR_HOP3 = CHKRECUR_HOP * 3
+	# Recalculate from istart
+	for j in range(CHKRECUR_HOP3):
+		x = nextX(R, x)
+		xarray.append(x)
+		# print("[{}] {}".format(istart_+j, x)) # we'd better delay the print to avoid verbose print
+
+	idx, count = _find_recur_forward(xarray)
+	assert idx>CHKRECUR_HOP
+
+	if print_hop>1:
+		print("==== Fine dumping final values ====")
+
+	for j in range(CHKRECUR_HOP3):
+		inow = istart_+j
+		if (print_hop > 1 or inow > i_prevprint) and j < idx+count*2:
+			print("[{}] {}".format(inow, xarray[j]))
+
+	print("Recurrence@[{}], count={}".format(istart_+idx, count))
+
+def _find_recur_forward(xarray):
+	idxmax_ = len(xarray)
+	for j in range(idxmax_):
+		for k in [1, 2, 4, 8, 16, 32, 64, 128, 256]:
+			if j+k>=idxmax_:
+				continue
+			if xarray[j]==xarray[j+k]:
+				return j, k
+	assert False
+
 
 def dump_final_values(iprev, R, xprev):
 	x = xprev
 	istart = iprev + 1
 	iend = istart
-	for j in range(CHECKLOOP_HOP):
+	for j in range(CHKRECUR_HOP):
 		x = nextX(R, x)
 		print("[{}] {}".format(istart+j, x))
 		iend += 1
 		if x == xprev:
+			assert False # This will not be executed.
 			print("Recurrence values found. Recurrence-count={} (R={} precision: {})".format(
 					iend - istart,
 					R, decimal_context.prec
@@ -188,7 +229,7 @@ def dump_final_values(iprev, R, xprev):
 			return
 	else:
 		print("No recurrence found. Final {} values are dumped above. (R={} precision: {})".format(
-			CHECKLOOP_HOP,
+			CHKRECUR_HOP,
 			R, decimal_context.prec
 		))
 
@@ -209,7 +250,7 @@ if __name__=='__main__':
 		do_plot_iter_Rs([
 			[R, Decimal("0.2"), "@13:46"],
 			[R, Decimal("0.7"), ""],
-			], 10, f"R={R}, 结果在 2 个数值上跳变")
+			], 10, f"R={R}, 看到在 2 个数值上跳变")
 
 		# 卓老板 14:10 说 R=3.4 时就会出现4个跳变值，本图只看到收敛到2个值,
 		# 0.4519632476261529500520627804...
@@ -230,18 +271,18 @@ if __name__=='__main__':
 		do_plot_iter_Rs([
 			[R, Decimal("0.2"), "@14:10"],
 			[R, Decimal("0.7"), ""],
-			], 100, f"R={R}, 结果在 4 个数值上跳变")
+			], 100, f"R={R}, 看到在 4 个数值上跳变")
 
 		R = Decimal("3.56")
 		do_plot_iter_Rs([
 			[R, Decimal("0.2"), ""],
 			[R, Decimal("0.7"), ""],
-			], 200, f"R={R}, 结果在 8 个数值上跳变")
+			], 200, f"R={R}, 看到在 8 个数值上跳变")
 
 		R = Decimal("3.567")
 		do_plot_iter_Rs([
 			[R, Decimal("0.2"), ""],
-			], 1000, f"R={R}, 结果在 16 个数值上跳变")
+			], 1000, f"R={R}, 看到在 16 个数值上跳变")
 
 		# Memo:
 		# R=3.56789 , prec=28,  [1728] 显示 64 跳变点 (精度不够的假象)
@@ -257,7 +298,7 @@ if __name__=='__main__':
 		do_plot_iter_Rs([
 			[R, Decimal("0.2"), "@15:50"],
 			[R, Decimal("0.2000000001"), "@15:50"],
-		], 500, f"R={R}, 两根曲线伴随迭代200多次后突然分道扬镳")
+		], 500, f"R={R}, X0微小差异,两根曲线伴随迭代200多次后突然分道扬镳")
 
 		R = Decimal("4.0")
 		do_plot_iter_Rs([
@@ -267,7 +308,8 @@ if __name__=='__main__':
 
 	else:
 		# Use parameters from command line, e.g.
-		# 2.2 0.1 10
+		# 2.2  0.1 10
+		# 3.45 0.2 100
 		R = Decimal(sys.argv[1])
 		x0 = Decimal(sys.argv[2])
 		itercount = int(sys.argv[3])
