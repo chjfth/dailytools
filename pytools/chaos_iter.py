@@ -96,14 +96,12 @@ def do_plot_iter(fx, yinits, xcount, title=None, ylimit=None, fr=False, draw_axi
 
 
 # Chaos iteration:
-#	 Xn+1=R*Xn*(1-Xn)
-
 def nextX(R, x):
-	return R*x*(1-x)
+	return R * x * (1-x)
 
 def make_gnx(R):
 	def gen_nextX(x):
-		return R * x * (1-x)
+		return nextX(R, x)
 	return gen_nextX
 
 #ChaosDraw = namedtuple('ChaosDraw', 'R X0 text') # cannot support default member value?
