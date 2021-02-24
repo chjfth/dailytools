@@ -168,10 +168,10 @@ def breed(R, x, itercount):
 				iBackStart = i_-CHKRECUR_HOP*3
 				if iBackStart <= 0:
 					found = find_first_recurrence_value(R, 0, x0,
-					                            print_next-print_hop, print_hop)
+					                            print_next-print_hop, print_hop, x0)
 				else:
 					found = find_first_recurrence_value(R, iBackStart, chkrecur_value__3,
-				                                print_next-print_hop, print_hop)
+				                                print_next-print_hop, print_hop, x0)
 				assert found==True
 				is_recurrence_found = found
 				break
@@ -186,14 +186,14 @@ def breed(R, x, itercount):
 			# find_first_recurrence_value() has not been called even once.
 			# We should call it at least once.
 			is_recurrence_found = find_first_recurrence_value(R, 0, x0,
-			                           print_next-print_hop, print_hop)
+			                           print_next-print_hop, print_hop, x0)
 			if is_recurrence_found==False:
 				if print_hop==1:
-					print("No recurrence found. "+RnPsuffix(R))
+					print("No recurrence found. "+RnPsuffix(R, x0))
 				else:
-					dump_final_values(i_, R, x)
+					dump_final_values(i_, R, x, x0)
 
-def find_first_recurrence_value(R, istart, xstart, i_prevprint, print_hop):
+def find_first_recurrence_value(R, istart, xstart, i_prevprint, print_hop, x0):
 	xarray = []
 	istart_ = istart+1
 	x = xstart
@@ -217,7 +217,7 @@ def find_first_recurrence_value(R, istart, xstart, i_prevprint, print_hop):
 		if (print_hop > 1 or inow > i_prevprint) and j < idx+count*2:
 			print("[{}] {}".format(inow, xarray[j]))
 
-	print("Recurrence@[{}], count={}. {}".format(istart_+idx, count, RnPsuffix(R)))
+	print("Recurrence@[{}], count={}. {}".format(istart_+idx, count, RnPsuffix(R, x0)))
 	return True
 
 def _find_recur_forward(xarray):
@@ -231,7 +231,7 @@ def _find_recur_forward(xarray):
 	return None, None
 
 
-def dump_final_values(iprev, R, xprev):
+def dump_final_values(iprev, R, xprev, x0):
 	print("==== Dumping some final values ====")
 	x = xprev
 	istart = iprev + 1
@@ -249,11 +249,11 @@ def dump_final_values(iprev, R, xprev):
 			return
 	else:
 		print("No recurrence found. Final {} values are dumped above. {}".format(
-			CHKRECUR_HOP, RnPsuffix(R)
+			CHKRECUR_HOP, RnPsuffix(R, x0)
 		))
 
-def RnPsuffix(R):
-	return "(R={} precision:{})".format(R, decimal_context.prec)
+def RnPsuffix(R, X0):
+	return "(R={} X0={} precision:{})".format(R, X0, decimal_context.prec)
 
 if __name__=='__main__':
 	if len(sys.argv)==1:
