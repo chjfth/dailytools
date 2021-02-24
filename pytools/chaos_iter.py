@@ -190,8 +190,10 @@ def breed(R, x, itercount):
 			is_recurrence_found = find_first_recurrence_value(R, 0, x0,
 			                           print_next-print_hop, print_hop)
 			if is_recurrence_found==False:
-				print("==== Dumping some final values ====") # may or may-not see looped values
-				dump_final_values(i_, R, x)
+				if print_hop==1:
+					print("No recurrence found. "+RnPsuffix(R))
+				else:
+					dump_final_values(i_, R, x)
 
 def find_first_recurrence_value(R, istart, xstart, i_prevprint, print_hop):
 	xarray = []
@@ -217,7 +219,7 @@ def find_first_recurrence_value(R, istart, xstart, i_prevprint, print_hop):
 		if (print_hop > 1 or inow > i_prevprint) and j < idx+count*2:
 			print("[{}] {}".format(inow, xarray[j]))
 
-	print("Recurrence@[{}], count={}".format(istart_+idx, count))
+	print("Recurrence@[{}], count={}. {}".format(istart_+idx, count, RnPsuffix(R)))
 	return True
 
 def _find_recur_forward(xarray):
@@ -232,6 +234,7 @@ def _find_recur_forward(xarray):
 
 
 def dump_final_values(iprev, R, xprev):
+	print("==== Dumping some final values ====")
 	x = xprev
 	istart = iprev + 1
 	iend = istart
@@ -240,18 +243,19 @@ def dump_final_values(iprev, R, xprev):
 		print("[{}] {}".format(istart+j, x))
 		iend += 1
 		if x == xprev:
-			assert False # This will not be executed.
+			assert False # Old code. This will not be executed.
 			print("Recurrence values found. Recurrence-count={} (R={} precision: {})".format(
 					iend - istart,
 					R, decimal_context.prec
 			))
 			return
 	else:
-		print("No recurrence found. Final {} values are dumped above. (R={} precision: {})".format(
-			CHKRECUR_HOP,
-			R, decimal_context.prec
+		print("No recurrence found. Final {} values are dumped above. {}".format(
+			CHKRECUR_HOP, RnPsuffix(R)
 		))
 
+def RnPsuffix(R):
+	return "(R={} precision:{})".format(R, decimal_context.prec)
 
 if __name__=='__main__':
 	if len(sys.argv)==1:
