@@ -96,14 +96,12 @@ def do_plot_iter(fx, yinits, xcount, title=None, ylimit=None, fr=False, draw_axi
 
 
 # Chaos iteration:
-#	 Xn+1=R*Xn*(1-Xn)
-
 def nextX(R, x):
-	return R*x*(1-x)
+	return R * x * (1-x)
 
 def make_gnx(R):
 	def gen_nextX(x):
-		return R * x * (1-x)
+		return nextX(R, x)
 	return gen_nextX
 
 #ChaosDraw = namedtuple('ChaosDraw', 'R X0 text') # cannot support default member value?
@@ -140,6 +138,9 @@ def do_plot_iter_Rs(params, itercount, title=None):
 
 def breed(R, x, itercount):
 
+	x0 = x
+	is_recurrence_found = False
+
 	# Calculate print_hop so that total coarse print is limited to 100~1000 lines.
 	scale = (itercount - 1) // 1000
 	print_hop = 1
@@ -153,7 +154,7 @@ def breed(R, x, itercount):
 
 	print_next = print_hop
 
-	for i_ in range(itercount+1):
+	for i_ in range(1, itercount+1):
 		x = nextX(R, x)
 
 		if i_==print_next:
@@ -164,8 +165,15 @@ def breed(R, x, itercount):
 			# Time to check: if we've met recurrence value. If so, we can stop iteration.
 			if x == chkrecur_value__1:
 				print("==== Recurrence value encountered ====")
-				find_first_recurrence_value(R, i_-CHKRECUR_HOP*3, chkrecur_value__3,
-				                            print_next-print_hop, print_hop)
+				iBackStart = i_-CHKRECUR_HOP*3
+				if iBackStart <= 0:
+					found = find_first_recurrence_value(R, 0, x0,
+					                            print_next-print_hop, print_hop, x0)
+				else:
+					found = find_first_recurrence_value(R, iBackStart, chkrecur_value__3,
+				                                print_next-print_hop, print_hop, x0)
+				assert found==True
+				is_recurrence_found = found
 				break
 			else:
 				chkrecur_value__3 = chkrecur_value__2;
@@ -174,10 +182,18 @@ def breed(R, x, itercount):
 
 			chkrecur_inext = i_ + CHKRECUR_HOP
 	else:
-		print("==== Dumping some final values ====") # may or may-not see looped values
-		dump_final_values(i_, R, x)
+		if is_recurrence_found==False:
+			# find_first_recurrence_value() has not been called even once.
+			# We should call it at least once.
+			is_recurrence_found = find_first_recurrence_value(R, 0, x0,
+			                           print_next-print_hop, print_hop, x0)
+			if is_recurrence_found==False:
+				if print_hop==1:
+					print("No recurrence found. "+RnPsuffix(R, x0))
+				else:
+					dump_final_values(i_, R, x, x0)
 
-def find_first_recurrence_value(R, istart, xstart, i_prevprint, print_hop):
+def find_first_recurrence_value(R, istart, xstart, i_prevprint, print_hop, x0):
 	xarray = []
 	istart_ = istart+1
 	x = xstart
@@ -189,7 +205,9 @@ def find_first_recurrence_value(R, istart, xstart, i_prevprint, print_hop):
 		# print("[{}] {}".format(istart_+j, x)) # we'd better delay the print to avoid verbose print
 
 	idx, count = _find_recur_forward(xarray)
-	assert idx>CHKRECUR_HOP
+	#assert idx>CHKRECUR_HOP
+	if idx==None:
+		return False
 
 	if print_hop>1:
 		print("==== Fine dumping final values ====")
@@ -199,7 +217,8 @@ def find_first_recurrence_value(R, istart, xstart, i_prevprint, print_hop):
 		if (print_hop > 1 or inow > i_prevprint) and j < idx+count*2:
 			print("[{}] {}".format(inow, xarray[j]))
 
-	print("Recurrence@[{}], count={}".format(istart_+idx, count))
+	print("Recurrence@[{}], count={}. {}".format(istart_+idx, count, RnPsuffix(R, x0)))
+	return True
 
 def _find_recur_forward(xarray):
 	idxmax_ = len(xarray)
@@ -209,10 +228,11 @@ def _find_recur_forward(xarray):
 				continue
 			if xarray[j]==xarray[j+k]:
 				return j, k
-	assert False
+	return None, None
 
 
-def dump_final_values(iprev, R, xprev):
+def dump_final_values(iprev, R, xprev, x0):
+	print("==== Dumping some final values ====")
 	x = xprev
 	istart = iprev + 1
 	iend = istart
@@ -221,18 +241,19 @@ def dump_final_values(iprev, R, xprev):
 		print("[{}] {}".format(istart+j, x))
 		iend += 1
 		if x == xprev:
-			assert False # This will not be executed.
+			assert False # Old code. This will not be executed.
 			print("Recurrence values found. Recurrence-count={} (R={} precision: {})".format(
 					iend - istart,
 					R, decimal_context.prec
 			))
 			return
 	else:
-		print("No recurrence found. Final {} values are dumped above. (R={} precision: {})".format(
-			CHKRECUR_HOP,
-			R, decimal_context.prec
+		print("No recurrence found. Final {} values are dumped above. {}".format(
+			CHKRECUR_HOP, RnPsuffix(R, x0)
 		))
 
+def RnPsuffix(R, X0):
+	return "(R={} X0={} precision:{})".format(R, X0, decimal_context.prec)
 
 if __name__=='__main__':
 	if len(sys.argv)==1:
@@ -316,6 +337,7 @@ if __name__=='__main__':
 	else:
 		# Use parameters from command line, e.g.
 		# 2.2  0.1 10
+		# 2.2  0.2 100
 		# 3.45 0.2 100
 		R = Decimal(sys.argv[1])
 		x0 = Decimal(sys.argv[2])
