@@ -1,15 +1,38 @@
 @echo off
-REM ==== boilerplate code >>>
+REM Usage: This .bat is to be called from Visual Studio project Pre-build-commands and/or Post-build-commands,
+REM so that we can write complex batch  programs from dedicated .bat files, instead of tucking them in 
+REM those crowded .vcxproj or .csproj .
 REM
+REM Just use the following sample:
+REM
+REM $(ProjectDir)_VSPG\VSPG-Start9.bat $(ProjectDir)_VSPG\VSPG-PostBuild7.bat $(ProjectDir)main.cpp $(SolutionDir) $(ProjectDir) $(Configuration) $(PlatformName) $(TargetDir) $(TargetFileName) $(TargetName)
+REM
+REM Two things to tune:
+REM [1] 1st parameter, 
+REM     for Pre-build event, use
+REM         $(ProjectDir)_VSPG\VSPG-PreBuild7.bat
+REM     for Post-build event, use
+REM         $(ProjectDir)_VSPG\VSPG-PostBuild7.bat
+REM [2] 2nd parameter,
+REM     You have to assign a existing "feedback" source-file, main.cpp above, or assign Program.cs for a csproj.
+REM     On this .bat file execution failure, this .bat will touch that feedback file so that the failure is not
+REM     slipped away. I mean, if you execute Build again from Visual Studio, the Build action will take effect,
+REM     instead of reporting an up-to-date status.
+REM
+REM set batfilenam to .bat filename(no directory prefix)
 set batfilenam=%~n0%~x0
-REM VSPG-Start9.bat $(ProjectDir)_VSPG\VSPG-PostBuild7.bat $(ProjectDir)Program.cs $(SolutionDir) $(ProjectDir) $(Configuration) $(PlatformName) $(TargetDir) $(TargetFileName) $(TargetName)
+REM  
 set SubworkBat=%1
 shift
-set TouchFile=%1
+set FeedbackFile=%1
 shift
 call :EchoVar SubworkBat
-call :EchoVar TouchFile
-REM ==== boilerplate code <<<<
+call :EchoVar FeedbackFile
+
+if not exist %FeedbackFile% (
+	call :Echos [ERROR] Not-existing feedback file: %FeedbackFile%
+	exit /b 4
+)
 
 set ALL_PARAMS=%1 %2 %3 %4 %5 %6 %7
 if exist %SubworkBat% (
@@ -18,7 +41,7 @@ if exist %SubworkBat% (
   call :Echos [ERROR] SubworkBat NOT found: %SubworkBat%
   call :SetErrorlevel 4
 )
-if errorlevel 1 ( call Touch %TouchFile% && exit /b 4 )
+if errorlevel 1 ( call Touch %FeedbackFile% && exit /b 4 )
 
 exit /b 0
 
