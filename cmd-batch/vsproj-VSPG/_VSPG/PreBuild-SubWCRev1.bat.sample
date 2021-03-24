@@ -8,9 +8,9 @@ set svndir=%~1
 set subparams=
 
 REM =========================================================================
-REM This bat examines same-dir SubWCRev.csv for SrcVersionFile,DstVersionFile pairs to pass to SubWCRev.exe .
-REM If this bat is inside [ProjectDir] , the filepaths in the csv must be relative to [ProjectDir].
-REM If this bat is inside [SolutionDir], the filepaths in the csv must be relative to [SolutionDir].
+REM This bat examines same-dir SubWCRev.csv for SrcVersionFile,DstVersionFile pairs to pass to SubWCRev.exe
+REM and call SubWCRev.exe to embed Subversion revision numbers into those DstVersionFile(s).
+REM 
 REM SubWCRev.csv.sample is a working sample.
 REM
 REM Customization:
