@@ -41,7 +41,7 @@ if exist %SubworkBat% (
   call :Echos [ERROR] SubworkBat NOT found: %SubworkBat%
   call :SetErrorlevel 4
 )
-if errorlevel 1 ( call Touch %FeedbackFile% && exit /b 4 )
+if errorlevel 1 ( call :Touch %FeedbackFile% && exit /b 4 )
 
 exit /b 0
 
