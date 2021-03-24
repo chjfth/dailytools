@@ -1,8 +1,10 @@
 @echo off
+REM VSPG-PostBuild7.bat $(SolutionDir) $(ProjectDir) $(Configuration) $(PlatformName) $(TargetDir) $(TargetFileName) $(TargetName)
 REM ==== boilerplate code >>>
 REM
 set batfilenam=%~n0%~x0
-REM VSPG-PostBuild7.bat $(SolutionDir) $(ProjectDir) $(Configuration) $(PlatformName) $(TargetDir) $(TargetFileName) $(TargetName)
+set batdir=%~dp0
+set batdir=%batdir:~0,-1%
 set SolutionDir=%1
 set SolutionDir=%SolutionDir:~0,-1%
 set ProjectDir=%2
@@ -32,7 +34,7 @@ call :EchoVar TargetDir
 call :EchoVar TargetFilenam
 call :EchoVar TargetName
 
-REM Call PostBuild-SyncOutput4.bat only if that file exist. If you need it, just copy it from the .template aside.
+REM Call PostBuild-SyncOutput4.bat only if that file exist. If you need it, just copy it from the .sample aside.
 REM We check two places for that .bat and call both, first in %ProjectDir% then in %SolutionDir% .
 set BAT_HFP=_VSPG\PostBuild-SyncOutput4.bat
 if exist %ProjectDir%\%BAT_HFP% (
@@ -47,6 +49,23 @@ if exist %SolutionDir%\%BAT_HFP% (
 	call %SolutionDir%\%BAT_HFP% %BuildConf% %PlatformName% %TargetDir% %TargetName%
 	if errorlevel 1 exit /b 4
 ))
+
+
+REM ==== Call Team-Postbuild7.bat if exist. ====
+set SUBBAT=%batdir%\Team-Postbuild7.bat
+if exist %SUBBAT% (
+	call :EchoExec %SUBBAT%
+	call %SUBBAT%
+	if errorlevel 1 exit /b 4
+)
+
+REM ==== Call Personal-Postbuild7.bat if exist. ====
+set SUBBAT=%batdir%\Personal-Postbuild7.bat
+if exist %SUBBAT% (
+	call :EchoExec %SUBBAT%
+	call %SUBBAT%
+	if errorlevel 1 exit /b 4
+)
 
 goto :END
 

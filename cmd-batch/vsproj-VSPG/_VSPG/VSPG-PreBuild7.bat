@@ -1,10 +1,10 @@
 @echo off
+REM VSPG-PreBuild7.bat $(SolutionDir) $(ProjectDir) $(Configuration) $(PlatformName) $(TargetDir) $(TargetFileName) $(TargetName)
 REM ==== boilerplate code >>>
 REM
 set batfilenam=%~n0%~x0
 set batdir=%~dp0
 set batdir=%batdir:~0,-1%
-REM VSPG-PreBuild7.bat $(SolutionDir) $(ProjectDir) $(Configuration) $(PlatformName) $(TargetDir) $(TargetFileName) $(TargetName)
 set SolutionDir=%1
 set SolutionDir=%SolutionDir:~0,-1%
 set ProjectDir=%2
@@ -35,7 +35,7 @@ call :EchoVar TargetFilenam
 call :EchoVar TargetName
 
 
-REM Call PreBuild-SubWCRev1.bat only if that file exist. If you need it, just copy it from the .template aside.
+REM Call PreBuild-SubWCRev1.bat only if that file exist. If you need it, just copy it from the .sample aside.
 REM We check two places for that .bat can call both, first in %ProjectDir% then in %SolutionDir% .
 set BAT_HFP=_VSPG\PreBuild-SubWCRev1.bat
 if exist %ProjectDir%\%BAT_HFP% (
@@ -50,6 +50,25 @@ if exist %SolutionDir%\%BAT_HFP% (
 	call %SolutionDir%\%BAT_HFP%              %SolutionDir%
 	if errorlevel 1 exit /b 4
 ))
+
+set ALL_PARAMS=%SolutionDir% %ProjectDir% %BuildConf% %PlatformName% %TargetDir% %TargetFileName% %TargetName%
+
+
+REM ==== Call Team-Prebuild7.bat if exist. ====
+set SUBBAT=%batdir%\Team-Prebuild7.bat
+if exist %SUBBAT% (
+	call :EchoExec %SUBBAT%
+	call %SUBBAT%
+	if errorlevel 1 exit /b 4
+)
+
+REM ==== Call Personal-Prebuild7.bat if exist. ====
+set SUBBAT=%batdir%\Personal-Prebuild7.bat
+if exist %SUBBAT% (
+	call :EchoExec %SUBBAT%
+	call %SUBBAT%
+	if errorlevel 1 exit /b 4
+)
 
 
 goto :END
