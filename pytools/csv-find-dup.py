@@ -188,14 +188,17 @@ def find_dups(csv_filename, fields_to_chk,
 				
 				for irule_ in range(len(sort_rules), 0, -1):
 					irule = irule_ - 1
+					rule = sort_rules[irule]
 				
-					if sort_rules[irule]=='duptext':
-						
-						dup_items = sorted(dup_items, key=cmp_to_key_ex(lambda x: x[0], locale.strcoll))
-					
-					elif sort_rules[irule]=='dupcount':
-
+					if rule=='dupcount':
 						dup_items = sorted(dup_items, key=lambda x: x[1])
+					elif rule=='text':
+						dup_items = sorted(dup_items, key=cmp_to_key_ex(lambda x: x[0], locale.strcoll))
+					elif rule=='textlen':
+						dup_items = sorted(dup_items, key=lambda x: len(x[0]))
+					else:
+						errmsg = 'BUG! Meet invalid sort criteria "%s".'%(rule)
+						raise ValueError(errmsg)
 
 				for dup_text, dup_count in dup_items:
 					print("  (%d*) %s"%(dup_count, dup_text))
@@ -274,8 +277,8 @@ def my_parse_args():
 			'Typical encodings: utf8, gbk, big5, utf16le.'
 	)
 
-	ap.add_argument('--sort', choices=['dupcount', 'duptext'], action='append', default=[],
-		help='When listing duplicate items, sort by duplicate-count and/or duplicate-text.\n'
+	ap.add_argument('--sort', choices=['dupcount', 'text', 'textlen'], action='append', default=[],
+		help='When listing duplicate items, sort by duplicate-count, text (content) and/or textlen.\n'
 			'This can be assigned multiple times, from larg-scale to small-scale.\n'
 			'If omit, use natural order in CSV.'
 	)
