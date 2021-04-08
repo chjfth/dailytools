@@ -92,7 +92,9 @@ def enum_csv_rows_by_filehandle(fh, is_yield_offset=False, text_encoding=''):
 def find_dups(csv_filename, fields_to_chk, 
 	is_single_as_group=False,
 	is_force_binary_fh=False, text_encoding='',
-	vb=0, vblines_list_max=10, sort_rules=[]):
+	max_output_items = 0,
+	vb=0, vblines_list_max=10, 
+	sort_rules=[], is_reverse_sort=False):
 
 	assert(type(fields_to_chk)==list and (len(fields_to_chk)==0 or type(fields_to_chk[0])==int))
 
@@ -181,7 +183,7 @@ def find_dups(csv_filename, fields_to_chk,
 			if vb>=VerboseLevel.vb1:
 
 				dup_items = dict_dupcount.items()
-				# -- dup_item[0] is celt string, dup_item[1] is dupcount
+				# -- dup_items[0] is celt string, dup_items[1] is dupcount
 				
 				# Apply sort rules here.
 				# Sort from small-scale to large scale, so that user sees large-scale to small-scale.
@@ -191,15 +193,28 @@ def find_dups(csv_filename, fields_to_chk,
 					rule = sort_rules[irule]
 				
 					if rule=='dupcount':
-						dup_items = sorted(dup_items, key=lambda x: x[1])
+						dup_items = sorted(dup_items, 
+							key=lambda x: x[1], 
+							reverse=is_reverse_sort)
 					elif rule=='text':
-						dup_items = sorted(dup_items, key=cmp_to_key_ex(lambda x: x[0], locale.strcoll))
+						dup_items = sorted(dup_items, 
+							key=cmp_to_key_ex(lambda x: x[0], locale.strcoll), 
+							reverse=is_reverse_sort)
 					elif rule=='textlen':
-						dup_items = sorted(dup_items, key=lambda x: len(x[0]))
+						dup_items = sorted(dup_items, 
+							key=lambda x: len(x[0]), 
+							reverse=is_reverse_sort)
 					else:
 						errmsg = 'BUG! Meet invalid sort criteria "%s".'%(rule)
 						raise ValueError(errmsg)
 
+				# dump output
+				
+				count = 0
+				max_dumps = len(dup_items)
+				if max_output_items>0:
+					max_dumps = min(max_dumps, max_output_items)
+				
 				for dup_text, dup_count in dup_items:
 					print("  (%d*) %s"%(dup_count, dup_text))
 
@@ -209,6 +224,13 @@ def find_dups(csv_filename, fields_to_chk,
 							text_encoding,
 							vblines_list_max,
 							fh)
+					
+					count += 1
+					if count>=max_dumps:
+						break
+				
+				if max_dumps<len(dup_items):
+					print("NOTE: Output was limited to %d items, %d omitted."%(max_dumps, len(dup_items)-max_dumps))
 	return 0
 
 
@@ -282,7 +304,13 @@ def my_parse_args():
 			'This can be assigned multiple times, from larg-scale to small-scale.\n'
 			'If omit, use natural order in CSV.'
 	)
+	ap.add_argument('-R', '--reverse', action='store_true', dest='is_reverse_sort', default=False,
+		help='If sort, sort in reverse order(reverse = from large to small).'
+	)
 
+	ap.add_argument('-X', '--max-output-items', type=int, dest='max_output_items', default=0,
+		help='Limit output items to N. One item is defined to be one duplicate-entry.'
+	)
 	ap.add_argument('-x', '--max-verbose-lines', type=int, dest='max_verbose_lines', default=10,
 		help='When -vv, showing duplicate lines is limited to this number.'
 	)
@@ -344,9 +372,11 @@ def main():
 		args.single_as_group,
 		is_force_binary_fh = args.binary,
 		text_encoding = text_encoding,
+		max_output_items = args.max_output_items,
 		vb = vb, 
 		vblines_list_max = args.max_verbose_lines, 
-		sort_rules = args.sort)
+		sort_rules = args.sort, 
+		is_reverse_sort = args.is_reverse_sort)
 
 	tend = datetime.datetime.now()
 
