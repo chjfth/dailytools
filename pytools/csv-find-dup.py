@@ -315,6 +315,12 @@ def my_parse_args():
 		exit(1)
 
 	args = ap.parse_args()
+	
+	max_verbose = 3
+	if args.verbose>max_verbose:
+		errmsg = 'Invalid verbose level(%s), too many -v parameters. At most %d is allowed.'%(
+			args.verbose, max_verbose)
+		raise ValueError(errmsg)
 
 	return args
 
