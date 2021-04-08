@@ -9,17 +9,36 @@ import bisect
 import datetime
 from enum import Enum,IntEnum # since Python 3.4
 from collections import namedtuple
+import locale, functools
 
 #print("sys.getdefaultencoding()=%s"%(sys.getdefaultencoding()))
 #print("locale.getpreferredencoding()=%s"%(locale.getpreferredencoding()))
 
 g_default_encoding = locale.getpreferredencoding()
+locale.setlocale(locale.LC_ALL,"") # to enable locale.strcoll
 
 """
 Memo: 
  * celt: csv cell text
  * celx: csv cell's eXtra info (#line and file-offset)
 """
+
+def cmp_to_key_ex(user_mapping, cmp_internal): # an extension to cmp_to_ex()
+	
+	def make_cmp_ex(user_mapping, cmp_internal):
+		def cmp_ex(cmpoA, cmpoB):
+			# cmp_ex 这个函数对象是传给 cmp_to_key() 用的，不是传给 sorted() 的。
+			# cmp_ex 返回比较结果 -1, 0, -1 三者之一。
+			# cmp_ex 要拿到一个 mapping 函数, 将 cmpo 映射为真正的 cmpoX。
+			# cmpoX 才是真正要交给实质比较函数 strcoll 的对象。
+			cmpoAX = user_mapping(cmpoA)
+			cmpoBX = user_mapping(cmpoB)
+			return cmp_internal(cmpoAX, cmpoBX) # e.g. cmp_internal=strcoll
+		return cmp_ex
+	
+	cmp_func = make_cmp_ex(user_mapping, cmp_internal)
+	return functools.cmp_to_key(cmp_func)
+
 
 LineExtra = namedtuple('LineExtra', 'idxline ofs')
 
@@ -73,7 +92,7 @@ def enum_csv_rows_by_filehandle(fh, is_yield_offset=False, text_encoding=''):
 def find_dups(csv_filename, fields_to_chk, 
 	is_single_as_group=False,
 	is_force_binary_fh=False, text_encoding='',
-	vb=0, vblines_list_max=10, need_sort=None):
+	vb=0, vblines_list_max=10, sort_rules=[]):
 
 	assert(type(fields_to_chk)==list and (len(fields_to_chk)==0 or type(fields_to_chk[0])==int))
 
@@ -164,16 +183,19 @@ def find_dups(csv_filename, fields_to_chk,
 				dup_items = dict_dupcount.items()
 				# -- dup_item[0] is celt string, dup_item[1] is dupcount
 				
-				if need_sort=='duptext':
-					dup_items = sorted(dup_items, key=lambda x: x[0])
-				elif need_sort=='dupcount':
-					# Due to [[UNSTABLE1]] comment above, we sort unimportant field first 
-					# then sort important field, to make output stable.
+				# Apply sort rules here.
+				# Sort from small-scale to large scale, so that user sees large-scale to small-scale.
+				
+				for irule_ in range(len(sort_rules), 0, -1):
+					irule = irule_ - 1
+				
+					if sort_rules[irule]=='duptext':
+						
+						dup_items = sorted(dup_items, key=cmp_to_key_ex(lambda x: x[0], locale.strcoll))
 					
-					dup_items = sorted(dup_items, key=lambda x: x[0]) 
-					# -- comment this line to see unstable result on each run
+					elif sort_rules[irule]=='dupcount':
 
-					dup_items = sorted(dup_items, key=lambda x: x[1])
+						dup_items = sorted(dup_items, key=lambda x: x[1])
 
 				for dup_text, dup_count in dup_items:
 					print("  (%d*) %s"%(dup_count, dup_text))
@@ -185,7 +207,8 @@ def find_dups(csv_filename, fields_to_chk,
 							vblines_list_max,
 							fh)
 	return 0
-	
+
+
 def print_vb23_detail(vb, ar_linex, text_encoding, list_max, fh):
 	
 	# ar_linex is LineExtra[] array
@@ -251,8 +274,9 @@ def my_parse_args():
 			'Typical encodings: utf8, gbk, big5, utf16le.'
 	)
 
-	ap.add_argument('--sort', choices=['dupcount', 'duptext'], 
-		help='When listing duplicate items, sort by duplicate-count or duplicate-text.\n'
+	ap.add_argument('--sort', choices=['dupcount', 'duptext'], action='append', default=[],
+		help='When listing duplicate items, sort by duplicate-count and/or duplicate-text.\n'
+			'This can be assigned multiple times, from larg-scale to small-scale.\n'
 			'If omit, use natural order in CSV.'
 	)
 
@@ -277,7 +301,7 @@ def my_parse_args():
 
 	if len(sys.argv)==1:
 		# If no command-line parameter given, display help and quit.
-		print("csv-find-dup.py version 1.1 .")
+		print("csv-find-dup.py version 1.2 .")
 		print("You must provide a csv filename to process.")
 		print("To see full program options, run:\n")
 		print("  %s --help"%(os.path.basename(__file__)))
@@ -313,7 +337,7 @@ def main():
 		text_encoding = text_encoding,
 		vb = vb, 
 		vblines_list_max = args.max_verbose_lines, 
-		need_sort = args.sort)
+		sort_rules = args.sort)
 
 	tend = datetime.datetime.now()
 
