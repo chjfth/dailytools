@@ -56,7 +56,22 @@ _ShowOnErr0()
 	fi
 	return $1 # relay the outside $? to _ShowOnErr0
 }
+_Ps1ChjPrefix()
+{
+	if [ "$PS1_chjprefixcmd" != "" ]; then
+		echo "$(eval $PS1_chjprefixcmd) "
+	fi
+}
 # _ClearMyErr(){ return 0; } # [2020-11-04]no-effect on clearing inherited error
-PS1_chj="\n[\[\033[32m\]`tty`($PS1_TERM) \D{%G-%m-%d} \t \[\033[1;31m\]\$(_ShowOnErr1 $PS1_DQ)\[\033[0m\]\$(_ShowOnErr0 $PS1_DQ)]$PS1_err_bell\n[$PS1fmtuser @\h \[\033$PS1fmtcwd\w\033[0m\]]\n\[\033[1;37;44m\]$PS1char\[\033[0m\] "
+PS1_chj="\n[\[\033[1;37m\]\$(_Ps1ChjPrefix)\[\033[0m\]\[\033[32m\]`tty`($PS1_TERM) \D{%G-%m-%d} \t \[\033[1;31m\]\$(_ShowOnErr1 $PS1_DQ)\[\033[0m\]\$(_ShowOnErr0 $PS1_DQ)]$PS1_err_bell\n[$PS1fmtuser @\h \[\033$PS1fmtcwd\w\033[0m\]]\n\[\033[1;37;44m\]$PS1char\[\033[0m\] "
 PS1=$PS1_chj
 
+# Hint for PS1_chjprefixcmd :
+# User may set
+#
+#	PS1_chjprefixcmd='eval echo PY-$(pyenv version-name)'
+#
+# so to achieve a dynamic prefix like:
+#	[PY-3.7.9 /dev/pts/5(screen-256color) 2021-04-18 13:09:43 ERR:0]
+# or
+#	[PY-3.9.3 /dev/pts/5(screen-256color) 2021-04-18 13:09:57 ERR:0]
