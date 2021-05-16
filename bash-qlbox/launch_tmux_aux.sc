@@ -15,14 +15,16 @@ fi
 # The "default" behavior is to launch tmux on each shell login.
 # But give 3 seconds timeout so that user can opt NOT to launch tmux.
 
-function is_tmux_ls_buggy()
+function is_tmux_ls_bugfree()
 {
-	# ``tmux ls`` have bug in version earlier than 1.7 .
-	# When some session exist, 
+	# ``tmux ls`` has bug in version earlier than 1.7 .
+	# When some session exists, 
 	#	tmux ls > /dev/null
 	# goes freeze, and you have to type Ctrl+\ to quit it.
 	#
-	# return 1 if it has such bug, 0 otherwise.
+	# return 0 if it does NOT have such bug(means bug-free). 
+	# return 1 if it has such bug.
+	# -- You know, 0 means positive(true) in Bash's context, non-0 means negative(false).
 	
 	tmux_V_output=$(tmux -V) 
 		# Sample output:
@@ -74,7 +76,7 @@ if [ "$TMUX" = "" ]; then
 	# This is a brand new shell login, so we launch tmux,
 	# but give a 3-second "user confirm" timeout.
 
-	if is_tmux_ls_buggy; then
+	if is_tmux_ls_bugfree; then
 		tmux ls > /dev/null 2>&1
 	else
 		false # so, let three-second delay always executed
