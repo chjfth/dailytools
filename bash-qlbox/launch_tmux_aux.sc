@@ -38,6 +38,24 @@ function is_tmux_ls_bugfree()
 	fi
 }
 
+function is_tmux_v1()
+{
+	# Check whether we are running (old) tmux version 1.x .
+	# If yes, return 0; if no, return 1 .
+	
+	tmux_V_output=$(tmux -V) 
+		# Sample output:
+		#	tmux 1.6
+		#	tmux 3.0a
+	
+	# https://stackoverflow.com/a/2172367/151453
+	if [[ "$tmux_V_output" == "tmux 1."* ]]; then
+		return 0
+	else 
+		return 1
+	fi
+}
+
 function confirm_to_run_tmux()
 {
 	# This function presents a three-second count-down. When count-down drops to 0,
@@ -99,8 +117,16 @@ if [ "$TMUX" = "" ]; then
 		echo "Software package \"tmux\" not installed, I cannot launch tmux."
 		return 1
 	fi
-
-	tmuxcmd="$("$dir_qlbox/launch_tmux.py" --tmuxconf="$dir_qlbox/tmux.conf")"
+	
+	if is_tmux_v1; then
+		# Use old tmux.conf syntax
+		tmux_conf_filename=tmux-v1.conf
+	else
+		# Use new tmux.conf syntax
+		tmux_conf_filename=tmux.conf
+	fi
+	
+	tmuxcmd="$("$dir_qlbox/launch_tmux.py" --tmuxconf="$dir_qlbox/$tmux_conf_filename")"
 		# Grab the .py's stdout content as to-execute shell command.
 		# The double-quotes surrounding $(...) is optional, I put them here 
 		# just to demonstrate nested double-quotes inside $(...) should not
