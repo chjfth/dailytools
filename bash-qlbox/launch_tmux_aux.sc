@@ -15,14 +15,16 @@ fi
 # The "default" behavior is to launch tmux on each shell login.
 # But give 3 seconds timeout so that user can opt NOT to launch tmux.
 
-function is_tmux_ls_buggy()
+function is_tmux_ls_bugfree()
 {
-	# ``tmux ls`` have bug in version earlier than 1.7 .
-	# When some session exist, 
+	# ``tmux ls`` has bug in version earlier than 1.7 .
+	# When some session exists, 
 	#	tmux ls > /dev/null
 	# goes freeze, and you have to type Ctrl+\ to quit it.
 	#
-	# return 1 if it has such bug, 0 otherwise.
+	# return 0 if it does NOT have such bug(means bug-free). 
+	# return 1 if it has such bug.
+	# -- You know, 0 means positive(true) in Bash's context, non-0 means negative(false).
 	
 	tmux_V_output=$(tmux -V) 
 		# Sample output:
@@ -33,6 +35,24 @@ function is_tmux_ls_buggy()
 		return 1
 	else
 		return 0
+	fi
+}
+
+function is_tmux_v1()
+{
+	# Check whether we are running (old) tmux version 1.x .
+	# If yes, return 0; if no, return 1 .
+	
+	tmux_V_output=$(tmux -V) 
+		# Sample output:
+		#	tmux 1.6
+		#	tmux 3.0a
+	
+	# https://stackoverflow.com/a/2172367/151453
+	if [[ "$tmux_V_output" == "tmux 1."* ]]; then
+		return 0
+	else 
+		return 1
 	fi
 }
 
@@ -74,7 +94,7 @@ if [ "$TMUX" = "" ]; then
 	# This is a brand new shell login, so we launch tmux,
 	# but give a 3-second "user confirm" timeout.
 
-	if is_tmux_ls_buggy; then
+	if is_tmux_ls_bugfree; then
 		tmux ls > /dev/null 2>&1
 	else
 		false # so, let three-second delay always executed
@@ -97,8 +117,16 @@ if [ "$TMUX" = "" ]; then
 		echo "Software package \"tmux\" not installed, I cannot launch tmux."
 		return 1
 	fi
-
-	tmuxcmd="$("$dir_qlbox/launch_tmux.py" --tmuxconf="$dir_qlbox/tmux.conf")"
+	
+	if is_tmux_v1; then
+		# Use old tmux.conf syntax
+		tmux_conf_filename=tmux-v1.conf
+	else
+		# Use new tmux.conf syntax
+		tmux_conf_filename=tmux.conf
+	fi
+	
+	tmuxcmd="$("$dir_qlbox/launch_tmux.py" --tmuxconf="$dir_qlbox/$tmux_conf_filename")"
 		# Grab the .py's stdout content as to-execute shell command.
 		# The double-quotes surrounding $(...) is optional, I put them here 
 		# just to demonstrate nested double-quotes inside $(...) should not

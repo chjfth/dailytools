@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
 """
 Requirment:
 * Python 2.6 or Python 3.5+
-* tmux 1.8 and above (openSUSE 11.4, tmux 1.4 has problem)
+* tmux 1.3 and above (up-to at least 3.0)
 
 This program "launch" tmux session with the following rules:
 
