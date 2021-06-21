@@ -5,7 +5,7 @@ REM those crowded .vcxproj or .csproj .
 REM
 REM Just use the following sample:
 REM
-REM $(ProjectDir)_VSPG\VSPG-Start9.bat $(ProjectDir)_VSPG\VSPG-PostBuild7.bat $(ProjectDir)main.cpp $(SolutionDir) $(ProjectDir) $(Configuration) $(PlatformName) $(TargetDir) $(TargetFileName) $(TargetName)
+REM $(ProjectDir)_VSPG\VSPG-Start9.bat $(ProjectDir)_VSPG\VSPG-PostBuild7.bat $(ProjectDir)Program.cs $(SolutionDir) $(ProjectDir) $(Configuration) $(PlatformName) $(TargetDir) $(TargetFileName) $(TargetName)
 REM
 REM Two things to tune:
 REM [1] 1st parameter, 
@@ -14,10 +14,10 @@ REM         $(ProjectDir)_VSPG\VSPG-PreBuild7.bat
 REM     for Post-build event, use
 REM         $(ProjectDir)_VSPG\VSPG-PostBuild7.bat
 REM [2] 2nd parameter,
-REM     You have to assign a existing "feedback" source-file, main.cpp above, or assign Program.cs for a csproj.
+REM     You have to assign an existing "feedback" source-file(Program.cs for C#, or main.cpp for C++).
 REM     On this .bat file execution failure, this .bat will touch that feedback file so that the failure is not
-REM     slipped away. I mean, if you execute Build again from Visual Studio, the Build action will take effect,
-REM     instead of reporting an up-to-date status.
+REM     slipped away. I mean, if previous Build fails and you execute Build again from Visual Studio, 
+REM     the Build action will really take effect, instead of reporting a bogus up-to-date status.
 REM
 REM set batfilenam to .bat filename(no directory prefix)
 set batfilenam=%~n0%~x0
