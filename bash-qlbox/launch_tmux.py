@@ -289,7 +289,7 @@ def main():
 			if nsess==1:
 				choice_prompt2 = "Answer 'A' to create a new session, or '1' to attach to the existing one:"
 			else:
-				choice_prompt2 = "Answer 'A' to create a new session, or pick an existing one(%d...%d):"%(1, nsess)
+				choice_prompt2 = "Answer 'A' to create a new session, or pick an existing one(0,%d...%d):"%(1, nsess)
 			sys.stderr.write(choice_prompt2)
 		
 			try:
