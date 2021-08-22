@@ -322,6 +322,8 @@ def main():
 				shcmd = shcmd_attach_a_session(first_detached_sess.sessname)
 				break
 	
+	sys.stderr.write("\n...... tmux working ......\n\n")
+	
 #	sys.stderr.write( 'shcmd='+shcmd + '\n' ) # debug
 	print(shcmd)
 		# The caller(bash script) will capture this output and execute it as command.
