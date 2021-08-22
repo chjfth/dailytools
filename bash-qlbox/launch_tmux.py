@@ -285,7 +285,16 @@ def main():
 		choice_prompt1 = template_session_choice % (banner_list_sessions(sess_infos))
 		sys.stderr.write(choice_prompt1)
 		
-		while True: # user-input cycle
+		if 1==nsess==detaches:
+			need_user_input = False
+			prompt = "We have only one tmux session and it was detached, so we attach to it now."
+			sys.stderr.write(prompt + "\n")
+			shcmd = shcmd_attach_a_session(sess_infos[0].sessname)
+		else:
+			need_user_input = True
+	
+		while need_user_input: # user-input cycle
+		
 			if nsess==1:
 				choice_prompt2 = "Answer 'A' to create a new session, or '1' to attach to the existing one:"
 			else:
