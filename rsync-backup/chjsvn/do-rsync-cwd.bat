@@ -8,7 +8,8 @@ set batdir=%batdir:~0,-1%
 set batdir_fs=%batdir:\=/%
 pushd %batdir%
 
-set BACKUP_TARGET_DIR=/mnt/i/auto-backups
+set BACKUP_TARGET_DIR=.
+REM set BACKUP_TARGET_DIR=/mnt/i/auto-backups
 
 set MYCMD=C:\Windows\System32\wsl.exe ./do-rsync.sh %BACKUP_TARGET_DIR%
 echo %MYCMD%
