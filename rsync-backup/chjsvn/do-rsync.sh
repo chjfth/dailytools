@@ -24,6 +24,6 @@ ssh-agent -a ${SSH_AUTH_SOCK}
 
 # Note: This rsync command will create a chjsvn subfolder in current directory.
 # So, I recommended you have a wrapper script that sets the current directory.
-rsync -avz chj@bepracs.com:/var/lib/svn/ "$BACKUP_TARGET_DIR"
+rsync -av --inplace chj@bepracs.com:/var/lib/svn/ "$BACKUP_TARGET_DIR"
 
 # PENDING Q: Current user must be 'chj'?
