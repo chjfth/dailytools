@@ -209,7 +209,7 @@ JULayout::JulWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	JULayout *jul = (JULayout*)GetProp(hwnd, JULAYOUT_STR);
 	if(!jul)
 	{
-		// This implies we had got WM_DESTROY sometime ago.
+		// This implies we had got WM_NCDESTROY sometime ago.
 		// We have no "user data" now, so just fetch and call orig-WndProc.
 		//
 		// memo: I can see msg==WM_NOTIFY, wParam==1 multiple times here.
@@ -231,7 +231,7 @@ JULayout::JulWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 	LRESULT ret = jul->m_prevWndProc(hwnd, msg, wParam, lParam);
 
-	if(msg==WM_DESTROY)
+	if(msg==WM_NCDESTROY)
 	{
 		// Delete our "user data" but preserve orig-WndProc at a specific place.
 
@@ -338,7 +338,7 @@ LRESULT CALLBACK JULayout::PrshtWndProc(HWND hwndPrsht, UINT msg, WPARAM wParam,
 	JULPrsht_st *jprsht = (JULPrsht_st*)GetProp(hwndPrsht, JULAYOUT_PRSHT_STR);
 	if(!jprsht)
 	{
-		// This implies we had got WM_DESTROY sometime ago.
+		// This implies we had got WM_NCDESTROY sometime ago.
 		// We have no "user data" now, so just fetch and call orig-WndProc.
 
 		WNDPROC orig = (WNDPROC)GetProp(hwndPrsht, ADD_PREV_WINPROC_SUFFIX(JULAYOUT_PRSHT_STR));
@@ -436,7 +436,7 @@ LRESULT CALLBACK JULayout::PrshtWndProc(HWND hwndPrsht, UINT msg, WPARAM wParam,
 
 	LRESULT ret = jprsht->prev_winproc(hwndPrsht, msg, wParam, lParam);
 
-	if(msg==WM_DESTROY)
+	if(msg==WM_NCDESTROY)
 	{
 		RemoveProp(hwndPrsht, JULAYOUT_PRSHT_STR);
 
