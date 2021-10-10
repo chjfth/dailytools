@@ -9,9 +9,9 @@ REM $(ProjectDir)_VSPG\VSPG-Start9.bat $(ProjectDir)_VSPG\VSPG-PostBuild7.bat $(
 REM
 REM Two things to tune according to your actual case:
 REM [1] 1st parameter, 
-REM     for Pre-build event, change this parameter to:
+REM     for Pre-build event, this parameter should be:
 REM         $(ProjectDir)_VSPG\VSPG-PreBuild7.bat
-REM     for Post-build event, change this parameter to:
+REM     for Post-build event, this parameter should be:
 REM         $(ProjectDir)_VSPG\VSPG-PostBuild7.bat
 REM [2] 2nd parameter,
 REM     You have to assign an existing "feedback" source-file(Program.cs for C#, or main.cpp for C++).
