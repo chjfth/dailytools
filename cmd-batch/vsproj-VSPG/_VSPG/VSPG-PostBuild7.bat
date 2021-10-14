@@ -26,7 +26,8 @@ REM ==== boilerplate code <<<<
 
 
 call :Echos called with params: 
-call :Echos   SolutionDir = %SolutionDir%
+call :EchoVar batdir
+call :EchoVar SolutionDir
 call :EchoVar ProjectDir
 call :EchoVar BuildConf
 call :EchoVar PlatformName
@@ -112,7 +113,7 @@ REM Params remain: Each param is a directory to search for Subbat.
   
   set trybat=%trydir%\%SubbatFilenam%
   if exist "%trybat%" (
-    call :Echos Now exec: "%trybat%" %SubbatParams%
+    call :EchoExec "%trybat%" %SubbatParams%
     call "%trybat%" %SubbatParams%
     if errorlevel 1 (
       endlocal

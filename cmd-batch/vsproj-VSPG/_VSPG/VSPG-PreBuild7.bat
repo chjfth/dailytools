@@ -26,7 +26,8 @@ REM ==== boilerplate code <<<<
 
 
 call :Echos called with params: 
-call :Echos   SolutionDir = %SolutionDir%
+call :EchoVar batdir
+call :EchoVar SolutionDir
 call :EchoVar ProjectDir
 call :EchoVar BuildConf
 call :EchoVar PlatformName

@@ -11,12 +11,15 @@ REM =========================================================================
 REM This bat copies(=sync) project output(EXE/DLL etc) to your desired target dirs.
 REM 
 REM After duplicating your own PostBuild-SyncOutput4.bat, you should 
-REM customize COPY_TO_DIRS's value to be your copying target dirs.
-REM You can list multiple target dirs, separated by spaces.
-REM For example, assign two remote machine folders for remote debugging:
+REM customize two things: 
+REM (1) Set COPY_TO_DIRS's value to be your copying target dirs.
+REM     You can list multiple target dirs, separated by spaces.
+REM     For example, assign two remote machine folders for remote debugging:
 REM 
-set COPY_TO_DIRS=z:\bin y:\bin2
+REM set COPY_TO_DIRS=z:\bin y:\bin
 REM
+REM (2) At the line `call :CopyFilePatterns ... *.exe *.dll`,
+REM     Change the wildcard patterns to meet your need.
 REM =========================================================================
 
 if "%COPY_TO_DIRS%" == "" (
@@ -28,11 +31,10 @@ for %%d in (%COPY_TO_DIRS%) do (
 	if not exist !d_final! ( 
 		mkdir !d_final! 
 	)
-	set copy_cmd=copy %ExeDllDir%\*.* !d_final!
-	call :EchoExec !copy_cmd!
-	!copy_cmd!
+	
+	call :CopyFilePatterns %ExeDllDir% !d_final! *.exe *.dll
 	if errorlevel 1 ( 
-		call :Echos BAD. Error occurred when copying file to !d_final! .
+		call :Echos [VSPG-Error] Error occurred when copying file to !d_final! .
 		exit /b 4 
 	)
 )
@@ -63,5 +65,55 @@ exit /b
   REM call :SetErrorlevel 4
 exit /b %1
 
+:CopyFilePatterns
+REM Copy files of various patterns to destination directory.
+REM We need this bcz Windows copy cmd only accepts one wildcard pattern per execution.
+REM Param1: Source folder.
+REM Param2: Destination folder.
+REM Params remain: Each one is a pattern, like: *.exe *.dll .
+  setlocal
+  set AllPatterns=
+  set isMeetFile=false
+
+  set DirSrc=%~1
+  shift
+  
+  set DirDst=%~1
+  shift
+  
+  if not exist "%DirDst%" mkdir "%DirDst"
+  
+:loop_CopyFilePatterns
+  set pattern=%1
+  set AllPatterns=%AllPatterns% %pattern%
+  
+  if "%pattern%" == "" (
+    REM Pattern finished. Do we really copy any files? If none, assert error.
+    
+    if "%isMeetFile%" == "false" (
+      call :Echos [VSPG-Error] No files are found by your pattern: %AllPatterns%
+      exit /b 4
+    ) else (
+      endlocal
+      exit /b 0
+    )
+  )
+  
+  set seefile=
+  for %%g in (%DirSrc%\%pattern%) do set seefile=%%g
+  
+  if not "%seefile%" == "" (
+    set isMeetFile=true
+    set copy_cmd=copy %DirSrc%\%pattern% %DirDst%
+    call :EchoExec !copy_cmd!
+    !copy_cmd!
+    if errorlevel 1 exit /b 4
+  )
+  
+  shift
+  goto :loop_CopyFilePatterns
+
+REM -- End of CopyFilePatterns
+  
 :END
-rem echo [%batfilenam%] END for %ProjectDir%
+
