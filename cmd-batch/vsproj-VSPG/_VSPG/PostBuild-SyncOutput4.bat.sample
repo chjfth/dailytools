@@ -32,7 +32,7 @@ for %%d in (%COPY_TO_DIRS%) do (
 	call :EchoExec !copy_cmd!
 	!copy_cmd!
 	if errorlevel 1 ( 
-		call :Echos BAD. Error occurred when copying file to some COPY_TO_DIRS.
+		call :Echos BAD. Error occurred when copying file to !d_final! .
 		exit /b 4 
 	)
 )

@@ -34,41 +34,34 @@ call :EchoVar TargetDir
 call :EchoVar TargetFilenam
 call :EchoVar TargetName
 
+REM Try to call PreBuild-SubWCRev1.bat from one of three predefined directories,
+REM whichever is encountered first. But if none found, just do nothing.
+REM If you need this PreBuild-SubWCRev1.bat to run, just copy and tune it from
+REM PreBuild-SubWCRev1.bat.sample .
 
-REM Call PreBuild-SubWCRev1.bat only if that file exist. If you need it, just copy it from the .sample aside.
-REM We check two places for that .bat can call both, first in %ProjectDir% then in %SolutionDir% .
-set BAT_HFP=_VSPG\PreBuild-SubWCRev1.bat
-if exist %ProjectDir%\%BAT_HFP% (
-	call :Echos Now exec [ProjectDir]\%BAT_HFP%
-	call %ProjectDir%\%BAT_HFP%               %ProjectDir%
-	if errorlevel 1 exit /b 4
-)
-REM.
-if not %SolutionDir% == %ProjectDir% (
-if exist %SolutionDir%\%BAT_HFP% (
-	call :Echos Now exec [SolutionDir]\%BAT_HFP%
-	call %SolutionDir%\%BAT_HFP%              %SolutionDir%
-	if errorlevel 1 exit /b 4
-))
-
-set ALL_PARAMS=%SolutionDir% %ProjectDir% %BuildConf% %PlatformName% %TargetDir% %TargetFileName% %TargetName%
+call :SearchAndExecSubbat PreBuild-SubWCRev1.bat^
+  "%ProjectDir%"^
+  "%ProjectDir%\_VSPG"^
+  "%SolutionDir%\_VSPG"^
+  "%batdir%"
+if errorlevel 1 exit /b 4
 
 
 REM ==== Call Team-Prebuild7.bat if exist. ====
-set SUBBAT=%batdir%\Team-Prebuild7.bat
-if exist %SUBBAT% (
-	call :EchoExec %SUBBAT%
-	call %SUBBAT%
-	if errorlevel 1 exit /b 4
-)
+call :SearchAndExecSubbat Team-PreBuild7.bat^
+  "%SolutionDir% %ProjectDir% %BuildConf% %PlatformName% %TargetDir% %TargetFilenam% %TargetName%"^
+  "%ProjectDir%\_VSPG"^
+  "%SolutionDir%\_VSPG"^
+  "%batdir%"
+if errorlevel 1 exit /b 4
 
 REM ==== Call Personal-Prebuild7.bat if exist. ====
-set SUBBAT=%batdir%\Personal-Prebuild7.bat
-if exist %SUBBAT% (
-	call :EchoExec %SUBBAT%
-	call %SUBBAT%
-	if errorlevel 1 exit /b 4
-)
+call :SearchAndExecSubbat Personal-PreBuild7.bat^
+  "%SolutionDir% %ProjectDir% %BuildConf% %PlatformName% %TargetDir% %TargetFilenam% %TargetName%"^
+  "%ProjectDir%\_VSPG"^
+  "%SolutionDir%\_VSPG"^
+  "%batdir%"
+if errorlevel 1 exit /b 4
 
 
 goto :END
@@ -99,5 +92,41 @@ exit /b
   REM call :SetErrorlevel 4
 exit /b %1
 
+:SearchAndExecSubbat
+REM Search for a series of dirs passed in as parameters, and call Subbat from 
+REM one of those dirs, whichever is found first.
+REM Param1: Subbat filenam (without dir prefix).
+REM Param2: All params passed to Subbat.
+REM         (when pass in, surrounded by quotes, when calling Subbat, quotes stripped)
+REM Params remain: Each param is a directory to search for Subbat.
+  setlocal
+  Set SubbatFilenam=%~1
+  shift
+  Set SubbatParams=%~1
+  shift
+  
+:loop_SearchAndExecSubbat  
+  
+  set trydir=%~1
+  
+  if "%trydir%" == "" (
+    endlocal
+    exit /b 0
+  )
+  
+  set trybat=%trydir%\%SubbatFilenam%
+  if exist "%trybat%" (
+    call :Echos Now exec: "%trybat%" %SubbatParams%
+    call "%trybat%" %SubbatParams%
+    if errorlevel 1 (
+      endlocal
+      exit /b 4
+    )
+  )
+  
+  shift
+  goto :loop_SearchAndExecSubbat
+
+REM -- End of :SearchAndExecSubbat
+
 :END
-rem echo [%batfilenam%] END for %ProjectDir%

@@ -1,11 +1,11 @@
 @echo off
 REM Usage: This .bat is to be called from Visual Studio project Pre-build-commands and/or Post-build-commands,
-REM so that we can write complex batch  programs from dedicated .bat files, instead of tucking them in 
+REM so that we can write complex batch programs from dedicated .bat files, instead of tucking them in 
 REM those crowded .vcxproj or .csproj .
 REM
 REM Just use(copy + a bit modify) the following sample:
 REM
-REM $(ProjectDir)_VSPG\VSPG-Start9.bat $(ProjectDir)_VSPG\VSPG-PostBuild7.bat $(ProjectDir)Program.cs $(SolutionDir) $(ProjectDir) $(Configuration) $(PlatformName) $(TargetDir) $(TargetFileName) $(TargetName)
+REM $(ProjectDir)_VSPG\VSPG-Start9.bat VSPG-PostBuild7.bat $(ProjectDir)Program.cs $(SolutionDir) $(ProjectDir) $(Configuration) $(PlatformName) $(TargetDir) $(TargetFileName) $(TargetName)
 REM
 REM Two things to tune according to your actual case:
 REM [1] 1st parameter, 
@@ -19,17 +19,19 @@ REM     On this .bat file execution failure, this .bat will touch that feedback 
 REM     slipped away. I mean, if previous Build fails and you execute Build again from Visual Studio, 
 REM     the Build action will really take effect, instead of reporting a bogus up-to-date status.
 REM  
-REM One more thing to note: You can place _VSPG folder in $(ProjectDir) or $(SolutionDir).
-REM If you select the latter, you need to change path prefix to $(SolutionDir)_VSPG , like this:
+REM One more thing to note: You can place _VSPG folder anywhere you like. If you do so,
+REM just change path prefix to VSPG-Start9.bat, e.g. $(SolutionDir)_VSPG , like this:
 REM
-REM $(SolutionDir)_VSPG\VSPG-Start9.bat $(SolutionDir)_VSPG\VSPG-PostBuild7.bat $(ProjectDir)Program.cs $(SolutionDir) $(ProjectDir) $(Configuration) $(PlatformName) $(TargetDir) $(TargetFileName) $(TargetName)
+REM $(SolutionDir)_VSPG\VSPG-Start9.bat VSPG-PostBuild7.bat $(ProjectDir)Program.cs $(SolutionDir) $(ProjectDir) $(Configuration) $(PlatformName) $(TargetDir) $(TargetFileName) $(TargetName)
 
 
 REM
 REM set batfilenam to .bat filename(no directory prefix)
 set batfilenam=%~n0%~x0
+set batdir=%~dp0
+set batdir=%batdir:~0,-1%
 REM  
-set SubworkBat=%1
+set SubworkBat=%batdir%\%1
 shift
 set FeedbackFile=%1
 shift
@@ -37,7 +39,7 @@ call :EchoVar SubworkBat
 call :EchoVar FeedbackFile
 
 if not exist %FeedbackFile% (
-	call :Echos [ERROR] Not-existing feedback file: %FeedbackFile%
+	call :Echos [VSPG-ERROR] Not-existing feedback file: %FeedbackFile%
 	exit /b 4
 )
 
@@ -45,7 +47,7 @@ set ALL_PARAMS=%1 %2 %3 %4 %5 %6 %7
 if exist %SubworkBat% (
   cmd /c %SubworkBat% %ALL_PARAMS%
 ) else (
-  call :Echos [ERROR] SubworkBat NOT found: %SubworkBat%
+  call :Echos [VSPG-ERROR] SubworkBat NOT found: %SubworkBat%
   call :SetErrorlevel 4
 )
 if errorlevel 1 ( call :Touch %FeedbackFile% && exit /b 4 )
