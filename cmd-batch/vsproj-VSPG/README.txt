@@ -79,7 +79,8 @@ These two variables are recognized in _VSPG.props, so that VSGP .bat files in tu
 see their values.
 
 Of course, you can place _VSPG folder at other places, just change VSPG_BatDir_NoTBS's
-directory-prefix accordingly.
+directory-prefix accordingly. If you want to use relative dir-prefix, that's OK and 
+it is relative to $(ProjectDir), that is where foo.vcxproj resides.
 
 [STEP 3] Repeat STEP 2 for each .vcxproj of your interest.
 
