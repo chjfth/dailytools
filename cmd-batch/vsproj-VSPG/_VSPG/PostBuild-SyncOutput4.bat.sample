@@ -1,11 +1,21 @@
 @echo off
-setlocal enabledelayedexpansion
+setlocal EnableDelayedExpansion
 set batfilenam=%~n0%~x0
 REM
-set BuildConf=%1
-set PlatformName=%2
-set ExeDllDir=%3
-set TargetName=%4
+set BuildConf=%~1
+set _BuildConf_=%1
+set PlatformName=%~2
+set _ExeDllDir_=%3
+set ExeDllDir=%~3
+set TargetName=%~4
+
+REM == debugging purpose ==
+REM call :EchoVar _BuildConf_
+REM call :EchoVar BuildConf
+REM call :EchoVar PlatformName
+REM call :EchoVar _ExeDllDir_
+REM call :EchoVar ExeDllDir
+REM call :EchoVar TargetName
 
 REM =========================================================================
 REM This bat copies(=sync) project output(EXE/DLL etc) to your desired target dirs.
@@ -19,7 +29,7 @@ REM
 REM set COPY_TO_DIRS=z:\bin y:\bin
 REM
 REM (2) At the line `call :CopyFilePatterns ... *.exe *.dll`,
-REM     Change the wildcard patterns to meet your need.
+REM     change the wildcard patterns to meet your need.
 REM =========================================================================
 
 if "%COPY_TO_DIRS%" == "" (
@@ -28,13 +38,13 @@ if "%COPY_TO_DIRS%" == "" (
 
 for %%d in (%COPY_TO_DIRS%) do (
 	set d_final=%%d\__%BuildConf%\%PlatformName%
-	if not exist !d_final! ( 
-		mkdir !d_final! 
+	if not exist "!d_final!" ( 
+		mkdir "!d_final! "
 	)
 	
-	call :CopyFilePatterns %ExeDllDir% !d_final! *.exe *.dll
+	call :CopyFilePatterns "%ExeDllDir%" "!d_final!" *.exe *.dll
 	if errorlevel 1 ( 
-		call :Echos [VSPG-Error] Error occurred when copying file to !d_final! .
+		call :Echos [VSPG-Error] Error occurred when copying file to "!d_final!" .
 		exit /b 4 
 	)
 )
@@ -55,9 +65,9 @@ exit /b
 exit /b
 
 :EchoVar
-  REM Env-var double expansion trick from: https://stackoverflow.com/a/1202562/151453
+  REM Env-var double expansion trick from: https://stackoverflow.com/a/1200871/151453
   set _Varname=%1
-  for /F %%i in ('echo %%%_Varname%%%') do echo [%batfilenam%] %_Varname% = %%i
+  for /F %%i in ('echo %_Varname%') do echo [%batfilenam%] %_Varname% = !%%i!
 exit /b
 
 :SetErrorlevel
@@ -68,12 +78,12 @@ exit /b %1
 :CopyFilePatterns
 REM Copy files of various patterns to destination directory.
 REM We need this bcz Windows copy cmd only accepts one wildcard pattern per execution.
-REM Param1: Source folder.
-REM Param2: Destination folder.
-REM Params remain: Each one is a pattern, like: *.exe *.dll .
+REM Param1: Source folder. (can in quotes)
+REM Param2: Destination folder. (can in quotes)
+REM Params remain: Each one is a pattern, like: *.exe *.dll . (can not in quotes)
   setlocal
   set AllPatterns=
-  set isMeetFile=false
+  set isFileMet=false
 
   set DirSrc=%~1
   shift
@@ -84,13 +94,13 @@ REM Params remain: Each one is a pattern, like: *.exe *.dll .
   if not exist "%DirDst%" mkdir "%DirDst"
   
 :loop_CopyFilePatterns
-  set pattern=%1
+  set pattern=%~1
   set AllPatterns=%AllPatterns% %pattern%
   
   if "%pattern%" == "" (
     REM Pattern finished. Do we really copy any files? If none, assert error.
     
-    if "%isMeetFile%" == "false" (
+    if "%isFileMet%" == "false" (
       call :Echos [VSPG-Error] No files are found by your pattern: %AllPatterns%
       exit /b 4
     ) else (
@@ -100,11 +110,11 @@ REM Params remain: Each one is a pattern, like: *.exe *.dll .
   )
   
   set seefile=
-  for %%g in (%DirSrc%\%pattern%) do set seefile=%%g
+  for %%g in ("%DirSrc%\%pattern%") do set seefile=%%g
   
   if not "%seefile%" == "" (
-    set isMeetFile=true
-    set copy_cmd=copy %DirSrc%\%pattern% %DirDst%
+    set isFileMet=true
+    set copy_cmd=copy "%DirSrc%\%pattern%" "%DirDst%"
     call :EchoExec !copy_cmd!
     !copy_cmd!
     if errorlevel 1 exit /b 4

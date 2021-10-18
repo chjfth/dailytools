@@ -1,4 +1,5 @@
 @echo off
+setlocal EnableDelayedExpansion
 REM Usage: This .bat is to be called from Visual Studio project Pre-build-commands and/or Post-build-commands,
 REM so that we can write complex batch programs from dedicated .bat files, instead of tucking them in 
 REM those crowded .vcxproj or .csproj .
@@ -43,7 +44,7 @@ if not exist %FeedbackFile% (
 	exit /b 4
 )
 
-set ALL_PARAMS=%1 %2 %3 %4 %5 %6 %7
+set ALL_PARAMS="%~1" "%~2" "%~3" "%~4" "%~5" "%~6" "%~7"
 if exist %SubworkBat% (
   cmd /c %SubworkBat% %ALL_PARAMS%
 ) else (
@@ -68,9 +69,9 @@ exit /b
 exit /b
 
 :EchoVar
-  REM Env-var double expansion trick from: https://stackoverflow.com/a/1202562/151453
+  REM Env-var double expansion trick from: https://stackoverflow.com/a/1200871/151453
   set _Varname=%1
-  for /F %%i in ('echo %%%_Varname%%%') do echo [%batfilenam%] %_Varname% = %%i
+  for /F %%i in ('echo %_Varname%') do echo [%batfilenam%] %_Varname% = !%%i!
 exit /b
 
 :SetErrorlevel

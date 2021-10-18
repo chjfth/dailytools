@@ -1,26 +1,27 @@
 @echo off
+setlocal EnableDelayedExpansion
 REM VSPG-PostBuild7.bat $(SolutionDir) $(ProjectDir) $(Configuration) $(PlatformName) $(TargetDir) $(TargetFileName) $(TargetName)
 REM ==== boilerplate code >>>
 REM
 set batfilenam=%~n0%~x0
 set batdir=%~dp0
 set batdir=%batdir:~0,-1%
-set SolutionDir=%1
+set SolutionDir=%~1
 set SolutionDir=%SolutionDir:~0,-1%
-set ProjectDir=%2
+set ProjectDir=%~2
 set ProjectDir=%ProjectDir:~0,-1%
 REM BuildConf : Debug | Release
-set BuildConf=%3
+set BuildConf=%~3
+set _BuildConf_=%3
 REM PlatformName : Win32 | x64
-set PlatformName=%4
+set PlatformName=%~4
 REM TargetDir is the EXE/DLL output directory
-set TargetDir=%5
+set TargetDir=%~5
+set _TargetDir_=%5
 set TargetDir=%TargetDir:~0,-1%
 REM TargetFilenam is the EXE/DLL output name (varname chopping trailing 'e', means "no path prefix")
-set TargetFilenam=%6
-set TargetName=%7
-REM
-rem call :Echos START for %ProjectDir%
+set TargetFilenam=%~6
+set TargetName=%~7
 REM
 REM ==== boilerplate code <<<<
 
@@ -41,16 +42,15 @@ REM If you need this PostBuild-SyncOutput4.bat to run, just copy and tune it fro
 REM PostBuild-SyncOutput4.bat.sample .
 
 call :SearchAndExecSubbat PostBuild-SyncOutput4.bat^
-  "%BuildConf% %PlatformName% %TargetDir% %TargetName%"^
+  """%BuildConf%"" %PlatformName% ""%TargetDir%"" ""%TargetName%"""^
   "%ProjectDir%\_VSPG"^
   "%SolutionDir%\_VSPG"^
   "%batdir%"
 if errorlevel 1 exit /b 4
 
-
 REM ==== Call Team-Postbuild7.bat if exist. ====
 call :SearchAndExecSubbat Team-PostBuild7.bat^
-  "%SolutionDir% %ProjectDir% %BuildConf% %PlatformName% %TargetDir% %TargetFilenam% %TargetName%"^
+  "%SolutionDir% %ProjectDir% ""%BuildConf%"" %PlatformName% ""%TargetDir%"" ""%TargetFilenam%"" ""%TargetName%"""^
   "%ProjectDir%\_VSPG"^
   "%SolutionDir%\_VSPG"^
   "%batdir%"
@@ -58,7 +58,7 @@ if errorlevel 1 exit /b 4
 
 REM ==== Call Personal-Postbuild7.bat if exist. ====
 call :SearchAndExecSubbat Personal-PostBuild7.bat^
-  "%SolutionDir% %ProjectDir% %BuildConf% %PlatformName% %TargetDir% %TargetFilenam% %TargetName%"^
+  "%SolutionDir% %ProjectDir% ""%BuildConf%"" %PlatformName% ""%TargetDir%"" ""%TargetFilenam%"" ""%TargetName%"""^
   "%ProjectDir%\_VSPG"^
   "%SolutionDir%\_VSPG"^
   "%batdir%"
@@ -79,9 +79,9 @@ exit /b
 exit /b
 
 :EchoVar
-  REM Env-var double expansion trick from: https://stackoverflow.com/a/1202562/151453
+  REM Env-var double expansion trick from: https://stackoverflow.com/a/1200871/151453
   set _Varname=%1
-  for /F %%i in ('echo %%%_Varname%%%') do echo [%batfilenam%] %_Varname% = %%i
+  for /F %%i in ('echo %_Varname%') do echo [%batfilenam%] %_Varname% = !%%i!
 exit /b
 
 :SetErrorlevel
@@ -99,7 +99,9 @@ REM Params remain: Each param is a directory to search for Subbat.
   setlocal
   Set SubbatFilenam=%~1
   shift
-  Set SubbatParams=%~1
+  Set _SubbatParams_=%1
+  REM -- %_SubbatParams_% example:
+  REM """Debug ANSI Char"" Win32 ""D:\gitw\bookcode-mswin\PRWIN5\Chap17\Debug ANSI Char"" PickFont"
   shift
   
 :loop_SearchAndExecSubbat  
@@ -113,8 +115,9 @@ REM Params remain: Each param is a directory to search for Subbat.
   
   set trybat=%trydir%\%SubbatFilenam%
   if exist "%trybat%" (
-    call :EchoExec "%trybat%" %SubbatParams%
-    call "%trybat%" %SubbatParams%
+	for /F "usebackq delims=" %%i IN (`%batdir%\vspg-flatten-args %_SubbatParams_%`) DO set SubbatParams=%%i
+	call :EchoExec "%trybat%" !SubbatParams!
+    "%trybat%" !SubbatParams!
     if errorlevel 1 (
       endlocal
       exit /b 4
