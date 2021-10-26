@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BankKeyMonitor
+namespace wm_devicechange
 {
     public class WinApi
     {

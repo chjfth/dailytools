@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace BankKeyMonitor.Properties {
+namespace wm_devicechange.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]

@@ -13,10 +13,41 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace BankKeyMonitor
+namespace wm_devicechange
 {
     public partial class Form1 : Form
     {
+        static DateTime s_last_DateTime = new DateTime(0);
+        //
+        static string text_elapse(int millisec)
+        {
+            if (millisec >= 1000)
+            {
+                double sec = (double)millisec / 1000;
+                return $"(+{sec:g}s)";
+            }
+            else if (millisec > 0) return $"(+{millisec}ms)";
+            else return "";
+        }
+        //
+        void Log(string s)
+        {
+            DateTime nowdt = DateTime.Now;
+            int millisec_gap = (int)(nowdt - s_last_DateTime).TotalMilliseconds;
+            int seconds_gap = millisec_gap / 1000;
+            if (s_last_DateTime.Ticks > 0 && seconds_gap > 0)
+            {
+                Log_ui("".PadLeft(Math.Min(10, seconds_gap), '.'));
+            }
+            string tsprefix = string.Format("[{0:D2}:{1:D2}:{2:D2}.{3:D3}{4}]",
+                nowdt.Hour, nowdt.Minute, nowdt.Second, nowdt.Millisecond, text_elapse(millisec_gap)
+            );
+
+            Log_ui($"{tsprefix}{s}"); //Console.Out.WriteLine($"{tsprefix}{s}");
+
+            s_last_DateTime = nowdt;
+        }
+
         private List<Device> _DeviceList = new List<Device>();
         private static object locker = new object();
         public Form1()
@@ -70,7 +101,7 @@ namespace BankKeyMonitor
             }
         }
 
-        private void Log(string s)
+        private void Log_ui(string s)
         {
             textBox1.BeginInvoke(new Action(() =>
             {
