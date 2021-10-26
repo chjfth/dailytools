@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -253,7 +252,7 @@ namespace BankKeyMonitor
                 //        }
                 //    }
                 //}
-                Log($"{count++}: {JsonConvert.SerializeObject(cert)}");
+                // Log($"{count++}: {JsonConvert.SerializeObject(cert)}");
                 certList.Add(cert);
             }
             return certList;
