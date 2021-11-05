@@ -13,4 +13,4 @@ echo.
 echo SVN server starting...
 set command=svnserve -d -r %batdir%
 echo   %command%
-%command%
+cmd /C title svnserve && %command%
