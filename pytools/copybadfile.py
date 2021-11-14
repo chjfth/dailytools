@@ -92,7 +92,7 @@ def CopyFile_FindBadRanges(level, srcfh, dstfh, start, end_):
 	return badranges_all
 
 
-def print_my_version:
+def print_my_version():
 	print("%s version %s"%(os.path.basename(__file__), version))
 	
 
