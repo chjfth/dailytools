@@ -5,18 +5,16 @@ import re, os, sys, traceback
 import time
 from collections import namedtuple
 
-version = '1.0'
+version = '1.1'
+
+FILEOP_CHUNK_SIZE = 1024*1024
+SECTOR_SIZE = 4096
 
 BadRange = namedtuple('BadRange', 'start end_')
 
 disksector_size = 4096
 is_truncate = False
 
-def sector_idx(byte_offset):
-	return byte_offset // disksector_size
-
-def sector_boundary(byte_offset):
-	return byte_offset // disksector_size * disksector_size
 
 def MergeAdjacentRanges(ranges1, ranges2):
 	
@@ -33,7 +31,25 @@ def MergeAdjacentRanges(ranges1, ranges2):
 		return ranges2
 	
 
-def CopyFile_FindBadRanges(level, srcfh, dstfh, start, end_):
+def in_CopyFile_FindBadRanges(Lv, start, end_, 
+	start0, end0_,
+	srcfh, dstfh, 
+	Lv0_chunk_size, Lv1_align_size):
+
+	"""
+	Lv: Recurse level, increase 1 on each recursion call. 
+	
+	Lv0: Initial user call. Lv0_split_size normally set to a big buffer-size, like 1024*1024.
+		This is the app read/write buffer when no file-reading error occurs.
+	
+	Lv1: Split a big buffer into small sector-size after file-reading error occurs, 
+		reading small sectors one by one in hope that we can rescue those survived bytes.
+		Normally, this is set to disk sector-size, like 4096.
+	
+	Lv2: Processing a single sector.
+	
+	Return: a list of BadRange tuples, telling the caller which parts are bad/lost.
+	"""
 
 	if start==end_:
 		return []
@@ -41,55 +57,86 @@ def CopyFile_FindBadRanges(level, srcfh, dstfh, start, end_):
 	nbytes = end_ - start
 	assert(nbytes>0)
 
-	got_error = False
+	if Lv==0:
+		assert start==start0
+		split_size = Lv0_chunk_size
+	elif Lv>=1:
+		split_size = Lv1_align_size
 
-	try:
-		srcfh.seek(start)
-		data = srcfh.read(nbytes) # May meet file reading error, and we will catch it.
-	except OSError:
-		got_error = True
-	
-	if not got_error:
-		dstfh.seek(start)
-		dstfh.write(data) # let write error(exception) propagate 
-		return []
+	if Lv>0:
 
-	# Due to source file reading error on big block,
-	# now we'll break it down into two smaller chunks of disksector_size and find out 
-	# which sector(s) cause read error.
-	
-	start_sector = sector_idx(start)
-	end_sector = sector_idx(end_-1)
-	
-	if start_sector == end_sector:
-		# range already in same sector, splitting helps nothing, so just fail it.
+		# For Lv1 & Lv2, try one-shot read/write of whole data from start to end_
+		got_error = False
+		try:
+			srcfh.seek(start)
+			data = srcfh.read(nbytes) # May encounter file reading error, and we will catch it.
+		except OSError:
+			# catch file-reading error.
+			got_error = True
 		
-		# but fill zeros to dstfh at those "bad" location, don't leave garbage there.
+		if not got_error:
+			dstfh.seek(start)
+			dstfh.write(data) # would let write error(exception) propagate 
+			return []
+
+	# Since big-chunk source-reading has failed, now cycle for each split_size.
+	# Each split generate a "sector" (just borrow the jargon for analogy).
+
+	start_sector = start // split_size
+	end_sector = (end_-1) // split_size
+	
+	if Lv>=1 and start_sector==end_sector:
+		# this [start, end_) has been the smallest split, no more splitting to go.
+		
+		# fill zeros to dstfh at those "bad" location, don't leave garbage there.
 		dstfh.seek(start)
 		dstfh.write(b'\x00'*nbytes)
 		
 		return [BadRange(start, end_)]
 	
-	badranges_all = []
+	badranges = [] # todo: rename to Lv0_badranges
 	
-	if level==1:
-		print("") # need a new line
-	
-	print("  [Lv%d] Error@[%d - %d), split into %d sectors."%(level, start, end_, end_sector+1-start_sector))
+	if Lv==1:
+		# need a new line to escape from Lv0's same-line progress state
+		print("") 
+
+		print("  Error@[%d - %d), will find out sector-by-sector."%(start, end_))
+		
+		time.sleep(0.5) # debug
 	
 	for idx_sector in range(start_sector, end_sector+1):
 		
-		substart = max(idx_sector*disksector_size, start)
-		subend_ = min((idx_sector+1)*disksector_size, end_)
+		substart = max(idx_sector*split_size, start)
+		subend_ = min((idx_sector+1)*split_size, end_)
 		
-		#print("    Retrying offset [%d , %d]..."%(substart, subend_))
+		#print("  >> sub [%d, %d) %d bytes"%(substart, subend_, subend_-substart)) # debug
 		
-		badranges = CopyFile_FindBadRanges(level+1, srcfh, dstfh, substart, subend_)
+		if Lv==0:
+			print("Progress at %d (%.2f%%)"%(substart, (substart-start0)/(end0_-start0)*100), end='')
+			
+			if badranges:
+				print("  (BAD+%d)"%(len(badranges)), end='')
+			
+			print("  \r", end='') # better have some spaces to overwrite same-line previous chars.
 		
-		badranges_all = MergeAdjacentRanges(badranges_all, badranges)
+		brs = in_CopyFile_FindBadRanges(Lv+1, substart, subend_,
+			start0, end0_, srcfh, dstfh, Lv0_chunk_size, Lv1_align_size)
+		
+		badranges = MergeAdjacentRanges(badranges, brs)
 	
-	assert(badranges_all)
-	return badranges_all
+	assert(badranges)
+	return badranges
+
+def CopyFile_FindBadRanges(srcfh, dstfh, start, end_):
+	
+	badranges = in_CopyFile_FindBadRanges(0, start, end_, 
+		start, end_,
+		srcfh, dstfh, 
+		FILEOP_CHUNK_SIZE, SECTOR_SIZE);
+	
+	print("") # cursor move to next line
+	
+	return badranges
 
 
 def print_my_version():
@@ -172,35 +219,8 @@ def do_main():
 	else:
 		dstfh = open(dstfile, "wb")
 
-	srcfh.seek(offset)
-	dstfh.seek(offset)
 
-	chunksize = 1024*1024
-	donebytes = 0
-
-	badranges = []
-
-	while donebytes<totbytes:
-
-		cur_offset = offset+donebytes
-		print("Progress at %d (%.2f%%)"%(cur_offset, donebytes/totbytes*100), end='')
-		
-		badrange_count = len(badranges)
-		
-		if badrange_count>0 :
-			print( " (BAD+%d)"%(badrange_count), end='')
-		
-		print("        \r", end='') 
-		# -- cursor move to start to line and we need some spaces to overwrite previous chars.
-		
-		nbytes = min(chunksize, totbytes-donebytes)
-		
-		brs = CopyFile_FindBadRanges(1, srcfh, dstfh, cur_offset, cur_offset+nbytes)
-		badranges = MergeAdjacentRanges(badranges, brs)
-		
-		donebytes += nbytes
-
-	print("") # move to next line
+	badranges = CopyFile_FindBadRanges(srcfh, dstfh, offset, offset+totbytes)
 
 	badrange_count = len(badranges)
 	badbytes_total = 0
