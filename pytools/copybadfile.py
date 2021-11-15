@@ -136,7 +136,9 @@ def in_CopyFile_FindBadRanges(Lv, start, end_,
 		
 		badranges = MergeAdjacentRanges(badranges, brs)
 	
-	assert(badranges)
+	if Lv>0:
+		assert(badranges)
+
 	return badranges
 
 
