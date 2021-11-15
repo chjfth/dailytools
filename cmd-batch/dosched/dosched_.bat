@@ -40,9 +40,17 @@ if "%DelaySeconds%" == "" (
 
 set ERRCODE=%ERRORLEVEL%
 
-if ERRORLEVEL 1 if not "%DelaySeconds%" == "" (
+if ERRORLEVEL 1 (
+  if "%DelaySeconds%" == "0" (
+	echo.
+	echo ==== ERROR OCCURRED! Please review. Press any key to dismiss. ====
+	echo.
+	pause
+  ) else if not "%DelaySeconds%" == "" (
 	call :Delay %DelaySeconds%
+  )
 )
+
 
 exit /b %ERRCODE%
 
