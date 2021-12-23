@@ -53,6 +53,8 @@ Assume that you place it inside $(SolutionDir), i.e. side-by-side with your .sln
   </PropertyGroup>
   <Import Project="$(VSPG_BatDir_NoTBS)\_VSPG.props" />
 
+(hint: _NoTBS means No Trailing BackSlash)
+
 so the end of foo.vcxproj looks like this:
 
 ...
