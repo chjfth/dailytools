@@ -50,7 +50,7 @@ if errorlevel 1 exit /b 4
 
 REM ==== Call Team-Postbuild7.bat if exist. ====
 call :SearchAndExecSubbat Team-PostBuild7.bat^
-  "%SolutionDir% %ProjectDir% ""%BuildConf%"" %PlatformName% ""%TargetDir%"" ""%TargetFilenam%"" ""%TargetName%"""^
+  """%SolutionDir%"" ""%ProjectDir%"" ""%BuildConf%"" %PlatformName% ""%TargetDir%"" ""%TargetFilenam%"" ""%TargetName%"""^
   "%ProjectDir%\_VSPG"^
   "%SolutionDir%\_VSPG"^
   "%batdir%"
@@ -58,7 +58,7 @@ if errorlevel 1 exit /b 4
 
 REM ==== Call Personal-Postbuild7.bat if exist. ====
 call :SearchAndExecSubbat Personal-PostBuild7.bat^
-  "%SolutionDir% %ProjectDir% ""%BuildConf%"" %PlatformName% ""%TargetDir%"" ""%TargetFilenam%"" ""%TargetName%"""^
+  """%SolutionDir%"" ""%ProjectDir%"" ""%BuildConf%"" %PlatformName% ""%TargetDir%"" ""%TargetFilenam%"" ""%TargetName%"""^
   "%ProjectDir%\_VSPG"^
   "%SolutionDir%\_VSPG"^
   "%batdir%"
