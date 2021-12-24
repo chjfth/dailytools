@@ -44,13 +44,6 @@ REM whichever is encountered first. But if none found, just do nothing.
 REM If you need this PostBuild-SyncOutput4.bat to run, just copy and tune it from
 REM PostBuild-SyncOutput4.bat.sample .
 
-call :SearchAndExecSubbat PostBuild-SyncOutput4.bat^
-  """%BuildConf%"" %PlatformName% ""%TargetDir%"" ""%TargetName%"""^
-  "%ProjectDir%\_VSPG"^
-  "%SolutionDir%\_VSPG"^
-  "%batdir%"
-if errorlevel 1 exit /b 4
-
 REM ==== Call Team-Postbuild8.bat if exist. ====
 call :SearchAndExecSubbat Team-PostBuild8.bat^
   """%SolutionDir%"" ""%ProjectDir%"" ""%BuildConf%"" %PlatformName% ""%TargetDir%"" ""%TargetFilenam%"" ""%TargetName%"" ""%IntrmDir%"""^
@@ -66,6 +59,14 @@ call :SearchAndExecSubbat Personal-PostBuild8.bat^
   "%SolutionDir%\_VSPG"^
   "%batdir%"
 if errorlevel 1 exit /b 4
+
+call :SearchAndExecSubbat PostBuild-SyncOutput4.bat^
+  """%BuildConf%"" %PlatformName% ""%TargetDir%"" ""%TargetName%"""^
+  "%ProjectDir%\_VSPG"^
+  "%SolutionDir%\_VSPG"^
+  "%batdir%"
+if errorlevel 1 exit /b 4
+
 
 goto :END
 
