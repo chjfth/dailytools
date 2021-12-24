@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemDefinitionGroup>
+    <PreBuildEvent>
+      <Command>"$(VSPG_BootsDir_NoTBS)\VSPG-StartBat9_.bat" VSPG-PreBuild8_.bat  "$(VSPG_FeedbackFile)" "$(SolutionDir)" "$(ProjectDir)" "$(Configuration)" "$(PlatformName)" "$(TargetDir)" "$(TargetFileName)" "$(TargetName)" "$(IntDir)"</Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>"$(VSPG_BootsDir_NoTBS)\VSPG-StartBat9_.bat" VSPG-PostBuild8_.bat "$(VSPG_FeedbackFile)" "$(SolutionDir)" "$(ProjectDir)" "$(Configuration)" "$(PlatformName)" "$(TargetDir)" "$(TargetFileName)" "$(TargetName)" "$(IntDir)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+</Project>

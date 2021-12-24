@@ -8,31 +8,55 @@ REM This .bat is now internally to VSPG. User does not need to care for its code
 
 REM set batfilenam to .bat filename(no directory prefix)
 set batfilenam=%~n0%~x0
-set batdir=%~dp0
-set batdir=%batdir:~0,-1%
-REM  
-set SubworkBat=%batdir%\%1
+set bootsdir=%~dp0
+set bootsdir=%bootsdir:~0,-1%
+REM
+set SubworkBatfile=%~1
+set SubworkBatpath=%bootsdir%\%SubworkBatfile%
 shift
-set FeedbackFile=%1
+set FeedbackFile=%~1
 shift
-call :EchoVar SubworkBat
+set SolutionDir=%~1
+set SolutionDir=%SolutionDir:~0,-1%
+set ProjectDir=%~2
+set ProjectDir=%ProjectDir:~0,-1%
+REM BuildConf : Debug or Release
+set BuildConf=%~3
+REM PlatformName : Win32 or x64
+set PlatformName=%4
+REM TargetDir is the EXE/DLL output directory
+set TargetDir=%~5
+set TargetDir=%TargetDir:~0,-1%
+REM TargetFilenam is the EXE/DLL output name (varname chopping trailing 'e', means "no path prefix")
+set TargetFilenam=%~6
+set TargetName=%~7
+set IntrmDir=%~8
+set IntrmDir=%IntrmDir:~0,-1%
+
+
+call :EchoVar SubworkBatpath
 call :EchoVar FeedbackFile
 
-if not exist %FeedbackFile% (
+if not exist "%FeedbackFile%" (
 	call :Echos [VSPG-ERROR] Not-existing feedback file: %FeedbackFile%
 	exit /b 4
 )
 
-set ALL_PARAMS="%~1" "%~2" "%~3" "%~4" "%~5" "%~6" "%~7" "%~8"
-if exist %SubworkBat% (
-  cmd /c %SubworkBat% %ALL_PARAMS%
-) else (
-  call :Echos [VSPG-ERROR] SubworkBat NOT found: %SubworkBat%
+
+if not exist "%SubworkBatpath%" (
+  call :Echos [VSPG-ERROR] SubworkBatpath NOT found: "%SubworkBatpath%"
   call :SetErrorlevel 4
+  exit /b 4
 )
+
+call "%bootsdir%\SearchAndExecSubbat.bat" "%SubworkBatfile%"^
+    """%SolutionDir%"" ""%ProjectDir%"" ""%BuildConf%"" %PlatformName% ""%TargetDir%"" ""%TargetFilenam%"" ""%TargetName%"" ""%IntrmDir%"""^
+    "%bootsdir%"
+
 if errorlevel 1 ( call :Touch %FeedbackFile% && exit /b 4 )
 
 exit /b 0
+
 
 
 REM =============================
@@ -57,6 +81,13 @@ exit /b
   REM Usage example:
   REM call :SetErrorlevel 4
 exit /b %1
+
+:SplitDir
+  REM Param1: C:\dir1\file1.txt
+  REM Param2: Output varname, receive: C:\dir1
+  for %%a in (%1) do set "_retdir_=%%~dpa"
+  set %2=%_retdir_:~0,-1%
+exit /b
 
 :Touch
 	REM Touch updates a file's modification time to current.

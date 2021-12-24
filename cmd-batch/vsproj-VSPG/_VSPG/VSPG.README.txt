@@ -56,11 +56,11 @@ Assume that you place it inside $(SolutionDir), i.e. side-by-side with your .sln
 
   <!-- import VSPG start -->
   <PropertyGroup>
-    <VSPG_BatDir_NoTBS>$(SolutionDir)_VSPG</VSPG_BatDir_NoTBS>
+    <VSPG_BootsDir_NoTBS>$(SolutionDir)_VSPG\boots</VSPG_BootsDir_NoTBS>
     <VSPG_FeedbackFile>$(ProjectDir)winmain.cpp</VSPG_FeedbackFile>
   </PropertyGroup>
   <ImportGroup Label="PropertySheets">
-    <Import Project="$(VSPG_BatDir_NoTBS)\_VSPG.props" />
+    <Import Project="$(VSPG_BootsDir_NoTBS)\_VSPG.props" />
   </ImportGroup>
   <!-- import VSPG end -->
 
@@ -71,11 +71,11 @@ so the end of foo.vcxproj looks like this:
 ...
   <!-- import VSPG start -->
   <PropertyGroup>
-    <VSPG_BatDir_NoTBS>$(SolutionDir)_VSPG</VSPG_BatDir_NoTBS>
+    <VSPG_BootsDir_NoTBS>$(SolutionDir)_VSPG\boots</VSPG_BootsDir_NoTBS>
     <VSPG_FeedbackFile>$(ProjectDir)winmain.cpp</VSPG_FeedbackFile>
   </PropertyGroup>
   <ImportGroup Label="PropertySheets">
-    <Import Project="$(VSPG_BatDir_NoTBS)\_VSPG.props" />
+    <Import Project="$(VSPG_BootsDir_NoTBS)\_VSPG.props" />
   </ImportGroup>
   <!-- import VSPG end -->
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
@@ -84,17 +84,17 @@ so the end of foo.vcxproj looks like this:
 </Project>
 
 The STEP 2 tells Visual Studio two things:
-(1) It defines a MSBuild variable named VSPG_BatDir_NoTBS telling where you have placed
-    the _VSPG folder, so that _VSPG.props can be imported(=included) in VS project.
+(1) It defines a MSBuild variable named VSPG_BootsDir_NoTBS telling where you have placed
+    the _VSPG\boots folder, so that _VSPG.props can be imported into VS project.
 (2) It defines a MSBuild variable named VSPG_FeedbackFile to act as a feedback file.
     You must assign an existing source file from your project to make VSPG work.
     On .bat exec fail, the .bat code will touch the feedback file so your project 
-    becomes out-of-date. Purpose: On next build cycle, VSPG will run again.
+    becomes out-of-date. So that, on next build(F7), VSPG will run again.
 
 These two variables are recognized in _VSPG.props, so that VSGP .bat files in turn 
 see their values.
 
-Of course, you can place _VSPG folder at other places, just change VSPG_BatDir_NoTBS's
+Of course, you can place _VSPG folder at other places, just change VSPG_BootsDir_NoTBS's
 directory-prefix accordingly. If you want to use relative dir-prefix, that's OK and 
 it is relative to $(ProjectDir), that is where <foobar>.vcxproj resides.
 
