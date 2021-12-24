@@ -4,31 +4,37 @@ VSPG is Visual Studio Project Pre-build/Post-build Generic processing framework.
 It can ease the deployment of many Pre-build/Post-build actions for us.
 
 A typical scenario is: You want your output EXE/DLL to be copied to a remote machine, 
-F5 start remote debugging immediately, and do it robustly.
+F5 to start remote debugging immediately, and do it robustly.
 
 Features:
-* Robust. All errors in .bat are reported and cause project-build to fail.
-* Easy to deploy and apply customization. 
+* Robust. All errors in .bat are reported and cause project-build(F7) to fail.
+* Easy to deploy. 
 * Be little intrusive, so we can apply it team-wide.
-* Extensibility of VSPG framework is fairly OK.
-* Co-existence with other Pre-build/Post-build actions.
+* Extensibility. You can customize your own Pre-build/Post-build commands and
+  hook them into the VSPG and they get all benefits from VSPG as in the framework.
+* Co-existence of many Pre-build/Post-build actions sub-bats is not a problem.
 
 ==== How to deploy? ====
 
 The key is to know how to "bootstrap" these .bat files. To do this, we need to 
 configure Visual Studio project (.vcxproj or .csproj) to execute the 
-_VSPG\VSPG-Start9.bat at its Pre-build stage and/or Post-build stage. 
+_VSPG\VSPG-StartBat9_.bat at its Pre-build stage and/or Post-build stage. 
 
-Please see comments in VSPG-Start9.bat to know the exact command-line inside.
+See "Bootstrapping Best Practice" section below.
 
-Please be clear: Merely executing VSPG-Start9.bat in your .vcxproj/.csproj
+Please be clear: Merely Bootstrapping VSPG in your .vcxproj/.csproj
 will not actually change the project-building behavior, so it does not affect
-your team fellows on another svn/git sandbox.
+your team fellows on another svn/git sandbox as if VSPG is hidden.
 
-The project-building behavior changes only after you make a copy of 
-PostBuild-SyncOutput4.bat.sample to PostBuild-SyncOutput4.bat. So, 
-PostBuild-SyncOutput4.bat etc is your personal stuff to tune/tweak, so to 
-meet your personal need(copy output EXE to a remote machine for live debugging etc).
+For example, VSIDE's project-building behavior changes only after you make a copy of 
+PostBuild-SyncOutput4.bat.sample to PostBuild-SyncOutput4.bat in your own sandbox. So,
+PostBuild-SyncOutput4.bat is your personal stuff to tune/tweak, catering 
+your personal need(copy output EXE to a remote machine for live debugging etc).
+
+On the other hand, if you want VSPG to work for all your team members, you can 
+write commands in Team-Prebuild8.bat and/or Team-Postbuild8.bat and check them into
+svn/git server. These very two .bat filenames are checked explicitly by VSPG 
+framework code, so in user's perspective, their existence is enough to take effect.
 
 ==== Bootstrapping Best Practice (for vcxproj) ====
 
@@ -36,12 +42,13 @@ A versed Visual Studio user knows that setting Pre-build/Post-build commands
 from VSIDE is very cumbersome, because you have to set them in each .vcxproj, 
 each Release/Debug variant, each x86/x64 variant, so many repetitive copy/paste. 
 
-Luckily, there is a best practice to help you out.
+Luckily, there is a best practice in importing VSPG into Visual Studio project 
+build-flow. I call this import action "bootstrapping".
 
 [STEP 1] Copy the whole _VSPG directory to your own project.
 
-Please keep the directory name _VSPG. Aside from that, you can place it anywhere
-you like.
+Please keep the directory name _VSPG intact. Aside from that, you can place it 
+anywhere you like.
 
 Assume that you place it inside $(SolutionDir), i.e. side-by-side with your .sln file.
 
@@ -91,6 +98,10 @@ Of course, you can place _VSPG folder at other places, just change VSPG_BatDir_N
 directory-prefix accordingly. If you want to use relative dir-prefix, that's OK and 
 it is relative to $(ProjectDir), that is where <foobar>.vcxproj resides.
 
+To verify: Open .vcxproj and goto Property Manager, and you should see "_VSPG.props"
+is listed as a property-sheet, side-by-side with "Microsoft.Cpp.Win32.user",
+"Core Windows Libraries" etc.
+
 [STEP 3] Repeat STEP 2 for each .vcxproj of your interest.
 
 OK now, with above minor manual tweak of .vcxproj, we have applied VSPG project-wide,
@@ -98,22 +109,22 @@ that is, x86/x64, Debug/Release configuration variants all receive VSPG's benefi
 
 ~~~~
 
-[STEP _Z_] One limitation:
+[STEP _Z_] One Caveat:
 
-Once you Import _VSPG.props, that _VSPG.props will take care of the project-global 
+Once you Import _VSPG.props, you should let it take care of the project-global 
 <PreBuildEvent> and <PostBuildEvent>. That means, you MUST NOT provide your own 
-<PreBuildEvent> and <PostBuildEvent> in vcxproj. Otherwise, only one of them will
-take effect, yours, or VSPG's. If you really have your own Pre-built/Post-built
-actions to do, there is a new place for them, that is, you hook them into 
-VSPG-PreBuild7.bat or VSPG-PostBuild7.bat, by creating one or more of the following:
+<PreBuildEvent> and <PostBuildEvent> in vcxproj. Otherwise, yours will probably
+overwrite that of VSPG's. If you really have your own Pre-build/Post-build
+actions to do, there is a suitable place for them, that is, you hook yours into 
+VSPG framework, by creating one or more of the following:
 
-	Team-Prebuild7.bat 
-	Personal-Prebuild7.bat 
-	Team-Postbuild7.bat 
-	Personal-Postbuild7.bat 
+	Team-Prebuild8.bat 
+	Personal-Prebuild8.bat 
+	Team-Postbuild8.bat 
+	Personal-Postbuild8.bat 
 
 VSPG will search for these files in three-tiers of folders:
 	(1) %ProjectDir%\_VSPG
 	(2) %SolutionDir%\_VSPG
-	(3) bat dir of VSPG-PreBuild7.bat or VSPG-PostBuild7.bat
+	(3) bat dir of VSPG-PreBuild8_.bat or VSPG-PostBuild8_.bat
 	

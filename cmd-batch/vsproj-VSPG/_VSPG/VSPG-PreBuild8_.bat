@@ -1,6 +1,7 @@
 @echo off
 setlocal EnableDelayedExpansion
-REM VSPG-PostBuild7.bat $(SolutionDir) $(ProjectDir) $(Configuration) $(PlatformName) $(TargetDir) $(TargetFileName) $(TargetName)
+REM Called as this:
+REM <this>.bat $(SolutionDir_) $(ProjectDir_) $(BuildConf) $(PlatformName) $(TargetDir_) $(TargetFileNam) $(TargetName) $(IntrmDir_)
 REM ==== boilerplate code >>>
 REM
 set batfilenam=%~n0%~x0
@@ -14,7 +15,7 @@ REM BuildConf : Debug | Release
 set BuildConf=%~3
 set _BuildConf_=%3
 REM PlatformName : Win32 | x64
-set PlatformName=%~4
+set PlatformName=%4
 REM TargetDir is the EXE/DLL output directory
 set TargetDir=%~5
 set _TargetDir_=%5
@@ -22,7 +23,8 @@ set TargetDir=%TargetDir:~0,-1%
 REM TargetFilenam is the EXE/DLL output name (varname chopping trailing 'e', means "no path prefix")
 set TargetFilenam=%~6
 set TargetName=%~7
-REM
+set IntrmDir=%~8
+set IntrmDir=%IntrmDir:~0,-1%
 REM ==== boilerplate code <<<<
 
 
@@ -32,43 +34,49 @@ call :EchoVar SolutionDir
 call :EchoVar ProjectDir
 call :EchoVar BuildConf
 call :EchoVar PlatformName
+call :EchoVar IntrmDir
 call :EchoVar TargetDir
 call :EchoVar TargetFilenam
 call :EchoVar TargetName
 
-REM Try to call PostBuild-SyncOutput4.bat from one of three predefined directories,
+REM Try to call PreBuild-SubWCRev1.bat from one of three predefined directories,
 REM whichever is encountered first. But if none found, just do nothing.
-REM If you need this PostBuild-SyncOutput4.bat to run, just copy and tune it from
-REM PostBuild-SyncOutput4.bat.sample .
+REM If you need this PreBuild-SubWCRev1.bat to run, just copy and tune it from
+REM PreBuild-SubWCRev1.bat.sample .
 
-call :SearchAndExecSubbat PostBuild-SyncOutput4.bat^
-  """%BuildConf%"" %PlatformName% ""%TargetDir%"" ""%TargetName%"""^
+call :SearchAndExecSubbat PreBuild-SubWCRev1.bat^
+  "%ProjectDir%"^
   "%ProjectDir%\_VSPG"^
   "%SolutionDir%\_VSPG"^
   "%batdir%"
 if errorlevel 1 exit /b 4
 
-REM ==== Call Team-Postbuild7.bat if exist. ====
-call :SearchAndExecSubbat Team-PostBuild7.bat^
-  """%SolutionDir%"" ""%ProjectDir%"" ""%BuildConf%"" %PlatformName% ""%TargetDir%"" ""%TargetFilenam%"" ""%TargetName%"""^
+
+REM ==== Call Team-Prebuild8.bat if exist. ====
+call :SearchAndExecSubbat Team-PreBuild8.bat^
+  """%SolutionDir%"" ""%ProjectDir%"" ""%BuildConf%"" %PlatformName% ""%TargetDir%"" ""%TargetFilenam%"" ""%TargetName%"" ""%IntrmDir%"""^
   "%ProjectDir%\_VSPG"^
   "%SolutionDir%\_VSPG"^
   "%batdir%"
 if errorlevel 1 exit /b 4
 
-REM ==== Call Personal-Postbuild7.bat if exist. ====
-call :SearchAndExecSubbat Personal-PostBuild7.bat^
-  """%SolutionDir%"" ""%ProjectDir%"" ""%BuildConf%"" %PlatformName% ""%TargetDir%"" ""%TargetFilenam%"" ""%TargetName%"""^
+REM ==== Call Personal-Prebuild8.bat if exist. ====
+call :SearchAndExecSubbat Personal-PreBuild8.bat^
+  """%SolutionDir%"" ""%ProjectDir%"" ""%BuildConf%"" %PlatformName% ""%TargetDir%"" ""%TargetFilenam%"" ""%TargetName%"" ""%IntrmDir%"""^
   "%ProjectDir%\_VSPG"^
   "%SolutionDir%\_VSPG"^
   "%batdir%"
 if errorlevel 1 exit /b 4
+
 
 goto :END
 
 REM =============================
 REM ====== Functions Below ======
 REM =============================
+
+:SetErrorlevel
+exit /b %1
 
 :Echos
   echo [%batfilenam%] %*
