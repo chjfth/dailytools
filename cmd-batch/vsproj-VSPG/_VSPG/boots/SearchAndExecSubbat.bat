@@ -14,7 +14,10 @@ REM Params remain: Each param is a directory to search for Subbat.
     exit /b 3
   )
 
-  REM Put vspg-flatten-args.exe into PATH. Otherwise, I cannot cope with the situation that %bootsdir% contains whitespace(s).
+  REM Put vspg-flatten-args.exe into PATH. Otherwise, I cannot cope with the situation of 
+  REM %bootsdir% containing whitespace(s). The
+  REM    for ... IN (`D:\some dir\some.exe ...`) DO ...
+  rem would fail if the exe's path contains any whitespace.
   PATH=%bootsdir%;%PATH%
 
   setlocal
@@ -41,7 +44,6 @@ REM Params remain: Each param is a directory to search for Subbat.
 
   if exist "%trybat%" (
 	for /F "usebackq delims=" %%i IN (`vspg-flatten-args %_SubbatParams_%`) DO set SubbatParams=%%i
-	echo @@@@@@@@ "%trybat%" !SubbatParams!
     "%trybat%" !SubbatParams!
     if errorlevel 1 (
       endlocal
