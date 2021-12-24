@@ -47,29 +47,36 @@ Assume that you place it inside $(SolutionDir), i.e. side-by-side with your .sln
 
 [STEP 2] Open foo.vcxproj in a text editor, at near-end of the file, add content:
 
+  <!-- import VSPG start -->
   <PropertyGroup>
     <VSPG_BatDir_NoTBS>$(SolutionDir)_VSPG</VSPG_BatDir_NoTBS>
     <VSPG_FeedbackFile>$(ProjectDir)winmain.cpp</VSPG_FeedbackFile>
   </PropertyGroup>
-  <Import Project="$(VSPG_BatDir_NoTBS)\_VSPG.props" />
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(VSPG_BatDir_NoTBS)\_VSPG.props" />
+  </ImportGroup>
+  <!-- import VSPG end -->
 
 (hint: _NoTBS means No Trailing BackSlash)
 
 so the end of foo.vcxproj looks like this:
 
 ...
+  <!-- import VSPG start -->
   <PropertyGroup>
     <VSPG_BatDir_NoTBS>$(SolutionDir)_VSPG</VSPG_BatDir_NoTBS>
     <VSPG_FeedbackFile>$(ProjectDir)winmain.cpp</VSPG_FeedbackFile>
   </PropertyGroup>
-  <Import Project="$(VSPG_BatDir_NoTBS)\_VSPG.props" />
-
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(VSPG_BatDir_NoTBS)\_VSPG.props" />
+  </ImportGroup>
+  <!-- import VSPG end -->
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 </Project>
 
-STEP 2 tells Visual Studio two things:
+The STEP 2 tells Visual Studio two things:
 (1) It defines a MSBuild variable named VSPG_BatDir_NoTBS telling where you have placed
     the _VSPG folder, so that _VSPG.props can be imported(=included) in VS project.
 (2) It defines a MSBuild variable named VSPG_FeedbackFile to act as a feedback file.
@@ -82,10 +89,31 @@ see their values.
 
 Of course, you can place _VSPG folder at other places, just change VSPG_BatDir_NoTBS's
 directory-prefix accordingly. If you want to use relative dir-prefix, that's OK and 
-it is relative to $(ProjectDir), that is where foo.vcxproj resides.
+it is relative to $(ProjectDir), that is where <foobar>.vcxproj resides.
 
 [STEP 3] Repeat STEP 2 for each .vcxproj of your interest.
 
 OK now, with above minor manual tweak of .vcxproj, we have applied VSPG project-wide,
 that is, x86/x64, Debug/Release configuration variants all receive VSPG's benefits.
 
+~~~~
+
+[STEP _Z_] One limitation:
+
+Once you Import _VSPG.props, that _VSPG.props will take care of the project-global 
+<PreBuildEvent> and <PostBuildEvent>. That means, you MUST NOT provide your own 
+<PreBuildEvent> and <PostBuildEvent> in vcxproj. Otherwise, only one of them will
+take effect, yours, or VSPG's. If you really have your own Pre-built/Post-built
+actions to do, there is a new place for them, that is, you hook them into 
+VSPG-PreBuild7.bat or VSPG-PostBuild7.bat, by creating one or more of the following:
+
+	Team-Prebuild7.bat 
+	Personal-Prebuild7.bat 
+	Team-Postbuild7.bat 
+	Personal-Postbuild7.bat 
+
+VSPG will search for these files in three-tiers of folders:
+	(1) %ProjectDir%\_VSPG
+	(2) %SolutionDir%\_VSPG
+	(3) bat dir of VSPG-PreBuild7.bat or VSPG-PostBuild7.bat
+	
