@@ -50,6 +50,9 @@ build-flow. I call this import action "bootstrapping".
 Please keep the directory name _VSPG intact. Aside from that, you can place it 
 anywhere you like.
 
+Note: User should not modify .bat files inside [boots] subdir, because files there
+are considered internal to VSPG.
+
 Assume that you place it inside $(SolutionDir), i.e. side-by-side with your .sln file.
 
 [STEP 2] Open foo.vcxproj in a text editor, at near-end of the file, add content:
@@ -126,5 +129,5 @@ VSPG framework, by creating one or more of the following:
 VSPG will search for these files in three-tiers of folders:
 	(1) %ProjectDir%\_VSPG
 	(2) %SolutionDir%\_VSPG
-	(3) bat dir of VSPG-PreBuild8_.bat or VSPG-PostBuild8_.bat
+	(3) bat dir of VSPG-PreBuild8.bat or VSPG-PostBuild8.bat
 	
