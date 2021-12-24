@@ -31,7 +31,10 @@ REM set batfilenam to .bat filename(no directory prefix)
 set batfilenam=%~n0%~x0
 set batdir=%~dp0
 set batdir=%batdir:~0,-1%
-REM  
+
+call "%batdir%\VSPG-version.bat" vspgver
+call :Echos [VSPG version %vspgver%] started as: "%batdir%\%batfilenam%"
+
 set SubworkBat=%batdir%\%1
 shift
 set FeedbackFile=%1
