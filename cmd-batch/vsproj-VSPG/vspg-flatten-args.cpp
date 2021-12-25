@@ -5,6 +5,8 @@
 // behavior is NOT correct -- when there are nested double-quote chars on 
 // CMD command line.
 
+// Note: Since VSPG version 210, vspg-flatten-args.exe is no longer required.
+
 #include <stdio.h>
 
 int wmain(int argc, wchar_t *argv[])
