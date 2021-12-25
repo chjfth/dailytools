@@ -41,7 +41,7 @@ call :EchoVar SubworkBatpath
 call :EchoVar FeedbackFile
 
 if not exist "%FeedbackFile%" (
-	call :Echos [VSPG-ERROR] Not-existing feedback file: %FeedbackFile%
+	call :Echos [VSPG-ERROR] Not-existing feedback file: "%FeedbackFile%"
 	exit /b 4
 )
 
@@ -56,7 +56,7 @@ call "%bootsdir%\SearchAndExecSubbat.bat" "%SubworkBatfile%"^
     """%SolutionDir%"" ""%ProjectDir%"" ""%BuildConf%"" %PlatformName% ""%TargetDir%"" ""%TargetFilenam%"" ""%TargetName%"" ""%IntrmDir%"""^
     "%bootsdir%"
 
-if errorlevel 1 ( call :Touch %FeedbackFile% && exit /b 4 )
+if errorlevel 1 ( call :Touch "%FeedbackFile%" & exit /b 4 )
 
 exit /b 0
 
