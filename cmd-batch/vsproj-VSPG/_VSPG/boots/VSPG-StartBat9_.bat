@@ -33,6 +33,9 @@ set TargetName=%~7
 set IntrmDir=%~8
 set IntrmDir=%IntrmDir:~0,-1%
 
+call "%bootsdir%\VSPG-version.bat" vspgver
+call :Echos [VSPG version %vspgver%] started as: "%bootsdir%\%batfilenam%"
+
 
 call :EchoVar SubworkBatpath
 call :EchoVar FeedbackFile
