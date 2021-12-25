@@ -34,7 +34,7 @@ REM Params remain: Each param is a directory to search for Subbat.
 
   if exist "%trybat%" (
     REM [Shortcut1] Just replace "" with " ; that is enough to pass VSproj params to %trybat%
-    "%trybat%" !SubbatParams:""="!
+    call "%trybat%" !SubbatParams:""="!
     if errorlevel 1 (
       endlocal
       exit /b 4
