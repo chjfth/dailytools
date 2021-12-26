@@ -1,5 +1,5 @@
 @echo off
-set local
+setlocal
 REM This bat dumps each parameters(%1 %2 %3 ...) seen within this bat itself.
 REM -- Jimm Chen 2021.12.16
 
