@@ -11,75 +11,10 @@ if [%1]==[] exit /b
 echo  [%n%] %1
 echo [~%n%] %~1
 
-shift
-set /a n=n+1
-if [%1]==[] exit /b
-echo  [%n%] %1
-echo [~%n%] %~1
-
-shift
-set /a n=n+1
-if [%1]==[] exit /b
-echo  [%n%] %1
-echo [~%n%] %~1
-
-shift
-set /a n=n+1
-if [%1]==[] exit /b
-echo  [%n%] %1
-echo [~%n%] %~1
-
-shift
-set /a n=n+1
-if [%1]==[] exit /b
-echo  [%n%] %1
-echo [~%n%] %~1
-
-shift
-set /a n=n+1
-if [%1]==[] exit /b
-echo  [%n%] %1
-echo [~%n%] %~1
-
-shift
-set /a n=n+1
-if [%1]==[] exit /b
-echo  [%n%] %1
-echo [~%n%] %~1
-
-shift
-set /a n=n+1
-if [%1]==[] exit /b
-echo  [%n%] %1
-echo [~%n%] %~1
-
-shift
-set /a n=n+1
-if [%1]==[] exit /b
-echo  [%n%] %1
-echo [~%n%] %~1
-
-shift
-set /a n=n+1
-if [%1]==[] exit /b
-echo  [%n%] %1
-echo [~%n%] %~1
-
-shift
-set /a n=n+1
-if [%1]==[] exit /b
-echo  [%n%] %1
-echo [~%n%] %~1
-
-shift
-set /a n=n+1
-if [%1]==[] exit /b
-echo  [%n%] %1
-echo [~%n%] %~1
-
-shift
-set /a n=n+1
-if [%1]==[] exit /b
-echo  [%n%] %1
-echo [~%n%] %~1
-
+:REPEAT
+	shift
+	set /a n=n+1
+	if [%1]==[] exit /b
+	echo  [%n%] %1
+	echo [~%n%] %~1
+	goto :REPEAT
