@@ -42,16 +42,14 @@ REM If you need this PostBuild-SyncOutput4.bat to run, just copy and tune it fro
 REM PostBuild-SyncOutput4.bat.sample .
 
 REM ==== Call Team-Postbuild8.bat if exist. ====
-call "%bootsdir%\SearchAndExecSubbat.bat" Team-PostBuild8.bat^
-  """%SolutionDir%"" ""%ProjectDir%"" ""%BuildConf%"" %PlatformName% ""%TargetDir%"" ""%TargetFilenam%"" ""%TargetName%"" ""%IntrmDir%"""^
+call "%bootsdir%\SearchAndExecSubbat.bat" Team-PostBuild8.bat %VSPG_VSIDE_ParamsPack%^
   "%ProjectDir%\_VSPG"^
   "%SolutionDir%\_VSPG"^
   "%userbatdir%"
 if errorlevel 1 exit /b 4
 
 REM ==== Call Personal-Postbuild8.bat if exist. ====
-call "%bootsdir%\SearchAndExecSubbat.bat" Personal-PostBuild8.bat^
-  """%SolutionDir% ""%ProjectDir%"" ""%BuildConf%"" %PlatformName% ""%TargetDir%"" ""%TargetFilenam%"" ""%TargetName%"" ""%IntrmDir%"""^
+call "%bootsdir%\SearchAndExecSubbat.bat" Personal-PostBuild8.bat %VSPG_VSIDE_ParamsPack%^
   "%ProjectDir%\_VSPG"^
   "%SolutionDir%\_VSPG"^
   "%userbatdir%"

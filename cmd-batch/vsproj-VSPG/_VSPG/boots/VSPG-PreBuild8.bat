@@ -50,16 +50,14 @@ if errorlevel 1 exit /b 4
 
 
 REM ==== Call Team-Prebuild8.bat if exist. ====
-call "%bootsdir%\SearchAndExecSubbat.bat" Team-PreBuild8.bat^
-  """%SolutionDir%"" ""%ProjectDir%"" ""%BuildConf%"" %PlatformName% ""%TargetDir%"" ""%TargetFilenam%"" ""%TargetName%"" ""%IntrmDir%"""^
+call "%bootsdir%\SearchAndExecSubbat.bat" Team-PreBuild8.bat %VSPG_VSIDE_ParamsPack%^
   "%ProjectDir%\_VSPG"^
   "%SolutionDir%\_VSPG"^
   "%userbatdir%"
 if errorlevel 1 exit /b 4
 
 REM ==== Call Personal-Prebuild8.bat if exist. ====
-call "%bootsdir%\SearchAndExecSubbat.bat" Personal-PreBuild8.bat^
-  """%SolutionDir%"" ""%ProjectDir%"" ""%BuildConf%"" %PlatformName% ""%TargetDir%"" ""%TargetFilenam%"" ""%TargetName%"" ""%IntrmDir%"""^
+call "%bootsdir%\SearchAndExecSubbat.bat" Personal-PreBuild8.bat %VSPG_VSIDE_ParamsPack%^
   "%ProjectDir%\_VSPG"^
   "%SolutionDir%\_VSPG"^
   "%userbatdir%"

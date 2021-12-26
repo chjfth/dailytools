@@ -53,9 +53,11 @@ if not exist "%SubworkBatpath%" (
   exit /b 4
 )
 
-call "%bootsdir%\SearchAndExecSubbat.bat" "%SubworkBatfile%"^
-    """%SolutionDir%"" ""%ProjectDir%"" ""%BuildConf%"" %PlatformName% ""%TargetDir%"" ""%TargetFilenam%"" ""%TargetName%"" ""%IntrmDir%"""^
-    "%bootsdir%"
+set VSPG_VSIDE_ParamsDiscrete="%SolutionDir%" "%ProjectDir%" "%BuildConf%" "%PlatformName%" "%TargetDir%" "%TargetFilenam%" "%TargetName%" "%IntrmDir%"
+call "%bootsdir%\DQescape_NoTBS.bat" %VSPG_VSIDE_ParamsDiscrete%
+set VSPG_VSIDE_ParamsPack=%DQescape_NoTBS_Output%
+
+call "%bootsdir%\SearchAndExecSubbat.bat" "%SubworkBatfile%" %VSPG_VSIDE_ParamsPack% "%bootsdir%"
 
 if errorlevel 1 ( 
   if not "%FeedbackFile%"=="" (

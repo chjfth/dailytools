@@ -120,5 +120,5 @@ VSPG framework, by creating one or more of the following:
 VSPG will search for these files in three-tiers of folders:
 	(1) %ProjectDir%\_VSPG
 	(2) %SolutionDir%\_VSPG
-	(3) bat dir of VSPG-PreBuild8.bat or VSPG-PostBuild8.bat
+	(3) the [boots] directory
 	
