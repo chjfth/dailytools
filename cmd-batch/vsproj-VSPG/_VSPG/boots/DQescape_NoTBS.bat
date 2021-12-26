@@ -15,10 +15,18 @@ REM
 REM Useful historical info:
 REM https://docs.microsoft.com/en-us/archive/blogs/twistylittlepassagesallalike/everyone-quotes-command-line-arguments-the-wrong-way
 
+:DQescape_NoTBS
+
 set DQescape_NoTBS_Output=
+
+setlocal
 
 if []==[%*] exit /b 0
 
 set param=%*
 set paramEscd=%param:"=""%
-set DQescape_NoTBS_Output="%paramEscd%"
+set ret="%paramEscd%"
+
+endlocal & (
+    set DQescape_NoTBS_Output=%ret%
+)
