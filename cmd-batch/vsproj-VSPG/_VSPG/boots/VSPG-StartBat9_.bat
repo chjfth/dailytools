@@ -23,7 +23,7 @@ set ProjectDir=%ProjectDir:~0,-1%
 REM BuildConf : Debug or Release
 set BuildConf=%~3
 REM PlatformName : Win32 or x64
-set PlatformName=%4
+set PlatformName=%~4
 REM TargetDir is the EXE/DLL output directory
 set TargetDir=%~5
 set TargetDir=%TargetDir:~0,-1%

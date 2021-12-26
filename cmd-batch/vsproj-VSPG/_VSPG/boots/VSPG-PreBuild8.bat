@@ -7,14 +7,14 @@ REM
 set batfilenam=%~n0%~x0
 set bootsdir=%~dp0
 set bootsdir=%bootsdir:~0,-1%
-call :SplitDir "%bootsdir%" userbatdir
+call "%bootsdir%\PathSplit.bat" "%bootsdir%" userbatdir __temp
 set SolutionDir=%~1
 set ProjectDir=%~2
 REM BuildConf : Debug | Release
 set BuildConf=%~3
 set _BuildConf_=%3
 REM PlatformName : Win32 | x64
-set PlatformName=%4
+set PlatformName=%~4
 REM TargetDir is the EXE/DLL output directory
 set TargetDir=%~5
 set _TargetDir_=%5
@@ -91,13 +91,6 @@ exit /b
   REM Usage example:
   REM call :SetErrorlevel 4
 exit /b %1
-
-:SplitDir
-  REM Param1: C:\dir1\file1.txt
-  REM Param2: Output varname, receive: C:\dir1
-  for %%a in (%1) do set "_retdir_=%%~dpa"
-  set %2=%_retdir_:~0,-1%
-exit /b
 
 
 :END

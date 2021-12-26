@@ -7,7 +7,7 @@ REM
 set batfilenam=%~n0%~x0
 set bootsdir=%~dp0
 set bootsdir=%bootsdir:~0,-1%
-call :SplitDir "%bootsdir%" userbatdir
+call "%bootsdir%\PathSplit.bat" "%bootsdir%" userbatdir __temp
 set SolutionDir=%~1
 set ProjectDir=%~2
 REM BuildConf : Debug | Release
@@ -87,13 +87,6 @@ exit /b
   REM Usage example:
   REM call :SetErrorlevel 4
 exit /b %1
-
-:SplitDir
-  REM Param1: C:\dir1\file1.txt
-  REM Param2: Output varname, receive: C:\dir1
-  for %%a in (%1) do set "_retdir_=%%~dpa"
-  set %2=%_retdir_:~0,-1%
-exit /b
 
 
 :END
