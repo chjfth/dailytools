@@ -22,14 +22,22 @@ You may try it with:
 
 int __stdcall mainCRTStartup()
 {
-	LPWSTR pszWholeCmdline = GetCommandLineW();
-	int numArgs = 0;
-	LPWSTR *Argv = CommandLineToArgvW(pszWholeCmdline, &numArgs);
-
-	HANDLE hout = GetStdHandle(STD_OUTPUT_HANDLE);
-
 	DWORD nWritten = 0;
 	WCHAR tbuf[1000];
+
+	LPWSTR pszRawCmdline = GetCommandLineW();
+	HANDLE hout = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	const WCHAR *hint = L"Raw string from GetCommandLineW():\n";
+	WriteConsoleW(hout, hint, lstrlenW(hint), &nWritten, NULL);
+	WriteConsoleW(hout, pszRawCmdline, lstrlenW(pszRawCmdline), &nWritten, NULL);
+	WriteConsoleW(hout, L"\n\n", 2, &nWritten, NULL);
+	
+	hint = L"Result from CommandLineToArgvW():\n";
+	WriteConsoleW(hout, hint, lstrlenW(hint), &nWritten, NULL);
+	
+	int numArgs = 0;
+	LPWSTR *Argv = CommandLineToArgvW(pszRawCmdline, &numArgs);
 
 	for(int i=0; i<numArgs; i++)
 	{
