@@ -40,6 +40,8 @@ int __stdcall mainCRTStartup()
 	
 	int numArgs = 0;
 	LPWSTR *Argv = CommandLineToArgvW(pszRawCmdline, &numArgs);
+	wsprintfW(tbuf, L"argc=%d.\n", numArgs);
+	WriteConsoleW(hout, tbuf, lstrlenW(tbuf), &nWritten, NULL);
 
 	for(int i=0; i<numArgs; i++)
 	{
