@@ -28,11 +28,16 @@ argc=3.
 #include <stdio.h>
 #include <string.h>
 
+extern const char *get_ver_string();
+
 int main(int argc, char *argv[])
 {
 	int i, j;;
 	int isPrnHex = strstr(argv[0], "hex") ? 1 : 0;
 
+#ifdef PRINT_VER_STRING
+	printf("%s\n", get_ver_string());
+#endif
 	printf("argc=%d.\n", argc);
 
 	for(i=0; argv[i]; i++)

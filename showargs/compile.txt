@@ -1,0 +1,14 @@
+Visual C++, VC6 ~ VS2019
+========================
+
+	cl /D PRINT_VER_STRING=1 /MT showargs.cpp verstr\msvc.cpp /link /out:showargs.exe
+
+Chj Note: Since VC2005(_MSC_VER=1400), MS VCRT's argv[] splitting algorithm changes a bit
+(for .bat compatibility).
+
+Try it with:
+
+	showargs "C:\1st-param" """Debug ANSI"" 2.2-param" 3rd-param
+
+and notice the difference.
+
