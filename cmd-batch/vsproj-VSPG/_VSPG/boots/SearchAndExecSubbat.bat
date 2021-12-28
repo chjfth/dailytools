@@ -2,6 +2,10 @@ REM This bat is a function.
 
 setlocal EnableDelayedExpansion
 
+set batfilenam=%~n0%~x0
+set batdir=%~dp0
+set batdir=%batdir:~0,-1%
+
 REM Search for a series of dirs passed in as parameters, and call Subbat from 
 REM one of those dirs, whichever is found first.
 REM Param1: Subbat filenam (without dir prefix).
@@ -11,6 +15,7 @@ REM Params remain: Each param is a directory to search for Subbat.
 
   setlocal
   Set SubbatFilenam=%~1
+rem call :Echos CALLED WITH: %*
   shift
   Set _SubbatParams_=%1
   REM -- %_SubbatParams_% example:
@@ -21,6 +26,8 @@ REM Params remain: Each param is a directory to search for Subbat.
   Set SubbatParams=%~1
   shift
   
+  set LastDir=
+  
 :loop_SearchAndExecSubbat  
   
   set trydir=%~1
@@ -30,6 +37,12 @@ REM Params remain: Each param is a directory to search for Subbat.
     exit /b 0
   )
   
+  if "%trydir%" == "%LastDir%" (
+    shift
+	goto :loop_SearchAndExecSubbat
+  )
+  set LastDir=%trydir%
+
   set trybat=%trydir%\%SubbatFilenam%
 
   if exist "%trybat%" (
@@ -44,3 +57,23 @@ REM Params remain: Each param is a directory to search for Subbat.
   shift
   goto :loop_SearchAndExecSubbat
 
+exit /b 444
+
+REM =============================
+REM ====== Functions Below ======
+REM =============================
+
+REM %~n0%~x0 is batfilenam
+:Echos
+  echo [%~n0%~x0] %*
+exit /b
+
+:EchoExec
+  echo [%~n0%~x0] EXEC: %*
+exit /b
+
+:EchoVar
+  REM Env-var double expansion trick from: https://stackoverflow.com/a/1200871/151453
+  set _Varname=%1
+  for /F %%i in ('echo %_Varname%') do echo [%batfilenam%] %_Varname% = !%%i!
+exit /b
