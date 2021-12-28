@@ -70,9 +70,6 @@ REM =============================
 REM ====== Functions Below ======
 REM =============================
 
-:SetErrorlevel
-exit /b %1
-
 :Echos
   echo [%batfilenam%] %*
 exit /b
