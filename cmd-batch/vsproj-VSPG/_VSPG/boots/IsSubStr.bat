@@ -11,12 +11,12 @@ REM Replace Needle with empty string; if resulting string is NOT the same as Hay
 set Haystack=%~2
 set Needle=%~3
 
-if [%Haystack%] == [] (
+if "%Haystack%" == "" (
 	endlocal & ( set "%~1=0" )
 	exit /b 0
 )
 
-if [%Needle%] == [] (
+if "%Needle%" == "" (
 	call :Echos ERROR: Parameter Needle is empty.
 	exit /b 3
 )
@@ -26,7 +26,7 @@ for /F %%i in ('echo any') do set Replaced=!Haystack:%Needle%=!
 
 REM echo Replaced=%Replaced%
 
-if [%Replaced%] == [%Haystack%] ( set Found=0 ) else ( set Found=1 )
+if "%Replaced%" == "%Haystack%" ( set Found=0 ) else ( set Found=1 )
 
 endlocal & ( set "%~1=%Found%" )
 

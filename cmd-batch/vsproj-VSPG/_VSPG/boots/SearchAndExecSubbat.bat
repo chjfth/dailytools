@@ -26,7 +26,9 @@ rem call :Echos CALLED WITH: %*
   Set SubbatParams=%~1
   shift
   
-  set LastDir=
+  set SearchedDirs=
+  REM -- Each searched dir will be appended to the var, with minor decoration, like this:
+  REM -- [*c:\dir1*][*c:\dir2*]
   
 :loop_SearchAndExecSubbat  
   
@@ -37,11 +39,13 @@ rem call :Echos CALLED WITH: %*
     exit /b 0
   )
   
-  if "%trydir%" == "%LastDir%" (
+  set trydirdeco=[*%trydir%*]
+  call "%batdir%\IsSubStr.bat" isfound "%SearchedDirs%" "%trydirdeco%"
+  if %isfound% == 1 (
     shift
-	goto :loop_SearchAndExecSubbat
+    goto :loop_SearchAndExecSubbat
   )
-  set LastDir=%trydir%
+  set SearchedDirs=%SearchedDirs%%trydirdeco%
 
   set trybat=%trydir%\%SubbatFilenam%
 
