@@ -10,6 +10,7 @@ REM set batfilenam to .bat filename(no directory prefix)
 set batfilenam=%~n0%~x0
 set bootsdir=%~dp0
 set bootsdir=%bootsdir:~0,-1%
+call "%bootsdir%\PathSplit.bat" "%bootsdir%" userbatdir __temp
 REM
 set SubworkBatfile=%~1
 set SubworkBatpath=%bootsdir%\%SubworkBatfile%
@@ -37,6 +38,12 @@ call "%bootsdir%\VSPG-version.bat" vspgver
 call :Echos [VSPG version %vspgver%] started as: "%bootsdir%\%batfilenam%"
 
 
+set VSPG_VSIDE_ParamsDiscrete="%SolutionDir%" "%ProjectDir%" "%BuildConf%" "%PlatformName%" "%TargetDir%" "%TargetFilenam%" "%TargetName%" "%IntrmDir%"
+call "%bootsdir%\DQescape_NoTBS.bat" %VSPG_VSIDE_ParamsDiscrete%
+set VSPG_VSIDE_ParamsPack=%DQescape_NoTBS_Output%
+REM -- Note: when expanding VSPG_VSIDE_ParamsPack, do NOT surround extra double-quotes on %VSPG_VSIDE_ParamsPack% .
+
+
 call :EchoVar SubworkBatpath
 call :EchoVar FeedbackFile
 
@@ -48,14 +55,28 @@ if not "%FeedbackFile%"=="" (
 )
 
 if not exist "%SubworkBatpath%" (
-  call :Echos [VSPG-ERROR] SubworkBatpath NOT found: "%SubworkBatpath%"
+  call :Echos [INTERNAL-ERROR] SubworkBatpath NOT found: "%SubworkBatpath%"
   call :SetErrorlevel 4
   exit /b 4
 )
 
-set VSPG_VSIDE_ParamsDiscrete="%SolutionDir%" "%ProjectDir%" "%BuildConf%" "%PlatformName%" "%TargetDir%" "%TargetFilenam%" "%TargetName%" "%IntrmDir%"
-call "%bootsdir%\DQescape_NoTBS.bat" %VSPG_VSIDE_ParamsDiscrete%
-set VSPG_VSIDE_ParamsPack=%DQescape_NoTBS_Output%
+REM ======== Loading User Env-vars ======== 
+
+call "%bootsdir%\SearchAndExecSubbat.bat" VSPG-StartEnv.bat %VSPG_VSIDE_ParamsPack%^
+  "%ProjectDir%"^
+  "%ProjectDir%\_VSPG"^
+  "%SolutionDir%\_VSPG"^
+  "%userbatdir%"
+if errorlevel 1 (
+  if not "%FeedbackFile%"=="" (
+    call :Echos VSPG execution fail. Touching "%FeedbackFile%" .
+    call :Touch "%FeedbackFile%" 
+  )
+  exit /b 4
+)
+
+
+REM ======== Loading User VSPG-Prebuild8.bat or VSPG-Postbuild8.bat ======== 
 
 call "%bootsdir%\SearchAndExecSubbat.bat" "%SubworkBatfile%" %VSPG_VSIDE_ParamsPack% "%bootsdir%"
 

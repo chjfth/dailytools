@@ -1,6 +1,7 @@
 REM This bat is a function.
 
-setlocal EnableDelayedExpansion
+REM setlocal EnableDelayedExpansion // Don't do this now, do it later! The Subbat may need to export arbitrary env-vars to outer env.
+REM Chj memo: It seems I will inevitably leaks some vars to the environment, _vspg_SubbatParams etc.
 
 set batfilenam=%~n0%~x0
 set batdir=%~dp0
@@ -13,51 +14,46 @@ REM Param2: All params passed to Subbat.
 REM         (when pass in, surrounded by quotes, when calling Subbat, quotes stripped)
 REM Params remain: Each param is a directory to search for Subbat.
 
-  setlocal
-  Set SubbatFilenam=%~1
-rem call :Echos CALLED WITH: %*
+  Set _vspg_SubbatFilenam=%~1
+  rem call :Echos CALLED WITH: %*
   shift
-  Set _SubbatParams_=%1
-  REM -- %_SubbatParams_% example:
+  Set _vspg_SubbatParams=%~1
+  REM    %1 example:
   REM
   REM    """D:\chj\AAA BBB\Chap03"" ""D:\chj\AAA BBB\Chap03\HelloWinD"" ""Debug"" "x64" ""D:\chj\AAA BBB\Chap03\x64\Debug"" ""HelloWin.exe"" ""HelloWin"" ""x64\Debug"""
   REM
   REM    Special Note: All directory subparam above must NOT end with a backslash, otherwise, [Shortcut1] will not work.
-  Set SubbatParams=%~1
-  shift
   
-  set SearchedDirs=
+  set _vspg_SearchedDirs=
   REM -- Each searched dir will be appended to the var, with minor decoration, like this:
   REM -- [*c:\dir1*][*c:\dir2*]
   
 :loop_SearchAndExecSubbat  
   
+  setlocal EnableDelayedExpansion
+
+  shift
+  
   set trydir=%~1
   
-  if "%trydir%" == "" (
-    endlocal
-    exit /b 0
-  )
+  if "%trydir%" == "" exit /b 0
   
   set trydirdeco=[*%trydir%*]
-  call "%batdir%\IsSubStr.bat" isfound "%SearchedDirs%" "%trydirdeco%"
-  if %isfound% == 1 (
-    shift
-    goto :loop_SearchAndExecSubbat
-  )
-  set SearchedDirs=%SearchedDirs%%trydirdeco%
+  call "%batdir%\IsSubStr.bat" isfound "%_vspg_SearchedDirs%" "%trydirdeco%"
+  if %isfound% == 1 goto :loop_SearchAndExecSubbat
 
-  set trybat=%trydir%\%SubbatFilenam%
+  set _vspg_SearchedDirs=%_vspg_SearchedDirs%%trydirdeco%
 
-  if exist "%trybat%" (
-    REM [Shortcut1] Just replace "" with " ; that is enough to pass VSproj params to %trybat%
-    call "%trybat%" !SubbatParams:""="!
-    if errorlevel 1 (
-      endlocal
-      exit /b 4
-    )
-  )
+  set trybat=%trydir%\%_vspg_SubbatFilenam%
+
+  if not exist "%trybat%" goto :loop_SearchAndExecSubbat
   
+rem echo ------------------1111111
+  REM [Shortcut1] Just replace "" with " ; that is enough to pass VSproj's packed params to %trybat%.
+  endlocal & ( call "%trybat%" %_vspg_SubbatParams:""="% )
+
+  if errorlevel 1 exit /b 4 
+rem echo ------------------2222222
   shift
   goto :loop_SearchAndExecSubbat
 
