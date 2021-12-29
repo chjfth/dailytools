@@ -17,6 +17,10 @@ REM call :EchoVar _ExeDllDir_
 REM call :EchoVar ExeDllDir
 REM call :EchoVar TargetName
 
+call :Echos START from %batdir%
+
+REM ==== Prelude Above ====
+
 REM =========================================================================
 REM This bat copies(=sync) project output(EXE/DLL etc) to your desired target dirs.
 REM 
