@@ -93,13 +93,6 @@ exit /b
   REM call :SetErrorlevel 4
 exit /b %1
 
-:SplitDir
-  REM Param1: C:\dir1\file1.txt
-  REM Param2: Output varname, receive: C:\dir1
-  for %%a in (%1) do set "_retdir_=%%~dpa"
-  set %2=%_retdir_:~0,-1%
-exit /b
-
 :Touch
 	REM Touch updates a file's modification time to current.
 	REM NOTE: No way to check for success/fail here. So, call it only when 
