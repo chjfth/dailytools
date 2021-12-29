@@ -65,6 +65,7 @@ REM ======== Loading User Env-vars ========
 call "%bootsdir%\SearchAndExecSubbat.bat" VSPG-StartEnv.bat %VSPG_VSIDE_ParamsPack%^
   "%ProjectDir%"^
   "%ProjectDir%\_VSPG"^
+  "%SolutionDir%"^
   "%SolutionDir%\_VSPG"^
   "%userbatdir%"
 if errorlevel 1 (

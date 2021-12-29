@@ -36,30 +36,30 @@ call :EchoVar TargetDir
 call :EchoVar TargetFilenam
 call :EchoVar TargetName
 
-REM Try to call PostBuild-SyncOutput4.bat from one of three predefined directories,
+REM Try to call PostBuild-SyncOutput4.bat etc from one of five predefined directories,
 REM whichever is encountered first. But if none found, just do nothing.
 REM If you need this PostBuild-SyncOutput4.bat to run, just copy and tune it from
 REM PostBuild-SyncOutput4.bat.sample .
 
-REM ==== Call Team-Postbuild8.bat if exist. ====
-call "%bootsdir%\SearchAndExecSubbat.bat" Team-PostBuild8.bat %VSPG_VSIDE_ParamsPack%^
+set SubbatSearchDirs=^
+  "%ProjectDir%"^
   "%ProjectDir%\_VSPG"^
+  "%SolutionDir%"^
   "%SolutionDir%\_VSPG"^
   "%userbatdir%"
+
+REM ==== Call Team-Postbuild8.bat if exist. ====
+call "%bootsdir%\SearchAndExecSubbat.bat" Team-PostBuild8.bat %VSPG_VSIDE_ParamsPack% %SubbatSearchDirs%
 if errorlevel 1 exit /b 4
 
 REM ==== Call Personal-Postbuild8.bat if exist. ====
-call "%bootsdir%\SearchAndExecSubbat.bat" Personal-PostBuild8.bat %VSPG_VSIDE_ParamsPack%^
-  "%ProjectDir%\_VSPG"^
-  "%SolutionDir%\_VSPG"^
-  "%userbatdir%"
+call "%bootsdir%\SearchAndExecSubbat.bat" Personal-PostBuild8.bat %VSPG_VSIDE_ParamsPack% %SubbatSearchDirs%
 if errorlevel 1 exit /b 4
 
+REM ==== Call PostBuild-SyncOutput4.bat if exist. ====
 call "%bootsdir%\SearchAndExecSubbat.bat" PostBuild-SyncOutput4.bat^
   """%BuildConf%"" ""%PlatformName%"" ""%TargetDir%"" ""%TargetName%"""^
-  "%ProjectDir%\_VSPG"^
-  "%SolutionDir%\_VSPG"^
-  "%userbatdir%"
+  %SubbatSearchDirs%
 if errorlevel 1 exit /b 4
 
 

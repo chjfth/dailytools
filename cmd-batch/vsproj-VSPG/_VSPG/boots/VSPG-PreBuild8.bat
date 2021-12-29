@@ -36,31 +36,27 @@ call :EchoVar TargetDir
 call :EchoVar TargetFilenam
 call :EchoVar TargetName
 
-REM Try to call PreBuild-SubWCRev1.bat from one of three predefined directories,
+REM Try to call PreBuild-SubWCRev1.bat etc from one of five predefined directories,
 REM whichever is encountered first. But if none found, just do nothing.
 REM If you need this PreBuild-SubWCRev1.bat to run, just copy and tune it from
 REM PreBuild-SubWCRev1.bat.sample .
 
-call "%bootsdir%\SearchAndExecSubbat.bat" PreBuild-SubWCRev1.bat^
+set SubbatSearchDirs=^
   "%ProjectDir%"^
   "%ProjectDir%\_VSPG"^
+  "%SolutionDir%"^
   "%SolutionDir%\_VSPG"^
   "%userbatdir%"
+
+call "%bootsdir%\SearchAndExecSubbat.bat" PreBuild-SubWCRev1.bat %SubbatSearchDirs%
 if errorlevel 1 exit /b 4
 
-
 REM ==== Call Team-Prebuild8.bat if exist. ====
-call "%bootsdir%\SearchAndExecSubbat.bat" Team-PreBuild8.bat %VSPG_VSIDE_ParamsPack%^
-  "%ProjectDir%\_VSPG"^
-  "%SolutionDir%\_VSPG"^
-  "%userbatdir%"
+call "%bootsdir%\SearchAndExecSubbat.bat" Team-PreBuild8.bat %VSPG_VSIDE_ParamsPack% %SubbatSearchDirs%
 if errorlevel 1 exit /b 4
 
 REM ==== Call Personal-Prebuild8.bat if exist. ====
-call "%bootsdir%\SearchAndExecSubbat.bat" Personal-PreBuild8.bat %VSPG_VSIDE_ParamsPack%^
-  "%ProjectDir%\_VSPG"^
-  "%SolutionDir%\_VSPG"^
-  "%userbatdir%"
+call "%bootsdir%\SearchAndExecSubbat.bat" Personal-PreBuild8.bat %VSPG_VSIDE_ParamsPack% %SubbatSearchDirs%
 if errorlevel 1 exit /b 4
 
 

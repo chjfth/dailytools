@@ -52,7 +52,12 @@ rem echo ------------------1111111
   REM [Shortcut1] Just replace "" with " ; that is enough to pass VSproj's packed params to %trybat%.
   endlocal & ( call "%trybat%" %_vspg_SubbatParams:""="% )
 
-  if errorlevel 1 exit /b 4 
+  if errorlevel 1 exit /b 4
+  
+  REM Do not search for next dir, bcz We don't want "wider" bat to override "narrower" bat.
+  REM If user explicitly need the wider ones, he should call those bat explicitly.
+  exit /b 0
+  
 rem echo ------------------2222222
   shift
   goto :loop_SearchAndExecSubbat
