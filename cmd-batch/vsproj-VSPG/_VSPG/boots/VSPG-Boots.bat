@@ -10,8 +10,11 @@ REM 	cd D:\some\big work\_VSPG
 REM 	if exists ".\boots\VSPG-Boots.bat" (echo Condition OK.)
 REM 	mklink /j boots-dev "D:\gitw\dailytools\cmd-batch\vsproj-VSPG\_VSPG\boots"
 REM 	
-REM Now, D:\some\big work\_VSPG\boots\VSPG-Boots.bat will call content in
-REM      D:\some\big work\_VSPG\boots-dev\VSPG-Boots.bat instead.
+REM Now, "D:\some\big work\_VSPG\boots\VSPG-Boots.bat" will next-step call content in
+REM      "D:\some\big work\_VSPG\boots-dev\VSPG-StartBat9_.bat" 
+REM instead of
+REM	     "D:\some\big work\_VSPG\boots\VSPG-StartBat9_.bat"
+REM .
 
 REM set batfilenam to .bat filename(no directory prefix)
 set batfilenam=%~n0%~x0
@@ -31,7 +34,7 @@ if exist "%ParentDir%\boots-dev\VSPG-StartBat9_.bat" (
 	REM Override _vspg_bootsdir to be the -dev one.
 	set "_vspg_bootsdir=%ParentDir%\boots-dev"
 	set "_vspg_use_dev=1"
-	call :Echos Will use VSPG from "%_vspg_bootsdir%" .
+	call :Echos Detected [boots-dev]. Will use VSPG from "!_vspg_bootsdir!" .
 )
 
 call "%_vspg_bootsdir%\VSPG-StartBat9_.bat" %*
@@ -68,3 +71,7 @@ exit /b
 exit /b
 
 :END
+
+REM [2022-01-11] Chj: We must write %ERRORLEVEL% after /b, otherwise,
+REM MSBuild(it calls us with 'cmd /c tmpXXX.bat') will always receive exit-code 0.
+exit /b %ERRORLEVEL%

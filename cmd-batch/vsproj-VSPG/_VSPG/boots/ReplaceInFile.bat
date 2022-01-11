@@ -1,3 +1,5 @@
+set batdir=%~dp0
+set batdir=%batdir:~0,-1%
 
 :ReplaceInFile
 REM Thanks to:
@@ -13,14 +15,27 @@ REM https://ss64.com/nt/for_f.html
 : Param5: Stampinf extra params, like "-a AMD64 -k 1.9 -v 1.0.0.1"
 : 
 : Issues: 
-: Blank lines will not be copied.
-: Whether filepath/filename is space tolerant, not verified.
+: * Blank lines will not be copied.
+: * Whether filepath/filename is space tolerant, not verified.
+: * File creation and writing error report is not 100% accurate.
 
   echo off
-  set "search=%1"
-  set "replace=%2"
-  set "oldfile=%3"
-  set "newfile=%4"
+  set "search=%~1"
+  set "replace=%~2"
+  set "oldfile=%~3"
+  set "newfile=%~4"
+  
+  if not exist "%oldfile%" (
+    echo [ERROR] Source file not exist: "%oldfile%"
+    exit /b 4
+  )
+  
+  call "%batdir%\DelOneFile.bat" "%newfile%"
+  if errorlevel 1 (
+    echo [ERROR] Cannot delete stale file:"%newfile%"
+    exit /b 4
+  )
+  
   (for /f delims^=^ eol^= %%i in (%oldfile%) do (
     set "line=%%i"
     setlocal enabledelayedexpansion
@@ -29,4 +44,9 @@ REM https://ss64.com/nt/for_f.html
     endlocal
   ))>"%newfile%"
 
+  if not exist "%newfile%" (
+    echo [ERROR] Target file not generated: "%newfile%"
+    exit /b 4
+  )
+  
 exit /b
