@@ -4,9 +4,14 @@ REM you can set it here.
 
 echo Loading Env-vars from "%~f0"
 
-REM call :SetEnvVar vspg_InfTemplateName=kmdf_toast_simple
+call :SetEnvVar vspg_SampleEnvvar1=0001
+call :SetEnvVar vspg_SampleEnvvar2=0002
 
 exit /b
+
+REM =============================
+REM ====== Functions Below ======
+REM =============================
 
 :SetEnvVar
   set setcmd=set %*

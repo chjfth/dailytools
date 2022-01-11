@@ -49,13 +49,13 @@ REM Params remain: Each param is a directory to search for subbat.
   
   set trydirdeco=[*%trydir%*]
   call "%batdir%\IsSubStr.bat" isfound "%_vspg_SearchedDirs%" "%trydirdeco%"
-  if %isfound% == 1 goto :loop_SearchAndExecSubbat
+  if %isfound% == 1 goto :endlocal_GoNextLoop
 
   set _vspg_SearchedDirs=%_vspg_SearchedDirs%%trydirdeco%
 
   set trybat=%trydir%\%_vspg_SubbatFilenam%
 
-  if not exist "%trybat%" goto :loop_SearchAndExecSubbat
+  if not exist "%trybat%" goto :endlocal_GoNextLoop
   
   REM [Shortcut1] Just replace "" with " ; that is enough to pass VSproj's packed params to %trybat%.
   endlocal & ( call "%trybat%" %_vspg_SubbatParams:""="% )
@@ -65,6 +65,10 @@ REM Params remain: Each param is a directory to search for subbat.
   if "%_tmp_greedy%" == "1" goto :loop_SearchAndExecSubbat
   
   exit /b 0
+
+:endlocal_GoNextLoop
+  endlocal
+  goto :loop_SearchAndExecSubbat
 
 
 REM =============================
