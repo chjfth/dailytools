@@ -15,6 +15,9 @@ REM      D:\some\big work\_VSPG\boots-dev\VSPG-Boots.bat instead.
 
 REM set batfilenam to .bat filename(no directory prefix)
 set batfilenam=%~n0%~x0
+set batdir=%~dp0
+set batdir=%batdir:~0,-1%
+
 set _vspg_bootsdir=%~dp0
 set _vspg_bootsdir=%_vspg_bootsdir:~0,-1%
 REM
@@ -27,6 +30,41 @@ set "_vspg_userbatdir=%ParentDir%"
 if exist "%ParentDir%\boots-dev\VSPG-StartBat9_.bat" (
 	REM Override _vspg_bootsdir to be the -dev one.
 	set "_vspg_bootsdir=%ParentDir%\boots-dev"
+	set "_vspg_use_dev=1"
+	call :Echos Will use VSPG from "%_vspg_bootsdir%" .
 )
 
 call "%_vspg_bootsdir%\VSPG-StartBat9_.bat" %*
+
+if errorlevel 1 goto :END
+
+REM ======== copy [boots-dev] to [boots] if necessary ========
+
+if "%_vspg_use_dev%" == "" goto :DONE_COPY_DEV_TO_USER
+if "%vspg_COPY_DEV_TO_USER%" == "" goto :DONE_COPY_DEV_TO_USER
+
+call :Echos Copying [boots-dev] content to user [boots] ...
+
+copy "%_vspg_bootsdir%\*.bat"   "%batdir%" 
+if errorlevel 1 exit /b 4
+copy "%_vspg_bootsdir%\*.props" "%batdir%" 
+if errorlevel 1 exit /b 4
+
+:DONE_COPY_DEV_TO_USER
+
+
+goto :END
+
+REM =============================
+REM ====== Functions Below ======
+REM =============================
+
+:Echos
+  echo [%batfilenam%] %*
+exit /b
+
+:EchoExec
+  echo [%batfilenam%] EXEC: %*
+exit /b
+
+:END
