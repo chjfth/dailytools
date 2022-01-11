@@ -62,7 +62,7 @@ if not exist "%SubworkBatpath%" (
 
 REM ======== Loading User Env-vars ======== 
 
-call "%bootsdir%\SearchAndExecSubbat.bat" VSPG-StartEnv.bat %VSPG_VSIDE_ParamsPack%^
+call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 VSPG-StartEnv.bat %VSPG_VSIDE_ParamsPack%^
   "%ProjectDir%"^
   "%ProjectDir%\_VSPG"^
   "%SolutionDir%"^
@@ -79,7 +79,7 @@ if errorlevel 1 (
 
 REM ======== Loading User VSPG-Prebuild8.bat or VSPG-Postbuild8.bat ======== 
 
-call "%bootsdir%\SearchAndExecSubbat.bat" "%SubworkBatfile%" %VSPG_VSIDE_ParamsPack% "%bootsdir%"
+call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 "%SubworkBatfile%" %VSPG_VSIDE_ParamsPack% "%bootsdir%"
 
 if errorlevel 1 ( 
   if not "%FeedbackFile%"=="" (

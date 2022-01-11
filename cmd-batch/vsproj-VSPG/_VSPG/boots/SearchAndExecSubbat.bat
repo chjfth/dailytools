@@ -7,17 +7,26 @@ set batfilenam=%~n0%~x0
 set batdir=%~dp0
 set batdir=%batdir:~0,-1%
 
-REM Search for a series of dirs passed in as parameters, and call Subbat from 
-REM one of those dirs, whichever is found first.
-REM Param1: Subbat filenam (without dir prefix).
-REM Param2: All params passed to Subbat.
-REM         (when pass in, surrounded by quotes, when calling Subbat, quotes stripped)
-REM Params remain: Each param is a directory to search for Subbat.
+REM Search for a series of dirs passed in as parameters, and call subbat(s) from them.
+REM Param1: "Greedy0" or "Greedy1". 
+REM 	If Greedy0, only call the first found subbat.
+REM 	If Greedy1, call each of the found subbats.
+REM Param2: Subbat filenam (without dir prefix).
+REM Param3: All params passed to subbat.
+REM         (when pass in, surrounded by quotes, when calling subbat, quotes stripped)
+REM Params remain: Each param is a directory to search for subbat.
 
-  Set _vspg_SubbatFilenam=%~1
   rem call :Echos CALLED WITH: %*
+  
+  set _tmp_greedy=%~1
+  set _tmp_greedy=%_tmp_greedy:~-1%
+  REM -- _tmp_greedy will be 0 or 1 (only need final char)
+  
   shift
-  Set _vspg_SubbatParams=%~1
+  set _vspg_SubbatFilenam=%~1
+  
+  shift
+  set _vspg_SubbatParams=%~1
   REM    %1 example:
   REM
   REM    """D:\chj\AAA BBB\Chap03"" ""D:\chj\AAA BBB\Chap03\HelloWinD"" ""Debug"" "x64" ""D:\chj\AAA BBB\Chap03\x64\Debug"" ""HelloWin.exe"" ""HelloWin"" ""x64\Debug"""
@@ -48,21 +57,15 @@ REM Params remain: Each param is a directory to search for Subbat.
 
   if not exist "%trybat%" goto :loop_SearchAndExecSubbat
   
-rem echo ------------------1111111
   REM [Shortcut1] Just replace "" with " ; that is enough to pass VSproj's packed params to %trybat%.
   endlocal & ( call "%trybat%" %_vspg_SubbatParams:""="% )
 
   if errorlevel 1 exit /b 4
   
-  REM Do not search for next dir, bcz We don't want "wider" bat to override "narrower" bat.
-  REM If user explicitly need the wider ones, he should call those bat explicitly.
-  exit /b 0
+  if "%_tmp_greedy%" == "1" goto :loop_SearchAndExecSubbat
   
-rem echo ------------------2222222
-  shift
-  goto :loop_SearchAndExecSubbat
+  exit /b 0
 
-exit /b 444
 
 REM =============================
 REM ====== Functions Below ======

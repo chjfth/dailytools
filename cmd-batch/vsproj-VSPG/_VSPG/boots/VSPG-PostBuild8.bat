@@ -49,15 +49,15 @@ set SubbatSearchDirs=^
   "%userbatdir%"
 
 REM ==== Call Team-Postbuild8.bat if exist. ====
-call "%bootsdir%\SearchAndExecSubbat.bat" Team-PostBuild8.bat %VSPG_VSIDE_ParamsPack% %SubbatSearchDirs%
+call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 Team-PostBuild8.bat %VSPG_VSIDE_ParamsPack% %SubbatSearchDirs%
 if errorlevel 1 exit /b 4
 
 REM ==== Call Personal-Postbuild8.bat if exist. ====
-call "%bootsdir%\SearchAndExecSubbat.bat" Personal-PostBuild8.bat %VSPG_VSIDE_ParamsPack% %SubbatSearchDirs%
+call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 Personal-PostBuild8.bat %VSPG_VSIDE_ParamsPack% %SubbatSearchDirs%
 if errorlevel 1 exit /b 4
 
 REM ==== Call PostBuild-SyncOutput4.bat if exist. ====
-call "%bootsdir%\SearchAndExecSubbat.bat" PostBuild-SyncOutput4.bat^
+call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 PostBuild-SyncOutput4.bat^
   """%BuildConf%"" ""%PlatformName%"" ""%TargetDir%"" ""%TargetName%"""^
   %SubbatSearchDirs%
 if errorlevel 1 exit /b 4

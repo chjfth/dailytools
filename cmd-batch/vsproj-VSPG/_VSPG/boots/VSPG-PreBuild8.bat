@@ -48,15 +48,15 @@ set SubbatSearchDirs=^
   "%SolutionDir%\_VSPG"^
   "%userbatdir%"
 
-call "%bootsdir%\SearchAndExecSubbat.bat" PreBuild-SubWCRev1.bat %SubbatSearchDirs%
+call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 PreBuild-SubWCRev1.bat %SubbatSearchDirs%
 if errorlevel 1 exit /b 4
 
 REM ==== Call Team-Prebuild8.bat if exist. ====
-call "%bootsdir%\SearchAndExecSubbat.bat" Team-PreBuild8.bat %VSPG_VSIDE_ParamsPack% %SubbatSearchDirs%
+call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 Team-PreBuild8.bat %VSPG_VSIDE_ParamsPack% %SubbatSearchDirs%
 if errorlevel 1 exit /b 4
 
 REM ==== Call Personal-Prebuild8.bat if exist. ====
-call "%bootsdir%\SearchAndExecSubbat.bat" Personal-PreBuild8.bat %VSPG_VSIDE_ParamsPack% %SubbatSearchDirs%
+call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 Personal-PreBuild8.bat %VSPG_VSIDE_ParamsPack% %SubbatSearchDirs%
 if errorlevel 1 exit /b 4
 
 
