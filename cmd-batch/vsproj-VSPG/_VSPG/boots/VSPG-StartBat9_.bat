@@ -62,12 +62,16 @@ if not exist "%SubworkBatpath%" (
 
 REM ======== Loading User Env-vars ======== 
 
-call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 VSPG-StartEnv.bat %VSPG_VSIDE_ParamsPack%^
-  "%ProjectDir%"^
-  "%ProjectDir%\_VSPG"^
-  "%SolutionDir%"^
+REM This is a greedy search, bcz user may want to accumulate env-vars from outer env.
+REM But if user does not like some env-var from outer env, he can clear it to empty explicitly.
+REM The search order is wide to narrow.
+
+call "%bootsdir%\SearchAndExecSubbat.bat" Greedy1 VSPG-StartEnv.bat %VSPG_VSIDE_ParamsPack%^
+  "%userbatdir%"^
   "%SolutionDir%\_VSPG"^
-  "%userbatdir%"
+  "%SolutionDir%"^
+  "%ProjectDir%\_VSPG"^
+  "%ProjectDir%"
 if errorlevel 1 (
   if not "%FeedbackFile%"=="" (
     call :Echos VSPG execution fail. Touching "%FeedbackFile%" .
@@ -78,6 +82,12 @@ if errorlevel 1 (
 
 
 REM ======== Loading User VSPG-Prebuild8.bat or VSPG-Postbuild8.bat ======== 
+
+REM Note for VSPG-Prebuild8.bat and VSPG-Postbuild8.bat in advance:
+REM When VSPG-Prebuild8.bat and VSPG-Postbuild8.bat calls their own subbats. Those bats should do
+REM non-greedy search, bcz user (probably) wants to override outer env's sub-work with his own one.
+REM But if user wants outer sub-work as well, he should call the outer sub-work explicitly.
+REM The search order is narrow to wide.
 
 call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 "%SubworkBatfile%" %VSPG_VSIDE_ParamsPack% "%bootsdir%"
 
