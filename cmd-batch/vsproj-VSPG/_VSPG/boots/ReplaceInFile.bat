@@ -12,7 +12,9 @@ REM https://ss64.com/nt/for_f.html
 : Param4: Replace with this new word (must not contain whitespace)
 : Param5: Stampinf extra params, like "-a AMD64 -k 1.9 -v 1.0.0.1"
 : 
-: Issue: Whether filepath/filename is space tolerant, not verified.
+: Issues: 
+: Blank lines will not be copied.
+: Whether filepath/filename is space tolerant, not verified.
 
   echo off
   set "search=%1"
