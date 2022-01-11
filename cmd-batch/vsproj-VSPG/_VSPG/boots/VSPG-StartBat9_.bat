@@ -11,6 +11,7 @@ set batfilenam=%~n0%~x0
 set bootsdir=%~dp0
 set bootsdir=%bootsdir:~0,-1%
 call "%bootsdir%\PathSplit.bat" "%bootsdir%" userbatdir __temp
+set _vspgINDENTS=%_vspgINDENTS%.
 REM
 set SubworkBatfile=%~1
 set SubworkBatpath=%bootsdir%\%SubworkBatfile%
@@ -107,17 +108,17 @@ REM ====== Functions Below ======
 REM =============================
 
 :Echos
-  echo [%batfilenam%] %*
+  echo %_vspgINDENTS%[%batfilenam%] %*
 exit /b
 
 :EchoExec
-  echo [%batfilenam%] EXEC: %*
+  echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
 exit /b
 
 :EchoVar
   REM Env-var double expansion trick from: https://stackoverflow.com/a/1200871/151453
   set _Varname=%1
-  for /F %%i in ('echo %_Varname%') do echo [%batfilenam%] %_Varname% = !%%i!
+  for /F %%i in ('echo %_Varname%') do echo %_vspgINDENTS%[%batfilenam%] %_Varname% = !%%i!
 exit /b
 
 :SetErrorlevel
