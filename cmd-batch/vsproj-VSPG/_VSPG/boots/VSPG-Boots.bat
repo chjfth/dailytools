@@ -64,11 +64,11 @@ REM =============================
 
 :Echos
   echo [%batfilenam%] %*
-exit /b
+exit /b 0
 
 :EchoExec
   echo [%batfilenam%] EXEC: %*
-exit /b
+exit /b 0
 
 :END
 

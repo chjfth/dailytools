@@ -74,17 +74,17 @@ REM =============================
 REM %~n0%~x0 is batfilenam
 :Echos
   echo %_vspgINDENTS%[%batfilenam%] %*
-exit /b
+exit /b 0
 
 :EchoExec
   echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
-exit /b
+exit /b 0
 
 :EchoVar
   REM Env-var double expansion trick from: https://stackoverflow.com/a/1200871/151453
   set _Varname=%1
   for /F %%i in ('echo %_Varname%') do echo %_vspgINDENTS%[%batfilenam%] %_Varname% = !%%i!
-exit /b
+exit /b 0
 
 :SetErrorlevel
   REM Usage example:

@@ -48,4 +48,4 @@ REM =============================
 
 :Echos
   echo %_vspgINDENTS%[%batfilenam%] %*
-exit /b
+exit /b 0
