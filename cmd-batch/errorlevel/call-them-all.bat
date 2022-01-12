@@ -12,3 +12,11 @@ echo fail-exitb [%ERRORLEVEL%]
 call fail-goto.bat
 echo fail-goto [%ERRORLEVEL%]
 
+call delfile-exit-errorlevel.bat
+echo delfile-exit-errorlevel [%ERRORLEVEL%]
+
+call delfile-exitb.bat
+echo delfile-exitb [%ERRORLEVEL%]
+
+call delfile-no-exit.bat
+echo delfile-no-exit [%ERRORLEVEL%]
