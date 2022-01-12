@@ -91,5 +91,5 @@ exit /b 0
   REM call :SetErrorlevel 4
 exit /b %1
 
-
 :END
+exit /b %ERRORLEVEL%

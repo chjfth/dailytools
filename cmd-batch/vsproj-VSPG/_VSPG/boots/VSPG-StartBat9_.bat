@@ -138,4 +138,4 @@ goto :END
 
 
 :END
-rem echo [%batfilenam%] END for %ProjectDir%
+exit /b %ERRORLEVEL%
