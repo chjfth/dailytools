@@ -131,6 +131,6 @@ REM Params remain: Each one is a pattern, like: *.exe *.dll . (can not in quotes
   goto :loop_CopyFilePatterns
 
 REM -- End of CopyFilePatterns
-  
-:END
 
+:END
+exit /b %ERRORLEVEL%

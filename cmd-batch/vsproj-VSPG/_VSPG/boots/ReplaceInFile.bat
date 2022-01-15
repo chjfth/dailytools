@@ -20,7 +20,7 @@ REM https://ss64.com/nt/for_f.html
 : 
 : Issues: 
 : * Blank lines will not be copied.
-: * Whether filepath/filename is space tolerant, not verified.
+: * Filepath/filename is space tolerant.
 : * File creation and writing error report is not 100% accurate.
 
   echo off
@@ -40,7 +40,7 @@ REM https://ss64.com/nt/for_f.html
     exit /b 4
   )
   
-  (for /f delims^=^ eol^= %%i in (%oldfile%) do (
+  (for /f usebackq^ delims^=^ eol^= %%i in ("%oldfile%") do (
     set "line=%%i"
     setlocal enabledelayedexpansion
     set "line=!line:%search%=%replace%!"
@@ -53,6 +53,10 @@ REM https://ss64.com/nt/for_f.html
     exit /b 4
   )
   
+  REM To make it safe, ensure that %newfile% is not empty.
+  
+  call "%batdir%\IsNonEmptyFile.bat" "%newfile%"
+
 exit /b %ERRORLEVEL%
 
 
