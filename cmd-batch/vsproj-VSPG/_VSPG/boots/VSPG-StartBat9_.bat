@@ -10,6 +10,7 @@ REM set batfilenam to .bat filename(no directory prefix)
 set batfilenam=%~n0%~x0
 set bootsdir=%~dp0
 set bootsdir=%bootsdir:~0,-1%
+REM Use PathSplit to get parent directory of bootsdir.
 call "%bootsdir%\PathSplit.bat" "%bootsdir%" userbatdir __temp
 set _vspgINDENTS=%_vspgINDENTS%.
 REM

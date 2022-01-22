@@ -29,32 +29,49 @@ REM This bat copies(=sync) project output(EXE/DLL etc) to your desired target di
 REM 
 REM After duplicating your own PostBuild-SyncOutput4.bat, you should 
 REM customize two things: 
-REM (1) Set COPY_TO_DIRS's value to be your copying target dirs.
+REM (1) Set POSTBUILD_COPY_TO_DIRS's value to be your copying target dirs.
 REM     You can list multiple target dirs, separated by spaces.
 REM     For example, assign two remote machine folders for remote debugging:
 REM 
-REM set COPY_TO_DIRS=z:\bin y:\bin
+REM set POSTBUILD_COPY_TO_DIRS=z:\bin "y:\bin outputs"
 REM
-REM (2) At the line `call :CopyFilePatterns ... *.exe *.dll`,
-REM     change the wildcard patterns to meet your need.
+REM (2) Tell what file patterns to copy, separate each pattern by a space.
+REM     (But don't surround them with quotes.)
+REM
+REM set POSTBUILD_COPY_PATTERNS=*.exe *.dll
+REM 
+REM You can modify .bat files directly, or set them as env-vars.
 REM =========================================================================
 
-if "%COPY_TO_DIRS%" == "" (
-	call :Echos COPY_TO_DIRS is empty, nothing to copy.
+if not defined POSTBUILD_COPY_TO_DIRS (
+	call :Echos POSTBUILD_COPY_TO_DIRS is empty, nothing to copy.
+	exit /b 0
 )
 
-for %%d in (%COPY_TO_DIRS%) do (
-	set d_final=%%d\__%BuildConf%\%PlatformName%
+if not defined POSTBUILD_COPY_PATTERNS (
+	call :Echos [ERROR] POSTBUILD_COPY_PATTERNS is empty.
+	exit /b 4
+)
+
+for %%d in (%POSTBUILD_COPY_TO_DIRS%) do (
+
+	set d_final=%%~d\__%BuildConf%\%PlatformName%
 	if not exist "!d_final!" ( 
 		mkdir "!d_final!"
+		if errorlevel 1 (
+		  REM This can happen if user assigns a dir with non-existing driver letter.
+		  call :Echos [ERROR] Cannot create directory "!d_final!" .
+		  exit /b 4
+		)
 	)
 	
-	call :CopyFilePatterns "%ExeDllDir%" "!d_final!" *.exe *.dll
+	call :CopyFilePatterns "%ExeDllDir%" "!d_final!" %POSTBUILD_COPY_PATTERNS%
 	if errorlevel 1 ( 
-		call :Echos [VSPG-Error] Error occurred when copying file to "!d_final!" .
+		call :Echos [ERROR] Error occurred when copying file to "!d_final!" .
 		exit /b 4 
 	)
 )
+
 
 
 goto :END
