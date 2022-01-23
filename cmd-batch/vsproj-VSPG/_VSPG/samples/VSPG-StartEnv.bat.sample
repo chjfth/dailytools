@@ -4,8 +4,8 @@ REM you can set it here.
 
 echo Loading Env-vars from "%~f0"
 
-call :SetEnvVar vspg_SampleEnvvar1=0001
-call :SetEnvVar vspg_SampleEnvvar2=0002
+REM call :SetEnvVar POSTBUILD_COPY_TO_DIRS=z:\bin "y:\bin output"
+REM call :SetEnvVar POSTBUILD_COPY_PATTERNS=*.exe *.dll
 
 exit /b
 
