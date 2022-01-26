@@ -35,7 +35,7 @@ for /F %%i in ('echo any') do set Replaced=!Haystack:%Needle%=!
 
 REM echo Replaced=%Replaced%
 
-if "%Replaced%" == "%Haystack%" ( set Found=0 ) else ( set Found=1 )
+if "%Replaced%" == "%Haystack%" ( set "Found=0" ) else ( set "Found=1" )
 
 endlocal & ( set "%~1=%Found%" )
 
