@@ -18,7 +18,7 @@ set /A ii=0
 set /A ii=%ii%+1
 echo [REPEAT %ii%] Now %DATE% %TIME%
 
-%*
+call %*
 
 set exitcode=%ERRORLEVEL%
 
