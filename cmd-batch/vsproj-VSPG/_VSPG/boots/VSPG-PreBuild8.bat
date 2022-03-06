@@ -8,6 +8,8 @@ set batfilenam=%~n0%~x0
 set bootsdir=%~dp0
 set bootsdir=%bootsdir:~0,-1%
 call "%bootsdir%\PathSplit.bat" "%bootsdir%" userbatdir __temp
+set _vspgINDENTS=%_vspgINDENTS%.
+
 set SolutionDir=%~1
 set ProjectDir=%~2
 REM BuildConf : Debug | Release
@@ -48,15 +50,15 @@ set SubbatSearchDirs=^
   "%SolutionDir%\_VSPG"^
   "%userbatdir%"
 
-call "%bootsdir%\SearchAndExecSubbat.bat" PreBuild-SubWCRev1.bat %SubbatSearchDirs%
+call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 PreBuild-SubWCRev1.bat %SubbatSearchDirs%
 if errorlevel 1 exit /b 4
 
 REM ==== Call Team-Prebuild8.bat if exist. ====
-call "%bootsdir%\SearchAndExecSubbat.bat" Team-PreBuild8.bat %VSPG_VSIDE_ParamsPack% %SubbatSearchDirs%
+call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 Team-PreBuild8.bat %VSPG_VSIDE_ParamsPack% %SubbatSearchDirs%
 if errorlevel 1 exit /b 4
 
 REM ==== Call Personal-Prebuild8.bat if exist. ====
-call "%bootsdir%\SearchAndExecSubbat.bat" Personal-PreBuild8.bat %VSPG_VSIDE_ParamsPack% %SubbatSearchDirs%
+call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 Personal-PreBuild8.bat %VSPG_VSIDE_ParamsPack% %SubbatSearchDirs%
 if errorlevel 1 exit /b 4
 
 
@@ -68,23 +70,23 @@ REM =============================
 
 REM %~n0%~x0 is batfilenam
 :Echos
-  echo [%~n0%~x0] %*
-exit /b
+  echo %_vspgINDENTS%[%batfilenam%] %*
+exit /b 0
 
 :EchoExec
-  echo [%~n0%~x0] EXEC: %*
-exit /b
+  echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
+exit /b 0
 
 :EchoVar
   REM Env-var double expansion trick from: https://stackoverflow.com/a/1200871/151453
   set _Varname=%1
-  for /F %%i in ('echo %_Varname%') do echo [%batfilenam%] %_Varname% = !%%i!
-exit /b
+  for /F %%i in ('echo %_Varname%') do echo %_vspgINDENTS%[%batfilenam%] %_Varname% = !%%i!
+exit /b 0
 
 :SetErrorlevel
   REM Usage example:
   REM call :SetErrorlevel 4
 exit /b %1
 
-
 :END
+exit /b %ERRORLEVEL%

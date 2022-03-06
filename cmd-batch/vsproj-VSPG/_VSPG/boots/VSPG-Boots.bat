@@ -10,11 +10,17 @@ REM 	cd D:\some\big work\_VSPG
 REM 	if exists ".\boots\VSPG-Boots.bat" (echo Condition OK.)
 REM 	mklink /j boots-dev "D:\gitw\dailytools\cmd-batch\vsproj-VSPG\_VSPG\boots"
 REM 	
-REM Now, D:\some\big work\_VSPG\boots\VSPG-Boots.bat will call content in
-REM      D:\some\big work\_VSPG\boots-dev\VSPG-Boots.bat instead.
+REM Now, "D:\some\big work\_VSPG\boots\VSPG-Boots.bat" will next-step call content in
+REM      "D:\some\big work\_VSPG\boots-dev\VSPG-StartBat9_.bat" 
+REM instead of
+REM	     "D:\some\big work\_VSPG\boots\VSPG-StartBat9_.bat"
+REM .
 
 REM set batfilenam to .bat filename(no directory prefix)
 set batfilenam=%~n0%~x0
+set batdir=%~dp0
+set batdir=%batdir:~0,-1%
+
 set _vspg_bootsdir=%~dp0
 set _vspg_bootsdir=%_vspg_bootsdir:~0,-1%
 REM
@@ -27,6 +33,44 @@ set "_vspg_userbatdir=%ParentDir%"
 if exist "%ParentDir%\boots-dev\VSPG-StartBat9_.bat" (
 	REM Override _vspg_bootsdir to be the -dev one.
 	set "_vspg_bootsdir=%ParentDir%\boots-dev"
+	set "_vspg_use_dev=1"
+	call :Echos Detected [boots-dev]. Will use VSPG from "!_vspg_bootsdir!" .
 )
 
 call "%_vspg_bootsdir%\VSPG-StartBat9_.bat" %*
+
+if errorlevel 1 goto :END
+
+REM ======== copy [boots-dev] to [boots] if necessary ========
+
+if "%_vspg_use_dev%" == "" goto :DONE_COPY_DEV_TO_USER
+if "%vspg_COPY_DEV_TO_USER%" == "" goto :DONE_COPY_DEV_TO_USER
+
+call :Echos Copying [boots-dev] content to user [boots] ...
+
+copy "%_vspg_bootsdir%\*.bat"   "%batdir%" 
+if errorlevel 1 exit /b 4
+copy "%_vspg_bootsdir%\*.props" "%batdir%" 
+if errorlevel 1 exit /b 4
+
+:DONE_COPY_DEV_TO_USER
+
+
+goto :END
+
+REM =============================
+REM ====== Functions Below ======
+REM =============================
+
+:Echos
+  echo [%batfilenam%] %*
+exit /b 0
+
+:EchoExec
+  echo [%batfilenam%] EXEC: %*
+exit /b 0
+
+:END
+REM [2022-01-11] Chj: We must write %ERRORLEVEL% after /b, otherwise,
+REM MSBuild(it calls us with 'cmd /c tmpXXX.bat') will always receive exit-code 0.
+exit /b %ERRORLEVEL%

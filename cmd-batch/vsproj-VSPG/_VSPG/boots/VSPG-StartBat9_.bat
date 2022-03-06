@@ -10,7 +10,9 @@ REM set batfilenam to .bat filename(no directory prefix)
 set batfilenam=%~n0%~x0
 set bootsdir=%~dp0
 set bootsdir=%bootsdir:~0,-1%
+REM Use PathSplit to get parent directory of bootsdir.
 call "%bootsdir%\PathSplit.bat" "%bootsdir%" userbatdir __temp
+set _vspgINDENTS=%_vspgINDENTS%.
 REM
 set SubworkBatfile=%~1
 set SubworkBatpath=%bootsdir%\%SubworkBatfile%
@@ -62,12 +64,16 @@ if not exist "%SubworkBatpath%" (
 
 REM ======== Loading User Env-vars ======== 
 
-call "%bootsdir%\SearchAndExecSubbat.bat" VSPG-StartEnv.bat %VSPG_VSIDE_ParamsPack%^
-  "%ProjectDir%"^
-  "%ProjectDir%\_VSPG"^
-  "%SolutionDir%"^
+REM This is a greedy search, bcz user may want to accumulate env-vars from outer env.
+REM But if user does not like some env-var from outer env, he can clear it to empty explicitly.
+REM The search order is wide to narrow.
+
+call "%bootsdir%\SearchAndExecSubbat.bat" Greedy1 VSPG-StartEnv.bat %VSPG_VSIDE_ParamsPack%^
+  "%userbatdir%"^
   "%SolutionDir%\_VSPG"^
-  "%userbatdir%"
+  "%SolutionDir%"^
+  "%ProjectDir%\_VSPG"^
+  "%ProjectDir%"
 if errorlevel 1 (
   if not "%FeedbackFile%"=="" (
     call :Echos VSPG execution fail. Touching "%FeedbackFile%" .
@@ -79,7 +85,13 @@ if errorlevel 1 (
 
 REM ======== Loading User VSPG-Prebuild8.bat or VSPG-Postbuild8.bat ======== 
 
-call "%bootsdir%\SearchAndExecSubbat.bat" "%SubworkBatfile%" %VSPG_VSIDE_ParamsPack% "%bootsdir%"
+REM Note for VSPG-Prebuild8.bat and VSPG-Postbuild8.bat in advance:
+REM When VSPG-Prebuild8.bat and VSPG-Postbuild8.bat calls their own subbats. Those bats should do
+REM non-greedy search, bcz user (probably) wants to override outer env's sub-work with his own one.
+REM But if user wants outer sub-work as well, he should call the outer sub-work explicitly.
+REM The search order is narrow to wide.
+
+call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 "%SubworkBatfile%" %VSPG_VSIDE_ParamsPack% "%bootsdir%"
 
 if errorlevel 1 ( 
   if not "%FeedbackFile%"=="" (
@@ -97,18 +109,18 @@ REM ====== Functions Below ======
 REM =============================
 
 :Echos
-  echo [%batfilenam%] %*
-exit /b
+  echo %_vspgINDENTS%[%batfilenam%] %*
+exit /b 0
 
 :EchoExec
-  echo [%batfilenam%] EXEC: %*
-exit /b
+  echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
+exit /b 0
 
 :EchoVar
   REM Env-var double expansion trick from: https://stackoverflow.com/a/1200871/151453
   set _Varname=%1
-  for /F %%i in ('echo %_Varname%') do echo [%batfilenam%] %_Varname% = !%%i!
-exit /b
+  for /F %%i in ('echo %_Varname%') do echo %_vspgINDENTS%[%batfilenam%] %_Varname% = !%%i!
+exit /b 0
 
 :SetErrorlevel
   REM Usage example:
@@ -121,10 +133,10 @@ exit /b %1
 	REM you have decided to fail the whole bat.
 	
 	copy /b "%~1"+,, "%~1" >NUL 2>&1
-exit /b
+exit /b %ERRORLEVEL%
 
 goto :END
 
 
 :END
-rem echo [%batfilenam%] END for %ProjectDir%
+exit /b %ERRORLEVEL%

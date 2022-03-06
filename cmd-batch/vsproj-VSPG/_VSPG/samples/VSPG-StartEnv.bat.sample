@@ -4,9 +4,14 @@ REM you can set it here.
 
 echo Loading Env-vars from "%~f0"
 
-REM call :SetEnvVar vspg_InfTemplateName=kmdf_toast_simple
+REM call :SetEnvVar POSTBUILD_COPY_TO_DIRS=z:\bin "y:\bin output"
+REM call :SetEnvVar POSTBUILD_COPY_PATTERNS=*.exe *.dll
 
 exit /b
+
+REM =============================
+REM ====== Functions Below ======
+REM =============================
 
 :SetEnvVar
   set setcmd=set %*

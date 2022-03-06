@@ -16,4 +16,4 @@ REM Output fname=d3.txt
     set "%~2=%Folder:~0,-1%"
     set "%~3=%Name%"
   )
-exit /b
+exit /b %ERRORLEVEL%
