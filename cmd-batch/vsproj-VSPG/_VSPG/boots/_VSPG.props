@@ -4,12 +4,14 @@
     <PreBuildEvent>
       <Command>
       set PlatformToolsetVersion=$(PlatformToolsetVersion)
+      set TargetExt=$(TargetExt)
       "$(VSPG_BootsDir_NoTBS)\VSPG-Boots.bat" VSPG-PreBuild8.bat  "$(VSPG_FeedbackFile)" "$(SolutionDir)" "$(ProjectDir)" "$(Configuration)" "$(PlatformName)" "$(TargetDir)" "$(TargetFileName)" "$(TargetName)" "$(IntDir)"
       </Command>
     </PreBuildEvent>
     <PostBuildEvent>
       <Command>
       set PlatformToolsetVersion=$(PlatformToolsetVersion)
+      set TargetExt=$(TargetExt)
       "$(VSPG_BootsDir_NoTBS)\VSPG-Boots.bat" VSPG-PostBuild8.bat "$(VSPG_FeedbackFile)" "$(SolutionDir)" "$(ProjectDir)" "$(Configuration)" "$(PlatformName)" "$(TargetDir)" "$(TargetFileName)" "$(TargetName)" "$(IntDir)"
       </Command>
     </PostBuildEvent>
