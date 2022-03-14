@@ -39,6 +39,8 @@ REM (2) Tell what file patterns to copy, separate each pattern by a space.
 REM     (But don't surround them with quotes.)
 REM
 REM set POSTBUILD_COPY_PATTERNS=*.exe *.dll
+REM or
+REM set POSTBUILD_COPY_PATTERNS=%ExeDllDir%\%TargetFilenam% "some other pattern with white-space chars"
 REM 
 REM You can modify .bat files directly, or set them as env-vars.
 REM =========================================================================
@@ -134,12 +136,24 @@ REM Params remain: Each one is a pattern, like: *.exe *.dll . (can not in quotes
     )
   )
   
-  set seefile=
-  for %%g in ("%DirSrc%\%pattern%") do set seefile=%%g
+  REM If %pattern% has no backslash in it, prepend %DirSrc% to make a pattern with dir-prefix.
+  call "%bootsdir%\IsSubStr.bat" hasBkSlash "%pattern%" \
+  if "%hasBkSlash%" == "1" (
+    set dirpfx_pattern=%pattern%
+  ) else (
+    set dirpfx_pattern=%DirSrc%\%pattern%
+  )
   
-  if not "%seefile%" == "" (
+  set seefile=
+  for %%g in ("%dirpfx_pattern%") do (
+  	set seefile=%%g
+  )
+  
+  if "%seefile%" == "" (
+    call :Echos No files matching "%dirpfx_pattern%", no file copied.
+  ) else (
     set isFileMet=true
-    call :EchoAndExec copy "%DirSrc%\%pattern%" "%DirDst%"
+    call :EchoAndExec copy "%dirpfx_pattern%" "%DirDst%"
     if errorlevel 1 exit /b 4
   )
   
