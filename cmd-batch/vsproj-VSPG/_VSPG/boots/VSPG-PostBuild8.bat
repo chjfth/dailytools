@@ -7,7 +7,7 @@ REM
 set batfilenam=%~n0%~x0
 set bootsdir=%~dp0
 set bootsdir=%bootsdir:~0,-1%
-call "%bootsdir%\PathSplit.bat" "%bootsdir%" userbatdir __temp
+call "%bootsdir%\GetParentDir.bat" userbatdir "%bootsdir%"
 set _vspgINDENTS=%_vspgINDENTS%.
 
 set SolutionDir=%~1
@@ -46,6 +46,7 @@ set SubbatSearchDirs=^
   "%ProjectDir%\_VSPG"^
   "%SolutionDir%"^
   "%SolutionDir%\_VSPG"^
+  "%SolutionDir%\.."^
   "%userbatdir%"
 
 REM ==== Call Team-Postbuild8.bat if exist. ====
