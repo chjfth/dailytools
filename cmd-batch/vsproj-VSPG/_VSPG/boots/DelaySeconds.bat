@@ -1,5 +1,5 @@
 @echo off
-
+setlocal EnableDelayedExpansion
 set batfilenam=%~n0%~x0
 set batdir=%~dp0
 set batdir=%batdir:~0,-1%

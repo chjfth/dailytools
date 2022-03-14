@@ -1,7 +1,7 @@
 setlocal EnableDelayedExpansion
 
 : This is a function.
-: It delete a file and correctly reports ERRORLEVEL
+: It deletes a file and correctly reports ERRORLEVEL
 : Thanks to: https://stackoverflow.com/a/33403497/151453
 
 :DeleteOneFile
