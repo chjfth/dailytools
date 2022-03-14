@@ -3,6 +3,9 @@ setlocal enabledelayedexpansion
 set batfilenam=%~n0%~x0
 set batdir=%~dp0
 set batdir=%batdir:~0,-1%
+set _vspgINDENTS=%_vspgINDENTS%.
+call :Echos START from %batdir%
+
 set svndir=%~1
 
 set subparams=
@@ -48,9 +51,10 @@ exit /b %1
   echo [%batfilenam%] %*
 exit /b
 
-:EchoExec
-  echo [%batfilenam%] EXEC: %*
-exit /b
+:EchoAndExec
+  echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
+  %*
+exit /b %ERRORLEVEL%
 
 :EchoVar
   REM Env-var double expansion trick from: https://stackoverflow.com/a/1202562/151453

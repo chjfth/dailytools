@@ -66,9 +66,10 @@ REM =============================
   echo [%batfilenam%] %*
 exit /b 0
 
-:EchoExec
-  echo [%batfilenam%] EXEC: %*
-exit /b 0
+:EchoAndExec
+  echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
+  call %*
+exit /b %ERRORLEVEL%
 
 :END
 REM [2022-01-11] Chj: We must write %ERRORLEVEL% after /b, otherwise,

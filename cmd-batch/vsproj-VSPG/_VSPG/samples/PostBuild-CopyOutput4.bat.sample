@@ -84,9 +84,10 @@ REM =============================
   echo %_vspgINDENTS%[%batfilenam%] %*
 exit /b
 
-:EchoExec
+:EchoAndExec
   echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
-exit /b
+  %*
+exit /b %ERRORLEVEL%
 
 :EchoVar
   REM Env-var double expansion trick from: https://stackoverflow.com/a/1200871/151453
@@ -138,9 +139,7 @@ REM Params remain: Each one is a pattern, like: *.exe *.dll . (can not in quotes
   
   if not "%seefile%" == "" (
     set isFileMet=true
-    set copy_cmd=copy "%DirSrc%\%pattern%" "%DirDst%"
-    call :EchoExec !copy_cmd!
-    !copy_cmd!
+    call :EchoAndExec copy "%DirSrc%\%pattern%" "%DirDst%"
     if errorlevel 1 exit /b 4
   )
   

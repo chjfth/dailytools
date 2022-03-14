@@ -24,6 +24,8 @@ REM =============================
   echo %_vspgINDENTS%[%batfilenam%] %*
 exit /b 0
 
-:EchoExec
+:EchoAndExec
   echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
-exit /b 0
+  %*
+exit /b %ERRORLEVEL%
+

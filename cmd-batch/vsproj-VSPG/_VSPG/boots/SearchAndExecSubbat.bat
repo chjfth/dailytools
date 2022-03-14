@@ -80,9 +80,10 @@ REM %~n0%~x0 is batfilenam
   echo [%~n0%~x0] %*
 exit /b 0
 
-:EchoExec
-  echo [%~n0%~x0] EXEC: %*
-exit /b 0
+:EchoAndExec
+  echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
+  call %*
+exit /b %ERRORLEVEL%
 
 :EchoVar
   REM Env-var double expansion trick from: https://stackoverflow.com/a/1200871/151453

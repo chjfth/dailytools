@@ -112,9 +112,10 @@ REM =============================
   echo %_vspgINDENTS%[%batfilenam%] %*
 exit /b 0
 
-:EchoExec
+:EchoAndExec
   echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
-exit /b 0
+  call %*
+exit /b %ERRORLEVEL%
 
 :EchoVar
   REM Env-var double expansion trick from: https://stackoverflow.com/a/1200871/151453
