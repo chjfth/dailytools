@@ -88,7 +88,7 @@ exit /b
 
 :EchoAndExec
   echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
-  %*
+  call %*
 exit /b %ERRORLEVEL%
 
 :EchoVar
@@ -135,6 +135,14 @@ REM Params remain: Each one is a pattern, like: *.exe *.dll . (can not in quotes
       exit /b 0
     )
   )
+
+  REM Prompt the user the currently processing pattern
+  call "%bootsdir%\IsSubStr.bat" hasAsterisk "%pattern%" *
+  call "%bootsdir%\IsSubStr.bat" hasQuesmark "%pattern%" ?
+  call "%bootsdir%\IsSubStr.bat" has1 "%hasAsterisk%%hasQuesmark%" 1
+  if "%has1%" == "1" (
+    call :Echos Copying files matching pattern "%pattern%" ...
+  )
   
   REM If %pattern% has no backslash in it, prepend %DirSrc% to make a pattern with dir-prefix.
   call "%bootsdir%\IsSubStr.bat" hasBkSlash "%pattern%" \
@@ -147,14 +155,22 @@ REM Params remain: Each one is a pattern, like: *.exe *.dll . (can not in quotes
   set seefile=
   for %%g in ("%dirpfx_pattern%") do (
   	set seefile=%%g
+  	
+  	REM ---- call :EchoAndExec copy "%%g" "%DirDst%"
+  	REM ---- Use following instead:
+  	call "%bootsdir%\PathSplit.bat" "!seefile!" __thisdir thisfilenam
+  	call "%bootsdir%\LoopExecUntilSucc.bat" #10# "%bootsdir%\vspg_copy1file.bat" "!seefile!" "%DirDst%\!thisfilenam!"
+  	REM
+    if errorlevel 1 (
+      call :Echos [ERROR] Copy file failed after multiple retries!
+      exit /b 4
+    )
   )
   
   if "%seefile%" == "" (
     call :Echos No files matching "%dirpfx_pattern%", no file copied.
   ) else (
     set isFileMet=true
-    call :EchoAndExec copy "%dirpfx_pattern%" "%DirDst%"
-    if errorlevel 1 exit /b 4
   )
   
   shift
