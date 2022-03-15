@@ -32,6 +32,21 @@ if "%filepath2%" == "" (
 	exit /b 4
 )
 
+if not exist "%filepath1%" (
+	REM [2022-03-15] Chj: If user, in PostBuild-CopyOutput4.bat, wants to copy wildcard source,
+	REM (e.g. *.exe *.dll) some single source-file may not exist here, -- bcz, in a parellel 
+	REM build action, an exe file matching *.exe may have been deleted by another build thread.
+	REM 
+	REM If we ignore this "source file not exist" fact and go on, the 'forfiles' below will 
+	REM output an stderr line like:
+	REM
+	REM		ERROR: Files of type "XXX.exe" not found.
+	REM 
+	REM And, this "ERROR:" signature WILL cause MSBuild to fail, fail even if .bat exist code
+	REM is zero.
+	exit /b 4
+)
+
 if not exist "%filepath2%" (
 	exit /b 4
 )

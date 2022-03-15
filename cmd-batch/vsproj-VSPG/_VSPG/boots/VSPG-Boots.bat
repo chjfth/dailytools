@@ -39,7 +39,7 @@ if exist "%ParentDir%\boots-dev\VSPG-StartBat9_.bat" (
 
 call "%_vspg_bootsdir%\VSPG-StartBat9_.bat" %*
 
-if errorlevel 1 goto :END
+if errorlevel 1 exit /b 4
 
 REM ======== copy [boots-dev] to [boots] if necessary ========
 
@@ -54,7 +54,6 @@ copy "%_vspg_bootsdir%\*.props" "%batdir%"
 if errorlevel 1 exit /b 4
 
 :DONE_COPY_DEV_TO_USER
-
 
 exit /b 0
 
