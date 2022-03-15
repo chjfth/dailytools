@@ -56,22 +56,21 @@ if errorlevel 1 exit /b 4
 :DONE_COPY_DEV_TO_USER
 
 
-goto :END
+exit /b 0
 
 REM =============================
 REM ====== Functions Below ======
 REM =============================
 
 :Echos
-  echo [%batfilenam%] %*
-exit /b 0
+  REM This function preserves %ERRORLEVEL% for the caller,
+  REM and, LastError does NOT pollute the caller.
+  setlocal & set LastError=%ERRORLEVEL%
+  echo %_vspgINDENTS%[%batfilenam%] %*
+exit /b %ERRORLEVEL%
 
 :EchoAndExec
   echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
   call %*
 exit /b %ERRORLEVEL%
 
-:END
-REM [2022-01-11] Chj: We must write %ERRORLEVEL% after /b, otherwise,
-REM MSBuild(it calls us with 'cmd /c tmpXXX.bat') will always receive exit-code 0.
-exit /b %ERRORLEVEL%

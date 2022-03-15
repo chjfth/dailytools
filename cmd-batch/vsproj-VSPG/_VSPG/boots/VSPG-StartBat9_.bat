@@ -111,8 +111,11 @@ REM ====== Functions Below ======
 REM =============================
 
 :Echos
+  REM This function preserves %ERRORLEVEL% for the caller,
+  REM and, LastError does NOT pollute the caller.
+  setlocal & set LastError=%ERRORLEVEL%
   echo %_vspgINDENTS%[%batfilenam%] %*
-exit /b 0
+exit /b %ERRORLEVEL%
 
 :EchoAndExec
   echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
@@ -136,10 +139,4 @@ exit /b %1
 	REM you have decided to fail the whole bat.
 	
 	copy /b "%~1"+,, "%~1" >NUL 2>&1
-exit /b %ERRORLEVEL%
-
-goto :END
-
-
-:END
 exit /b %ERRORLEVEL%

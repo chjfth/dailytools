@@ -67,7 +67,7 @@ call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 PostBuild-CopyOutput4.bat^
 if errorlevel 1 exit /b 4
 
 
-goto :END
+exit /b 0
 
 REM =============================
 REM ====== Functions Below ======
@@ -94,5 +94,3 @@ exit /b 0
   REM call :SetErrorlevel 4
 exit /b %1
 
-:END
-exit /b %ERRORLEVEL%
