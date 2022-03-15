@@ -49,12 +49,12 @@ if errorlevel 1 exit /b 4
 popd
 
 if "%filetime1%" == "" (
-	call :Echos [UNEXPECT] filetime1 is empty string. ("%filepath1%")
+	call :Echos [UNEXPECT] filetime1 is empty string. ^("%filepath1%"^)
 	exit /b 4
 )
 
 if "%filetime2%" == "" (
-	call :Echos [UNEXPECT] filetime2 is empty string. ("%filepath2%")
+	call :Echos [UNEXPECT] filetime2 is empty string. ^("%filepath2%"^)
 	exit /b 4
 )
 
