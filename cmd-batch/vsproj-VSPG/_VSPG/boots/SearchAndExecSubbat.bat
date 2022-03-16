@@ -53,8 +53,11 @@ REM Params remain: Each param is a directory to search for subbat.
   if "%trydir%" == "" exit /b 0
   
   set trydirdeco=[*%trydir%*]
-  call "%batdir%\IsSubStr.bat" isfound "%_vspg_SearchedDirs%" "%trydirdeco%"
-  if %isfound% == 1 goto :endlocal_GoNextLoop
+  
+  if defined _vspg_SearchedDirs (
+    call "%batdir%\IsSubStr.bat" isfound "%_vspg_SearchedDirs%" "%trydirdeco%"
+    if "%isfound%" == "1" goto :endlocal_GoNextLoop
+  )
 
   set _vspg_SearchedDirs=%_vspg_SearchedDirs%%trydirdeco%
 
