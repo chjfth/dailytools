@@ -30,5 +30,5 @@ exit /b %ERRORLEVEL%
 :EchoAndExec
   echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
   %*
-exit /b %ERRORLEVEL%
+exit /b %LastError%
 

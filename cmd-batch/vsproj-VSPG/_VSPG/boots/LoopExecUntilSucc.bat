@@ -79,7 +79,7 @@ REM =============================
   REM and, LastError does NOT pollute the caller.
   setlocal & set LastError=%ERRORLEVEL%
   echo %_vspgINDENTS%[%batfilenam%] %*
-exit /b %ERRORLEVEL%
+exit /b %LastError%
 
 :EchoAndExec1
   echo %_vspgINDENTS%[%batfilenam%] %NowCount%/%LoopCount% EXEC: %*
