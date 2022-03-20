@@ -40,6 +40,11 @@ call :EchoVar TargetName
 
 REM Try to call some PostBuild bat-s  from one of five predefined directories,
 REM whichever is encountered first. But if none found, just do nothing.
+REM We do non-greedy calling of these bat-s, from narrow(project level) to
+REM wide(global level), because user (probably) wants to override 
+REM outer env's sub-work with his own one.
+REM But if user wants outer bat-s as well, he should call the outer bat-s explicitly.
+
 
 set SubbatSearchDirs=^
   "%ProjectDir%"^

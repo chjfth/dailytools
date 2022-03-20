@@ -1,21 +1,30 @@
 @echo off
+REM setlocal EnableDelayedExpansion
+REM -- DO NOT setlocal here, because we want to change parent env.
+
 REM If you have special environment variable(env-var) to set for you own .bat files,
 REM you can set it here.
 
-echo Loading Env-vars from "%~f0"
+call :Echos0 Loading Env-vars (affecting parent env).
 
 REM call :SetEnvVar POSTBUILD_COPY_TO_DIRS=z:\bin "y:\bin output"
 REM call :SetEnvVar POSTBUILD_COPY_PATTERNS=*.exe *.dll
 
-exit /b
+exit /b 0
 
 REM =============================
 REM ====== Functions Below ======
 REM =============================
 
+:Echos0
+  REM This function preserves %ERRORLEVEL% for the caller,
+  REM and, LastError does NOT pollute the caller.
+  setlocal & set LastError=%ERRORLEVEL%
+  echo %_vspgINDENTS%.[%~n0%~x0] %*
+exit /b %LastError%
+
 :SetEnvVar
-  set setcmd=set %*
-  echo.  %setcmd%
-  %setcmd%
-exit /b
+  call :Echos0 set %*
+  set %*
+exit /b 0
 

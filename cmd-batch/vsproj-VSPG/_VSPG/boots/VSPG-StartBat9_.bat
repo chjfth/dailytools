@@ -67,7 +67,7 @@ REM ======== Loading User Env-vars ========
 REM This is a greedy search, bcz user may want to accumulate env-vars from outer env.
 REM But if user does not like some env-var from outer env, he can override it(or clear it) 
 REM from inner env explicitly.
-REM In one word, the search order is wide to narrow.
+REM In one word, the search order is from wide to narrow.
 
 call "%bootsdir%\SearchAndExecSubbat.bat" Greedy1 VSPG-StartEnv.bat %VSPG_VSIDE_ParamsPack%^
   "%userbatdir%"^
@@ -85,13 +85,8 @@ if errorlevel 1 (
 )
 
 
-REM ======== Loading User VSPG-Prebuild8.bat or VSPG-Postbuild8.bat ======== 
-
-REM Note for VSPG-Prebuild8.bat and VSPG-Postbuild8.bat in advance:
-REM When VSPG-Prebuild8.bat and VSPG-Postbuild8.bat calls their own subbats. Those bats should do
-REM non-greedy search, bcz user (probably) wants to override outer env's sub-work with his own one.
-REM But if user wants outer sub-work as well, he should call the outer sub-work explicitly.
-REM The search order is narrow to wide.
+REM ======== call VSPG-Prebuild8.bat or VSPG-Postbuild8.bat ======== 
+REM ====== which one to call is determined by SubworkBatfile =======
 
 call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 "%SubworkBatfile%" %VSPG_VSIDE_ParamsPack% "%bootsdir%"
 
