@@ -32,6 +32,8 @@ set TargetDir=%~5
 set TargetDir=%TargetDir:~0,-1%
 REM TargetFilenam is the EXE/DLL output name (varname chopping trailing 'e', means "no path prefix")
 set TargetFilenam=%~6
+REM And I set mundane TargetFilename as well:
+set TargetFilename=%TargetFilenam%
 set TargetName=%~7
 set IntrmDir=%~8
 set IntrmDir=%IntrmDir:~0,-1%
