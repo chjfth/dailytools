@@ -55,7 +55,8 @@ if "%isAster%" == "1" (
 )
 
 REM The Env-var double expansion trick 
-for /F %%i in ('echo any') do set Replaced=!Haystack:%Needle%=!
+CALL set Replaced=%%Haystack:%Needle%=_%%
+
 
 REM echo Replaced=%Replaced%
 

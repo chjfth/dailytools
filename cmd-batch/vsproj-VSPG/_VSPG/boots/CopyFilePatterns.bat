@@ -58,14 +58,15 @@ REM then it is considered absolute path, and Param1 is not userd..
     call :Echos Copying files matching pattern "%pattern%" ...
   )
 
-  REM If %pattern% has no backslash in it, prepend %DirSrc% to make a pattern with dir-prefix.
-  call "%bootsdir%\IsSubStr.bat" hasBkSlash "%pattern%" \
-  if "%hasBkSlash%" == "1" (
+  REM If %pattern% has no : in it, prepend %DirSrc% to make a pattern with dir-prefix.
+  REM If %pattern% has : in it, we consider it an absolute path, so don't prepend dir-prefix.
+  call "%bootsdir%\IsSubStr.bat" hasColon "%pattern%" :
+  if "%hasColon%" == "1" (
     set dirpfx_pattern=%pattern%
   ) else (
     set dirpfx_pattern=%DirSrc%\%pattern%
   )
-  
+
   set seefile=
   for %%g in ("%dirpfx_pattern%") do (
     set seefile=%%~g
@@ -111,3 +112,8 @@ exit /b %LastError%
   echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
   call %*
 exit /b %ERRORLEVEL%
+
+:EchoVar
+  setlocal & set Varname=%~1
+  call echo %_vspgINDENTS%[%batfilenam%]%~2 %Varname% = %%%Varname%%%
+exit /b 0
