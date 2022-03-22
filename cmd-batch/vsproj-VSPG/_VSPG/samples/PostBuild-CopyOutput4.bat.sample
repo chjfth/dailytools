@@ -61,89 +61,18 @@ set __SourcePatterns__=%_vspg_dqpacked%
 rem
 call :PackDoubleQuotes %POSTBUILD_COPY_TO_DIRS%
 set __DestDirs__=%_vspg_dqpacked%
-rem call :EchoVar __SourcePatterns__ @@@@@@@@@@@@@@
-rem call :EchoVar __DestDirs__       @@@@@@@@@@@@@@
-
 set DestSubdir=__%BuildConf%\%PlatformName%
 
-call :AgileCopy  "%ExeDllDir%"  "%__SourcePatterns__%"  "%__DestDirs__%"  "%DestSubdir%"
+set VSPG_COPYFILE_DO_DELETE=
+call "%bootsdir%\AgileCopyOrDelete.bat"  "%ExeDllDir%"  "%__SourcePatterns__%"  "%__DestDirs__%"  "%DestSubdir%"
+
 exit /b %ERRORLEVEL%
-
-
 
 
 
 REM =============================
 REM ====== Functions Below ======
 REM =============================
-
-:AgileCopy
-REM Usage example:
-REM 
-REM   call :AgileCopy <SourcDir> <SourcePatterns> <DestDirs> <DestSubdir>
-REM 
-REM Param1: <SourceDir>
-REM   The directory containing source files.
-REM 
-REM Param2: <SourcePatterns> 
-REM   Filename or wildcard-patterns relative to <SourceDir>, separated by spaces.
-REM   Each filename/pattern can have extra sub-dir prefix, e.g. foodir\*.exe .
-REM   If multiple filenames/patterns given, you(the caller) need to enclose all of them 
-REM   in one pair of double quotes, for example:
-REM      "myprog.exe subdir\helper.dll"
-REM 
-REM And, if given filename/pattern itself contains spaces, you(the caller) should.
-REM apply extra quoting, like this:
-REM      "myprog.exe ""sub dir with spaces\helper.dll"" readme.txt"
-REM 
-REM Param3: <DestDirs>
-REM   List of destination directories, separated by spaces. Also try to avoid
-REM   have spaces in the directory itself. 
-REM   Source files will be copied to each directory.
-REM 
-REM Param4: <DestSubdir> (optional)
-REM   This is extra subdir beneath each <DestDirs>. This help you place 
-REM   source files from different BuildConf/Platform into different subdirs.
-
-  setlocal EnableDelayedExpansion
-  
-  call :UnpackDoubleQuotes SourceDir "%~1"
-  call :UnpackDoubleQuotes SourcePatterns "%~2"
-  call :UnpackDoubleQuotes DestDirs "%~3"
-  call :UnpackDoubleQuotes DestSubdir "%~4"
-  
-  if "%DestSubdir%" == "" (
-    call :Echos [ERROR] Calling AgileCopy function, missing parameters, 4 parameters required.
-    exit /b 4
-  )
-
-
-  for %%d in (%DestDirs%) do (
-
-	if "%DestSubdir%" == "" (
-	  set d_final=%%~d
-	) else (
-	  set d_final=%%~d\%DestSubdir%
-	)
-
-	if not exist "!d_final!" (
-		mkdir "!d_final!"
-		if errorlevel 1 (
-		  REM This can happen if user assigns a dir with non-existing driver letter.
-		  call :Echos [ERROR] Cannot create directory "!d_final!" .
-		  exit /b 4
-		)
-	)
-	
-
-	call "%bootsdir%\CopyFilePatterns.bat" "%SourceDir%" "!d_final!" %SourcePatterns%
-	if errorlevel 1 ( 
-		call :Echos [ERROR] Error occurred when copying file to "!d_final!" .
-		exit /b 4 
-	)
-  )
-
-exit /b 0
 
 
 :Echos

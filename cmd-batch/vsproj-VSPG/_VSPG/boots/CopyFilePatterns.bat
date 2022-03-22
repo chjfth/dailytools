@@ -8,6 +8,10 @@ set batdir=%~dp0
 set batdir=%batdir:~0,-1%
 set _vspgINDENTS=%_vspgINDENTS%.
 
+if "%VSPG_COPYFILE_DO_DELETE%" == "1" (
+	call :Echos See VSPG_COPYFILE_DO_DELETE=1, run in delete mode.
+)
+
 :CopyFilePatterns
 REM Copy files of various patterns to destination directory.
 REM We need this bcz Windows copy cmd only accepts one wildcard pattern per execution.
@@ -17,10 +21,16 @@ REM Params remain: Each one is a pattern, like: *.exe *.dll .
 REM Memo for pattern: 
 REM * If a pattern contains no backslash, then these files are considered from source folder.
 REM * This function currently does not resurce into subdirectory for source files.
-REM * If a pattern contains backslash, for example,
+REM * If a pattern contains a colon, for example,
 REM      d:\test\foo.exe 
 REM      d:\test\*.dll 
-REM then it is considered absolute path, and Param1 is not userd..
+REM then it is considered absolute path, and Param1 is not userd.
+REM 
+REM [Env-var input]
+REM If env-var VSPG_COPYFILE_DO_DELETE=1, target file is actually deleted.
+REM This feature can be used in VSPU-CleanProject.bat .
+REM If a file pattern contains wildcard(* or ?), then the wildcard is matched
+REM against source folder instead of the target folder.
 
   setlocal
   set AllPatterns=
@@ -53,9 +63,13 @@ REM then it is considered absolute path, and Param1 is not userd..
   REM Prompt the user the currently processing pattern
   call "%bootsdir%\IsSubStr.bat" hasAsterisk "%pattern%" *
   call "%bootsdir%\IsSubStr.bat" hasQuesmark "%pattern%" ?
-  call "%bootsdir%\IsSubStr.bat" has1 "%hasAsterisk%%hasQuesmark%" 1
-  if "%has1%" == "1" (
-    call :Echos Copying files matching pattern "%pattern%" ...
+  call "%bootsdir%\IsSubStr.bat" hasWildcard "%hasAsterisk%%hasQuesmark%" 1
+  if "%hasWildcard%" == "1" (
+    if "%VSPG_COPYFILE_DO_DELETE%" == "1" (
+      call :Echos Deleting files matching pattern "%pattern%" ...
+    ) else (
+      call :Echos Copying files matching pattern "%pattern%" ...
+    )
   )
 
   REM If %pattern% has no : in it, prepend %DirSrc% to make a pattern with dir-prefix.
@@ -69,21 +83,31 @@ REM then it is considered absolute path, and Param1 is not userd..
 
   set seefile=
   for %%g in ("%dirpfx_pattern%") do (
+
     set seefile=%%~g
-    
-    REM ---- call :EchoAndExec copy "%%g" "%DirDst%"
-    REM ---- Use following instead:
     call "%bootsdir%\PathSplit.bat" "!seefile!" __thisdir thisfilenam
-    call "%bootsdir%\LoopExecUntilSucc.bat" #5# "%bootsdir%\vspg_copy1file.bat" "!seefile!" "%DirDst%\!thisfilenam!"
-    REM
-    if errorlevel 1 (
-      call :Echos [ERROR] Copy file failed after multiple retries!
-      exit /b 4
+    
+    if "%VSPG_COPYFILE_DO_DELETE%" == "1" (
+      call :EchoAndExec del "%DirDst%\!thisfilenam!"
+      REM For simplicity, ignore deleting error.
+    ) else (
+      REM ---- call :EchoAndExec copy "%%g" "%DirDst%"
+      REM ---- Use following instead:
+      call "%bootsdir%\LoopExecUntilSucc.bat" #5# "%bootsdir%\vspg_copy1file.bat" "!seefile!" "%DirDst%\!thisfilenam!"
+      REM
+      if errorlevel 1 (
+        call :Echos [ERROR] Copy file failed after multiple retries!
+        exit /b 4
+      )
     )
   )
   
   if "%seefile%" == "" (
-    call :Echos No files matching "%dirpfx_pattern%", no file copied.
+    if "%VSPG_COPYFILE_DO_DELETE%" == "1" (
+      call :Echos No files matching "%dirpfx_pattern%", no file deleted.
+    ) else (
+      call :Echos No files matching "%dirpfx_pattern%", no file copied.
+    )
   ) else (
     set isFileMet=true
   )

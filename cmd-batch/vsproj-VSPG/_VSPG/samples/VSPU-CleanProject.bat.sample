@@ -20,6 +20,8 @@ set _TargetFilenam_=%6&set TargetFilenam=%~6
 set _TargetName_=%7&set TargetName=%~7
 set _IntrmDir_=%8&set IntrmDir=%~8
 
+set ExeDllDir=%TargetDir%
+
 REM == debugging purpose ==
 REM call :EchoVar SolutionDir
 REM call :EchoVar ProjectDir
@@ -33,19 +35,20 @@ REM call :EchoVar TargetName
 REM ==== Prelude Above ====
 
 
+REM For the special two vars, escape double-quotes for wrapping into a single bat-parameter.
+call :PackDoubleQuotes %POSTBUILD_COPY_PATTERNS%
+set __SourcePatterns__=%_vspg_dqpacked%
+rem
+call :PackDoubleQuotes %POSTBUILD_COPY_TO_DIRS%
+set __DestDirs__=%_vspg_dqpacked%
 
-REM
-REM WRITE YOUR CMD/BAT commands here.
-REM Remember to check for error exitcode for each command.
-REM
+set DestSubdir=__%BuildConf%\%PlatformName%
 
+set VSPG_COPYFILE_DO_DELETE=1
+call "%bootsdir%\AgileCopyOrDelete.bat"  "%ExeDllDir%"  "%__SourcePatterns__%"  "%__DestDirs__%"  "%DestSubdir%"
 
-call :Echos Cleaning for "%TargetDir%\%TargetFileNam%"
+exit /b %ERRORLEVEL%
 
-if errorlevel 1 exit /b 4
-
-
-exit /b 0
 
 REM =============================
 REM ====== Functions Below ======
@@ -72,4 +75,17 @@ exit /b 0
   REM Usage example:
   REM call :SetErrorlevel 4
 exit /b %1
+
+:PackDoubleQuotes
+  REM Take whole %* as input, replace each " with "" and return the result string.
+  REM The return value is put in global var _vspg_dqpacked .
+  set allparams=%*
+  set _vspg_dqpacked=%allparams:"=""%
+exit /b 0
+
+:UnpackDoubleQuotes
+  setlocal & set allparams=%~2
+  set unpacked=%allparams:""="%
+  endlocal & (set %~1=%unpacked%)
+exit /b 0
 
