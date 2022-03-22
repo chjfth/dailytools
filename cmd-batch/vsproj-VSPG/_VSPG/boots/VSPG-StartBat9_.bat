@@ -64,6 +64,16 @@ if not exist "%SubworkBatpath%" (
   exit /b 4
 )
 
+
+set SubbatSearchDirsNarrowToWide=^
+  "%ProjectDir%"^
+  "%ProjectDir%\_VSPG"^
+  "%SolutionDir%"^
+  "%SolutionDir%\_VSPG"^
+  "%SolutionDir%\.."^
+  "%userbatdir%"
+
+
 REM ======== Loading User Env-vars ======== 
 
 REM This is a greedy search, bcz user may want to accumulate env-vars from outer env.

@@ -46,20 +46,12 @@ REM outer env's sub-work with his own one.
 REM But if user wants outer bat-s as well, he should call the outer bat-s explicitly.
 
 
-set SubbatSearchDirs=^
-  "%ProjectDir%"^
-  "%ProjectDir%\_VSPG"^
-  "%SolutionDir%"^
-  "%SolutionDir%\_VSPG"^
-  "%SolutionDir%\.."^
-  "%userbatdir%"
-
 REM ==== Call Team-Postbuild8.bat if exist. ====
-call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 Team-PostBuild8.bat %VSPG_VSIDE_ParamsPack% %SubbatSearchDirs%
+call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 Team-PostBuild8.bat %VSPG_VSIDE_ParamsPack% %SubbatSearchDirsNarrowToWide%
 if errorlevel 1 exit /b 4
 
 REM ==== Call Personal-Postbuild8.bat if exist. ====
-call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 Personal-PostBuild8.bat %VSPG_VSIDE_ParamsPack% %SubbatSearchDirs%
+call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 Personal-PostBuild8.bat %VSPG_VSIDE_ParamsPack% %SubbatSearchDirsNarrowToWide%
 if errorlevel 1 exit /b 4
 
 REM ==== Call PostBuild-CopyOutput4.bat if exist. ====
@@ -68,7 +60,7 @@ REM and tune some variables there to meet your need..
 
 call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 PostBuild-CopyOutput4.bat^
   """%BuildConf%"" ""%PlatformName%"" ""%TargetDir%"" ""%TargetName%"""^
-  %SubbatSearchDirs%
+  %SubbatSearchDirsNarrowToWide%
 if errorlevel 1 exit /b 4
 
 

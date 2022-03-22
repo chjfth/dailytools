@@ -1,19 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <!-- Note: Only after Microsoft.Cpp.targets is imported, $(TargetFileName) and $(TargetName) is filled with values. -->
+    <VSPG_Start_9params>"$(VSPG_FeedbackFile)" "$(SolutionDir)" "$(ProjectDir)" "$(Configuration)" "$(PlatformName)" "$(TargetDir)" "$(TargetFileName)" "$(TargetName)" "$(IntDir)"</VSPG_Start_9params>
+  </PropertyGroup>
+
   <ItemDefinitionGroup>
     <PreBuildEvent>
       <Command>
       set PlatformToolsetVersion=$(PlatformToolsetVersion)
       set TargetExt=$(TargetExt)
-      "$(VSPG_BootsDir_NoTBS)\VSPG-Boots.bat" VSPG-PreBuild8.bat  "$(VSPG_FeedbackFile)" "$(SolutionDir)" "$(ProjectDir)" "$(Configuration)" "$(PlatformName)" "$(TargetDir)" "$(TargetFileName)" "$(TargetName)" "$(IntDir)"
+      "$(VSPG_BootsDir_NoTBS)\VSPG-Boots.bat" VSPG-PreBuild8.bat $(VSPG_Start_9params)
       </Command>
     </PreBuildEvent>
     <PostBuildEvent>
       <Command>
       set PlatformToolsetVersion=$(PlatformToolsetVersion)
       set TargetExt=$(TargetExt)
-      "$(VSPG_BootsDir_NoTBS)\VSPG-Boots.bat" VSPG-PostBuild8.bat "$(VSPG_FeedbackFile)" "$(SolutionDir)" "$(ProjectDir)" "$(Configuration)" "$(PlatformName)" "$(TargetDir)" "$(TargetFileName)" "$(TargetName)" "$(IntDir)"
+      "$(VSPG_BootsDir_NoTBS)\VSPG-Boots.bat" VSPG-PostBuild8.bat $(VSPG_Start_9params)
       </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
+  
+  <Target Name="VSPG_Clean" AfterTargets="Clean">
+    <PropertyGroup>
+      <VSPG_Clean_cmd>
+      set PlatformToolsetVersion=$(PlatformToolsetVersion)
+      set TargetExt=$(TargetExt)
+      "$(VSPG_BootsDir_NoTBS)\VSPG-Boots.bat" VSPG-CleanProject.bat $(VSPG_Start_9params)
+      </VSPG_Clean_cmd>
+    </PropertyGroup>
+    <Exec Command="$(VSPG_Clean_cmd)" />
+  </Target>
+  
 </Project>

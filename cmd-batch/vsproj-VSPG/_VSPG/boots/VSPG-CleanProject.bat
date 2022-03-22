@@ -27,35 +27,11 @@ set IntrmDir=%~8
 REM ==== boilerplate code <<<<
 
 
-call :Echos called with params: 
-call :EchoVar bootsdir
-call :EchoVar SolutionDir
-call :EchoVar ProjectDir
-call :EchoVar BuildConf
-call :EchoVar PlatformName
-call :EchoVar IntrmDir
-call :EchoVar TargetDir
-call :EchoVar TargetFilenam
-call :EchoVar TargetName
-
-REM Try to call PreBuild-SubWCRev1.bat etc from one of five predefined directories,
-REM whichever is encountered first. But if none found, just do nothing.
-REM If you need this PreBuild-SubWCRev1.bat to run, just copy and tune it from
-REM PreBuild-SubWCRev1.bat.sample .
-
-call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 PreBuild-SubWCRev1.bat %SubbatSearchDirsNarrowToWide%
+call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 VSPU-CleanProject.bat %VSPG_VSIDE_ParamsPack% %SubbatSearchDirsNarrowToWide%
 if errorlevel 1 exit /b 4
-
-REM ==== Call Team-Prebuild8.bat if exist. ====
-call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 Team-PreBuild8.bat %VSPG_VSIDE_ParamsPack% %SubbatSearchDirsNarrowToWide%
-if errorlevel 1 exit /b 4
-
-REM ==== Call Personal-Prebuild8.bat if exist. ====
-call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 Personal-PreBuild8.bat %VSPG_VSIDE_ParamsPack% %SubbatSearchDirsNarrowToWide%
-if errorlevel 1 exit /b 4
-
 
 exit /b 0
+
 
 REM =============================
 REM ====== Functions Below ======

@@ -55,7 +55,8 @@ are considered internal to VSPG.
 
 Assume that you place it inside $(SolutionDir), i.e. side-by-side with your .sln file.
 
-[STEP 2] Open foo.vcxproj in a text editor, at near-end of the file, add content:
+[STEP 2] Open foo.vcxproj in a text editor, at near-end of the file, 
+right before the closing </Project> tag, add content:
 
   <!-- import VSPG start -->
   <PropertyGroup>
@@ -68,9 +69,13 @@ Assume that you place it inside $(SolutionDir), i.e. side-by-side with your .sln
 
 (hint: _NoTBS means No Trailing BackSlash)
 
-so the end of foo.vcxproj looks like this:
+so the end of a foo.vcxproj looks like this:
 
 ...
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  
   <!-- import VSPG start -->
   <PropertyGroup>
     <VSPG_BootsDir_NoTBS>$(SolutionDir)_VSPG\boots</VSPG_BootsDir_NoTBS>
@@ -79,9 +84,6 @@ so the end of foo.vcxproj looks like this:
     <Import Project="$(VSPG_BootsDir_NoTBS)\_VSPG.props" />
   </ImportGroup>
   <!-- import VSPG end -->
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-  </ImportGroup>
 </Project>
 
 This step defines a MSBuild variable named VSPG_BootsDir_NoTBS telling where 
