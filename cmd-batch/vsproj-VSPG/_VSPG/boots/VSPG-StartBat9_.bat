@@ -81,7 +81,7 @@ REM But if user does not like some env-var from outer env, he can override it(or
 REM from inner env explicitly.
 REM In one word, the search order is from wide to narrow.
 
-call "%bootsdir%\SearchAndExecSubbat.bat" Greedy1 VSPG-StartEnv.bat %VSPG_VSIDE_ParamsPack%^
+call "%bootsdir%\SearchAndExecSubbat.bat" Greedy1 VSPU-StartEnv.bat %VSPG_VSIDE_ParamsPack%^
   "%userbatdir%"^
   "%SolutionDir%\.."^
   "%SolutionDir%\_VSPG"^
