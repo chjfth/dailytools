@@ -34,6 +34,22 @@ REM call :EchoVar TargetName
 
 REM ==== Prelude Above ====
 
+set POSTBUILD_COPY_TO_DIRS=d:\bin
+set POSTBUILD_COPY_TO_DIRS=d:\bin
+set POSTBUILD_COPY_PATTERNS="%ExeDllDir%\%TargetFilenam%"
+rem -- The above two should match those in PostBuild-CopyOutput4.bat
+rem    To ensure they always match, you can define them in VSPU-StartEnv.bat, once and for all.
+
+if not defined POSTBUILD_COPY_TO_DIRS (
+	call :Echos POSTBUILD_COPY_TO_DIRS is empty, nothing to clean.
+	exit /b 0
+)
+
+if not defined POSTBUILD_COPY_PATTERNS (
+	call :Echos [ERROR] POSTBUILD_COPY_PATTERNS is empty.
+	exit /b 4
+)
+
 
 REM For the special two vars, escape double-quotes for wrapping into a single bat-parameter.
 call :PackDoubleQuotes %POSTBUILD_COPY_PATTERNS%
