@@ -119,8 +119,12 @@ VSPG framework, by creating one or more of the following:
 	Team-Postbuild8.bat 
 	Personal-Postbuild8.bat 
 
-VSPG will search for these files in three-tiers of folders:
-	(1) %ProjectDir%\_VSPG
-	(2) %SolutionDir%\_VSPG
-	(3) the [boots] directory
+VSPG will search for these files in many-tiers of folders:
+
+	%ProjectDir%
+	%ProjectDir%\_VSPG
+	%SolutionDir%
+	%SolutionDir%\_VSPG
+	%SolutionDir%\..
+	Parent director of [boots], =directory of this VSPG.README.txt
 	
