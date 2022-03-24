@@ -32,7 +32,6 @@ REM This feature can be used in VSPU-CleanProject.bat .
 REM If a file pattern contains wildcard(* or ?), then the wildcard is matched
 REM against source folder instead of the target folder.
 
-  setlocal
   set AllPatterns=
   set isFileMet=false
 
@@ -88,8 +87,13 @@ REM against source folder instead of the target folder.
     call "%bootsdir%\PathSplit.bat" "!seefile!" __thisdir thisfilenam
     
     if "%VSPG_COPYFILE_DO_DELETE%" == "1" (
-      call :EchoAndExec del "%DirDst%\!thisfilenam!"
-      REM For simplicity, ignore deleting error.
+      set curfilepath=%DirDst%\!thisfilenam!
+      if exist "!curfilepath!" (
+        call :EchoAndExec del "!curfilepath!"
+        REM For simplicity, ignore deleting error.
+      ) else (
+        call :Echos Already deleted "!curfilepath!"
+      )
     ) else (
       REM ---- call :EchoAndExec copy "%%g" "%DirDst%"
       REM ---- Use following instead:
