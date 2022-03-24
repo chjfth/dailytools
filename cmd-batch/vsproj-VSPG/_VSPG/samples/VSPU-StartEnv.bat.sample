@@ -24,8 +24,8 @@ call :Echos0 Loading Env-vars (affecting parent env).
 
 REM ################ KEY CONTENT HERE ################ 
 
-REM call :SetEnvVar POSTBUILD_COPY_TO_DIRS=z:\bin "y:\bin output"
-REM call :SetEnvVar POSTBUILD_COPY_PATTERNS=*.exe *.dll
+REM call :SetEnvVar AGILE_COPY_PATTERNS="%ExeDllDir%\%TargetFilenam%"
+REM call :SetEnvVar AGILE_BARN_DIRS=d:\barn "d:\barn output"
 
 exit /b 0
 

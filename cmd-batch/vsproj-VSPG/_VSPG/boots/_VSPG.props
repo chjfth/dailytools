@@ -7,6 +7,7 @@
       set PlatformToolsetVersion=$(PlatformToolsetVersion)
       set PlatformToolset=$(PlatformToolset)
       set TargetExt=$(TargetExt)
+      set ExeDllDir=$(TargetDir)
     </ExportEnvvarsForVSPG>
 
     <!-- Note: Only after Microsoft.Cpp.targets is imported, $(TargetFileName) and $(TargetName) is filled with values. -->

@@ -10,9 +10,11 @@ REM
 set BuildConf=%~1
 set _BuildConf_=%1
 set PlatformName=%~2
-set _ExeDllDir_=%3
-set ExeDllDir=%~3
+set _TargetDir_=%3
+set TargetDir=%~3
 set TargetName=%~4
+
+set ExeDllDir=%TargetDir%
 
 REM == debugging purpose ==
 REM call :EchoVar _BuildConf_
@@ -25,41 +27,60 @@ REM call :EchoVar TargetName
 REM ==== Prelude Above ====
 
 REM =========================================================================
-REM This bat copies(=sync) project output(EXE/DLL etc) to your desired target dirs.
+REM This bat copies VSIDE project output(EXE/DLL etc) to other directories. 
+REM Let's call these directories barns.
 REM 
-REM After duplicating your own PostBuild-SyncOutput4.bat, you should 
-REM customize two things: 
-REM (1) Set POSTBUILD_COPY_TO_DIRS's value to be your copying target dirs.
-REM     You can list multiple target dirs, separated by spaces.
-REM     For example, assign two remote machine folders for remote debugging:
+REM Typical usage cases:
+REM * Copy EXE/DLL to a remote machine shared folder, so to debug your program
+REM   running on that remote machine (remote debugging).
+REM * By copying EXE/DLL from different projects to a single barn, you collect those
+REM   EXE/DLL to help create a complete set of software package.
 REM 
-REM set POSTBUILD_COPY_TO_DIRS=z:\bin "y:\bin outputs"
-REM
-REM (2) Tell what file patterns to copy, separate each pattern by a space.
-REM     (But don't surround them with quotes.)
-REM
-REM set POSTBUILD_COPY_PATTERNS="%ExeDllDir%\%TargetFilenam%" "some other pattern with white-space chars"
-REM or
-REM set POSTBUILD_COPY_PATTERNS=*.exe *.dll
+REM Two variables control the copy operation implemented in this bat.
 REM 
-REM You can modify .bat files directly, or set them as env-vars.
+REM (1) AGILE_COPY_PATTERNS
+REM 
+REM		This sets what file (a concrete filename) or file-pattern (*.exe etc) to copy.
+REM	
+REM		This can be absolute path or relative path. If relative path, it is relative
+REM		to $(TargetDir) from VSIDE, also referred to as %ExeDllDir% in this bat.
+REM	
+REM		This can be a list of multiple file/file-patterns separated by spaces.
+REM		It means you can have multiple barns, each barn gets one copy.
+REM	
+REM		NOTE: If a barn path has space char, you must wrap it in double-quotes.
+REM	
+REM	(2) AGILE_BARN_DIRS
+REM 
+REM		You can list multiple barn dirs, separated by spaces.
+REM 
+REM		Also, if a barn dir contains space char, you must wrap that dir-path in double-quotes.
+REM	
+REM Hint: You can set/modify these AGILE_xxx vars directly in this bat file, 
+REM       or set them from parent environment.
 REM =========================================================================
 
-if not defined POSTBUILD_COPY_TO_DIRS (
-	call :Echos POSTBUILD_COPY_TO_DIRS is empty, nothing to copy.
+set AGILE_COPY_PATTERNS="%ExeDllDir%\%TargetFilenam%"
+REM or
+REM set AGILE_COPY_PATTERNS=*.exe *.dll
+
+set AGILE_BARN_DIRS=d:\barn "d:\barn output"
+
+if not defined AGILE_BARN_DIRS (
+	call :Echos AGILE_BARN_DIRS is empty, nothing to copy.
 	exit /b 0
 )
 
-if not defined POSTBUILD_COPY_PATTERNS (
-	call :Echos [ERROR] POSTBUILD_COPY_PATTERNS is empty.
+if not defined AGILE_COPY_PATTERNS (
+	call :Echos [ERROR] AGILE_COPY_PATTERNS is empty.
 	exit /b 4
 )
 
-REM For the special two vars, escape double-quotes for wrapping into a single bat-parameter.
-call :PackDoubleQuotes %POSTBUILD_COPY_PATTERNS%
+REM For the two AGILE_xxx, escape double-quotes for wrapping into a single bat-parameter.
+call :PackDoubleQuotes %AGILE_COPY_PATTERNS%
 set __SourcePatterns__=%_vspg_dqpacked%
 rem
-call :PackDoubleQuotes %POSTBUILD_COPY_TO_DIRS%
+call :PackDoubleQuotes %AGILE_BARN_DIRS%
 set __DestDirs__=%_vspg_dqpacked%
 set DestSubdir=__%BuildConf%\%PlatformName%
 

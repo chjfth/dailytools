@@ -34,27 +34,27 @@ REM call :EchoVar TargetName
 
 REM ==== Prelude Above ====
 
-set POSTBUILD_COPY_TO_DIRS=d:\bin
-set POSTBUILD_COPY_PATTERNS="%ExeDllDir%\%TargetFilenam%"
-rem -- The above two should match those in PostBuild-CopyOutput4.bat
+set AGILE_COPY_PATTERNS="%ExeDllDir%\%TargetFilenam%"
+set AGILE_BARN_DIRS=d:\barn "d:\barn output"
+rem -- The above two should match those in PostBuild-CopyOutput4.bat .
 rem    To ensure they always match, you can define them in VSPU-StartEnv.bat, once and for all.
 
-if not defined POSTBUILD_COPY_TO_DIRS (
-	call :Echos POSTBUILD_COPY_TO_DIRS is empty, nothing to clean.
+if not defined AGILE_BARN_DIRS (
+	call :Echos AGILE_BARN_DIRS is empty, nothing to clean.
 	exit /b 0
 )
 
-if not defined POSTBUILD_COPY_PATTERNS (
-	call :Echos [ERROR] POSTBUILD_COPY_PATTERNS is empty.
+if not defined AGILE_COPY_PATTERNS (
+	call :Echos [ERROR] AGILE_COPY_PATTERNS is empty.
 	exit /b 4
 )
 
 
-REM For the special two vars, escape double-quotes for wrapping into a single bat-parameter.
-call :PackDoubleQuotes %POSTBUILD_COPY_PATTERNS%
+REM For the two AGILE_xxx, escape double-quotes for wrapping into a single bat-parameter.
+call :PackDoubleQuotes %AGILE_COPY_PATTERNS%
 set __SourcePatterns__=%_vspg_dqpacked%
 rem
-call :PackDoubleQuotes %POSTBUILD_COPY_TO_DIRS%
+call :PackDoubleQuotes %AGILE_BARN_DIRS%
 set __DestDirs__=%_vspg_dqpacked%
 
 set DestSubdir=__%BuildConf%\%PlatformName%
