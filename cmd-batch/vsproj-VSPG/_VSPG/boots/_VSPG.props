@@ -8,7 +8,7 @@
       set PlatformToolsetVersion=$(PlatformToolsetVersion)
       set PlatformToolset=$(PlatformToolset)
       set TargetExt=$(TargetExt)
-      set ExeDllDir=$(TargetDir)
+      set ExeDllDir=$(TargetDir.TrimEnd('\'))
     </ExportEnvvarsForVSPG>
 
     <!-- Note: Only after Microsoft.Cpp.targets is imported, $(TargetFileName) and $(TargetName) is filled with values. -->
@@ -34,6 +34,7 @@
     <PropertyGroup>
       <VSPG_Clean_cmd>
       $(ExportEnvvarsForVSPG)
+      @REM VSPG-CleanProject.bat will further search VSPU-CleanProject.bat in various folders.
       "$(VSPG_BootsDir_NoTBS)\VSPG-Boots.bat" VSPG-CleanProject.bat $(VSPG_Start_9params)
       </VSPG_Clean_cmd>
     </PropertyGroup>
