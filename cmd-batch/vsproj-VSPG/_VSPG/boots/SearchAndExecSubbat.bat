@@ -17,7 +17,9 @@ REM Param3: All params passed to subbat.
 REM         (when pass in, surrounded by quotes, when calling subbat, quotes stripped)
 REM Params remain: Each param is a directory to search for subbat.
 
-  rem call :Echos CALLED WITH: %*
+  if defined vspgdebug_SearchAndExecSubbat (
+    echo %_vspgINDENTS%.[%_tmp_batfilenam%] ========CALLED WITH: %*
+  )
   
   set _tmp_greedy=%~1
   set _tmp_greedy=%_tmp_greedy:~-1%
@@ -54,7 +56,9 @@ REM Params remain: Each param is a directory to search for subbat.
   
   set trydirdeco=[*%trydir%*]
   
-  rem call :Echos ============Searching "%_vspg_SubbatFilenam%" in "%trydir%"
+  if defined vspgdebug_SearchAndExecSubbat (
+    call :Echos ========Searching "%_vspg_SubbatFilenam%" in "%trydir%"
+  )
   
   if defined _vspg_SearchedDirs (
     call "%batdir%\IsSubStr.bat" isfound "%_vspg_SearchedDirs%" "%trydirdeco%"

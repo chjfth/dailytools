@@ -66,12 +66,22 @@ if not exist "%SubworkBatpath%" (
 
 
 set SubbatSearchDirsNarrowToWide=^
-  "%ProjectDir%"^
   "%ProjectDir%\_VSPG"^
-  "%SolutionDir%"^
+  "%ProjectDir%"^
+  "%ProjectDir%\.."^
   "%SolutionDir%\_VSPG"^
+  "%SolutionDir%"^
   "%SolutionDir%\.."^
   "%userbatdir%"
+
+set SubbatSearchDirsWideToNarrow=^
+  "%userbatdir%"^
+  "%SolutionDir%\.."^
+  "%SolutionDir%"^
+  "%SolutionDir%\_VSPG"^
+  "%ProjectDir%\.."^
+  "%ProjectDir%"^
+  "%ProjectDir%\_VSPG"
 
 
 REM ======== Loading User Env-vars ======== 
@@ -81,13 +91,7 @@ REM But if user does not like some env-var from outer env, he can override it(or
 REM from inner env explicitly.
 REM In one word, the search order is from wide to narrow.
 
-call "%bootsdir%\SearchAndExecSubbat.bat" Greedy1 VSPU-StartEnv.bat %VSPG_VSIDE_ParamsPack%^
-  "%userbatdir%"^
-  "%SolutionDir%\.."^
-  "%SolutionDir%\_VSPG"^
-  "%SolutionDir%"^
-  "%ProjectDir%\_VSPG"^
-  "%ProjectDir%"
+call "%bootsdir%\SearchAndExecSubbat.bat" Greedy1 VSPU-StartEnv.bat %VSPG_VSIDE_ParamsPack% %SubbatSearchDirsWideToNarrow% 
 if errorlevel 1 (
   if not "%FeedbackFile%"=="" (
     call :Echos VSPG execution fail. Touching "%FeedbackFile%" .
