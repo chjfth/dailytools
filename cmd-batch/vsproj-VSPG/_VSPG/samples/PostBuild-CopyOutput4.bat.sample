@@ -82,7 +82,7 @@ set __SourcePatterns__=%_vspg_dqpacked%
 rem
 call :PackDoubleQuotes %AGILE_BARN_DIRS%
 set __DestDirs__=%_vspg_dqpacked%
-set DestSubdir=__%BuildConf%\%PlatformName%
+set DestSubdir=%PlatformName%\__%BuildConf%
 
 set VSPG_COPYFILE_DO_DELETE=
 call "%bootsdir%\AgileCopyOrDelete.bat"  "%ExeDllDir%"  "%__SourcePatterns__%"  "%__DestDirs__%"  "%DestSubdir%"

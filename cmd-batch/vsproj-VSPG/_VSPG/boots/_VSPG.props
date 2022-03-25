@@ -4,6 +4,7 @@
   <PropertyGroup>
 
     <ExportEnvvarsForVSPG>
+      set PlatformShortName=$(PlatformShortName)
       set PlatformToolsetVersion=$(PlatformToolsetVersion)
       set PlatformToolset=$(PlatformToolset)
       set TargetExt=$(TargetExt)
