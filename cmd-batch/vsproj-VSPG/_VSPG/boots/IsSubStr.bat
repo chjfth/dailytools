@@ -50,7 +50,7 @@ REM https://stackoverflow.com/questions/71493157/delaydexpansion-and-endlocal-co
 
 call :IsAsteriskInStr isAster "%Needle%"
 if "%isAster%" == "1" (
-	call :Echos [ERROR] Sorry, I cannot cope with the case that Needle parameter contains a "*", your input Neele is: "%Needle%"
+	call :Echos [ERROR] Sorry, I cannot cope with the case that Needle parameter contains a "*", your input Needle is: "%Needle%"
 	exit /b 4
 )
 
