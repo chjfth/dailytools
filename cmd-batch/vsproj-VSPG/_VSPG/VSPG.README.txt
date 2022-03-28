@@ -122,9 +122,8 @@ VSPG framework, by creating one or more of the following:
 VSPG will search for these files in many-tiers of folders:
 
 	%ProjectDir%
-	%ProjectDir%\_VSPG
 	%SolutionDir%
-	%SolutionDir%\_VSPG
-	%SolutionDir%\..
 	Parent director of [boots], =directory of this VSPG.README.txt
-	
+
+And you can customize more search directories by dropping a VSPU-StartEnv.bat,
+setting vspg_USER_BAT_SEARCH_DIRS variable.

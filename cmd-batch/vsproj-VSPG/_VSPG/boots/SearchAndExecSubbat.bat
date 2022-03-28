@@ -18,7 +18,7 @@ REM         (when pass in, surrounded by quotes, when calling subbat, quotes str
 REM Params remain: Each param is a directory to search for subbat.
 
   if defined vspgdebug_SearchAndExecSubbat (
-    echo %_vspgINDENTS%.[%_tmp_batfilenam%] ========CALLED WITH: %*
+    echo %_vspgINDENTS%.[%_tmp_batfilenam%] ====DBG====CALLED WITH: %*
   )
   
   set _tmp_greedy=%~1
@@ -54,19 +54,25 @@ REM Params remain: Each param is a directory to search for subbat.
   
   if "%trydir%" == "" exit /b 0
   
-  set trydirdeco=[*%trydir%*]
-  
-  if defined vspgdebug_SearchAndExecSubbat (
-    call :Echos ========Searching "%_vspg_SubbatFilenam%" in "%trydir%"
-  )
+  set trydirdeco=[#%trydir%#]
   
   if defined _vspg_SearchedDirs (
     call "%batdir%\IsSubStr.bat" isfound "%_vspg_SearchedDirs%" "%trydirdeco%"
-    if "%isfound%" == "1" goto :endlocal_GoNextLoop
+
+    if "!isfound!" == "1" (
+    
+      if defined vspgdebug_SearchAndExecSubbat (
+        call :Echos ====DBG====Searched: "%_vspg_SubbatFilenam%" in "%trydir%" ^(skipped^)
+      )
+      
+      goto :endlocal_GoNextLoop
+    )
   )
 
-  set _vspg_SearchedDirs=%_vspg_SearchedDirs%%trydirdeco%
-
+  if defined vspgdebug_SearchAndExecSubbat (
+    call :Echos ====DBG====Searching "%_vspg_SubbatFilenam%" in "%trydir%"
+  )
+  
   set trybat=%trydir%\%_vspg_SubbatFilenam%
 
   if not exist "%trybat%" goto :endlocal_GoNextLoop
@@ -97,7 +103,9 @@ REM  call :Echos [[[[%_tmp_outerbatnam%]]]] Successfully called Subbat.
   exit /b 0
 
 :endlocal_GoNextLoop
-  endlocal
+  endlocal & (
+    set _vspg_SearchedDirs=%_vspg_SearchedDirs%%trydirdeco%
+  )
   goto :loop_SearchAndExecSubbat
 
 
@@ -119,5 +127,5 @@ exit /b %ERRORLEVEL%
 
 :EchoVar
   setlocal & set Varname=%~1
-  call echo %_vspgINDENTS%[%batfilenam%] %Varname% = %%%Varname%%%
+  call echo %_vspgINDENTS%[%batfilenam%]%~2 %Varname% = %%%Varname%%%
 exit /b 0

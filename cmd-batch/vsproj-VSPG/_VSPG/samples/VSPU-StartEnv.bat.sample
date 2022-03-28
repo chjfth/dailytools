@@ -1,4 +1,8 @@
 @echo off
+
+REM You can add more bat search location via vspg_USER_BAT_SEARCH_DIRS .
+REM set vspg_USER_BAT_SEARCH_DIRS="mydir1" "mydir2"
+
 setlocal EnableDelayedExpansion
 
 set batfilenam=%~n0%~x0
