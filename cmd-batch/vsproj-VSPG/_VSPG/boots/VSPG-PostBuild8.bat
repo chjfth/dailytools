@@ -26,17 +26,18 @@ set TargetName=%~7
 set IntrmDir=%~8
 REM ==== boilerplate code <<<<
 
-
-call :Echos called with params: 
-call :EchoVar bootsdir
-call :EchoVar SolutionDir
-call :EchoVar ProjectDir
-call :EchoVar BuildConf
-call :EchoVar PlatformName
-call :EchoVar IntrmDir
-call :EchoVar TargetDir
-call :EchoVar TargetFilenam
-call :EchoVar TargetName
+if defined vspg_DO_SHOW_VERBOSE (
+	call :Echos called with params: 
+	call :EchoVar bootsdir
+	call :EchoVar SolutionDir
+	call :EchoVar ProjectDir
+	call :EchoVar BuildConf
+	call :EchoVar PlatformName
+	call :EchoVar IntrmDir
+	call :EchoVar TargetDir
+	call :EchoVar TargetFilenam
+	call :EchoVar TargetName
+)
 
 REM Try to call some PostBuild bat-s  from one of five predefined directories,
 REM whichever is encountered first. But if none found, just do nothing.

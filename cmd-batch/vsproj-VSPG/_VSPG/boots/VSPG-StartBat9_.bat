@@ -39,7 +39,8 @@ set IntrmDir=%~8
 set IntrmDir=%IntrmDir:~0,-1%
 
 call "%bootsdir%\VSPG-version.bat" vspgver
-call :Echos [VSPG version %vspgver%] started as: "%bootsdir%\%batfilenam%"
+
+call :EchosV1 [VSPG version %vspgver%] started as: "%bootsdir%\%batfilenam%"
 
 
 set VSPG_VSIDE_ParamsDiscrete="%SolutionDir%" "%ProjectDir%" "%BuildConf%" "%PlatformName%" "%TargetDir%" "%TargetFilenam%" "%TargetName%" "%IntrmDir%"
@@ -47,9 +48,10 @@ call "%bootsdir%\DQescape_NoTBS.bat" %VSPG_VSIDE_ParamsDiscrete%
 set VSPG_VSIDE_ParamsPack=%DQescape_NoTBS_Output%
 REM -- Note: when expanding VSPG_VSIDE_ParamsPack, do NOT surround extra double-quotes on %VSPG_VSIDE_ParamsPack% .
 
-
-call :EchoVar SubworkBatpath
-call :EchoVar FeedbackFile
+if defined vspg_DO_SHOW_VERBOSE (
+  call :EchoVar SubworkBatpath
+  call :EchoVar FeedbackFile
+)
 
 if not "%FeedbackFile%"=="" (
   if not exist "%FeedbackFile%" (
@@ -125,6 +127,14 @@ REM =============================
   REM and, LastError does NOT pollute the caller.
   setlocal & set LastError=%ERRORLEVEL%
   echo %_vspgINDENTS%[%batfilenam%] %*
+exit /b %LastError%
+
+:EchosV1
+  REM echo %* only when vspg_DO_SHOW_VERBOSE=1 .
+  setlocal & set LastError=%ERRORLEVEL%
+  if not defined vspg_DO_SHOW_VERBOSE goto :_EchosV1_done
+  echo %_vspgINDENTS%[%batfilenam%]# %*
+:_EchosV1_done
 exit /b %LastError%
 
 :EchoAndExec

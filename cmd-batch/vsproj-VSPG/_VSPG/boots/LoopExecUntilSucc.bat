@@ -30,11 +30,11 @@ if "%~2" == "" (
 )
 
 if not "%charhead%" == "#" (
-	call :Echos [ERROR] First char of first parameter is not #
+	call :Echos [ERROR] First char of first parameter is not #. First param should be sth like #5# .
 	exit /b 4
 )
 if not "%chartail%" == "#" (
-	call :Echos [ERROR] Final char of first parameter is not #
+	call :Echos [ERROR] Final char of first parameter is not #. First param should be sth like #5# .
 	exit /b 4
 )
 
@@ -43,10 +43,11 @@ set LoopCount=%param1:~1,-1%
 set _LoopCount_=#%LoopCount%#
 set cmdexec=%*
 
+REM Strip away %1 from the passed-in command line,
+
 for %%g in (%cmdexec%) do set cmdexec=!cmdexec:%_LoopCount_%=!
 
-REM -- Now we have stripped away %1 from the passed-in command line,
-REM %cmdexec% is the very command to execute.
+REM Now, %cmdexec% is the very command to execute.
 
 set /a NowCount=1
 
@@ -82,6 +83,9 @@ REM =============================
 exit /b %LastError%
 
 :EchoAndExec1
-  echo %_vspgINDENTS%[%batfilenam%] %NowCount%/%LoopCount% EXEC: %*
+  setlocal
+  set loopcount_prefix= %NowCount%/%LoopCount%
+  if not defined vspg_DO_SHOW_VERBOSE if "%NowCount%"=="1" set loopcount_prefix=
+  echo %_vspgINDENTS%[%batfilenam%]%loopcount_prefix% EXEC: %*
   call %*
 exit /b %ERRORLEVEL%

@@ -9,7 +9,7 @@ set batdir=%batdir:~0,-1%
 set _vspgINDENTS=%_vspgINDENTS%.
 
 if "%VSPG_COPYFILE_DO_DELETE%" == "1" (
-	call :Echos See VSPG_COPYFILE_DO_DELETE=1, run in delete mode.
+	call :EchosV1 See VSPG_COPYFILE_DO_DELETE=1, run in delete mode.
 )
 
 :CopyFilePatterns
@@ -50,12 +50,12 @@ REM against source folder instead of the target folder.
   if "%pattern%" == "" (
     REM All patterns finished. Do we really copy any files? If none, assert error.
     
-    if "%isFileMet%" == "false" (
+    if "%isFileMet%" == "false" if not defined VSPG_COPYFILE_DO_DELETE (
       call :Echos [VSPG-Error] No files are found by your patterns: %AllPatterns%
       exit /b 4
-    ) else (
-      exit /b 0
     )
+
+    exit /b 0
   )
   
 :process_pattern
@@ -86,18 +86,21 @@ REM against source folder instead of the target folder.
     set seefile=%%~g
     call "%bootsdir%\PathSplit.bat" "!seefile!" __thisdir thisfilenam
     
+    set curdstpath=%DirDst%\!thisfilenam!
+
     if "%VSPG_COPYFILE_DO_DELETE%" == "1" (
-      set curfilepath=%DirDst%\!thisfilenam!
-      if exist "!curfilepath!" (
-        call :EchoAndExec del "!curfilepath!"
+      if exist "!curdstpath!" (
+        call :EchoAndExec del "!curdstpath!"
         REM For simplicity, ignore deleting error.
       ) else (
-        call :Echos Already deleted "!curfilepath!"
+        if defined vspg_DO_SHOW_VERBOSE (
+          call :Echos Already deleted "!curdstpath!"
+        )
       )
     ) else (
       REM ---- call :EchoAndExec copy "%%g" "%DirDst%"
       REM ---- Use following instead:
-      call "%bootsdir%\LoopExecUntilSucc.bat" #5# "%bootsdir%\vspg_copy1file.bat" "!seefile!" "%DirDst%\!thisfilenam!"
+      call "%bootsdir%\LoopExecUntilSucc.bat" #5# "%bootsdir%\vspg_copy1file.bat" "!seefile!" "!curdstpath!"
       REM
       if errorlevel 1 (
         call :Echos [ERROR] Copy file failed after multiple retries!
@@ -134,6 +137,14 @@ REM =============================
   REM and, LastError does NOT pollute the caller.
   setlocal & set LastError=%ERRORLEVEL%
   echo %_vspgINDENTS%[%batfilenam%] %*
+exit /b %LastError%
+
+:EchosV1
+  REM echo %* only when vspg_DO_SHOW_VERBOSE=1 .
+  setlocal & set LastError=%ERRORLEVEL%
+  if not defined vspg_DO_SHOW_VERBOSE goto :_EchosV1_done
+  echo %_vspgINDENTS%[%batfilenam%]# %*
+:_EchosV1_done
 exit /b %LastError%
 
 :EchoAndExec
