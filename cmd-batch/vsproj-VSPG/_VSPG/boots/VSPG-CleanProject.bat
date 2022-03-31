@@ -7,8 +7,8 @@ set bootsdir=%bootsdir:~0,-1%
 call "%bootsdir%\GetParentDir.bat" userbatdir "%bootsdir%"
 set _vspgINDENTS=%_vspgINDENTS%.
 
+call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 VSPU-CopyOrClean.bat 0 %SubbatSearchDirsNarrowToWide%
 
-call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 VSPU-CleanProject.bat "" %SubbatSearchDirsNarrowToWide%
 if errorlevel 1 exit /b 4
 
 exit /b 0

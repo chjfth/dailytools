@@ -36,13 +36,11 @@ REM ==== Call Personal-Postbuild.bat if exist. ====
 call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 Personal-PostBuild.bat "" %SubbatSearchDirsNarrowToWide%
 if errorlevel 1 exit /b 4
 
-REM ==== Call PostBuild-CopyOutput4.bat if exist. ====
-REM If you need this bat, just copy it from ..\samples\PostBuild-CopyOutput4.bat.sample,
+REM ==== Call VSPU-CopyOrClean.bat if exist. ====
+REM If you need this bat, just copy it from ..\samples\VSPU-CopyOrClean.bat.sample,
 REM and tune some variables there to meet your need..
 
-call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 PostBuild-CopyOutput4.bat^
-  """%BuildConf%"" ""%PlatformName%"" ""%TargetDir%"" ""%TargetName%"""^
-  %SubbatSearchDirsNarrowToWide%
+call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 VSPU-CopyOrClean.bat 1 %SubbatSearchDirsNarrowToWide%
 if errorlevel 1 exit /b 4
 
 
