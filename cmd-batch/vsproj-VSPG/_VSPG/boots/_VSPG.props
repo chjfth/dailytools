@@ -5,47 +5,55 @@
 
   <!-- Define some variables to use later. -->
 
+  <!-- Note: Only after Microsoft.Cpp.targets is imported, $(TargetFileName) and $(TargetName) is filled with values. -->
   <PropertyGroup>
     <ExportEnvvarsForVSPG>
-      set PlatformShortName=$(PlatformShortName)
-      set PlatformToolsetVersion=$(PlatformToolsetVersion)
-      set PlatformToolset=$(PlatformToolset)
-      set TargetExt=$(TargetExt)
-      set ExeDllDir=$(TargetDir.TrimEnd('\'))
+      set "PlatformShortName=$(PlatformShortName)"
+      set "PlatformToolsetVersion=$(PlatformToolsetVersion)"
+      set "PlatformToolset=$(PlatformToolset)"
+      set "SolutionDir=$(SolutionDir.TrimEnd('\'))"
+      set "ProjectDir=$(ProjectDir.TrimEnd('\'))"
+      set "Configuration=$(Configuration)"
+      set "BuildConf=$(Configuration)"
+      set "PlatformName=$(PlatformName)"
+      set "OutDir=$(TargetDir.TrimEnd('\'))"
+      set "TargetDir=$(TargetDir.TrimEnd('\'))"
+      set "ExeDllDir=$(TargetDir.TrimEnd('\'))"
+      set "TargetFileName=$(TargetFileName)"
+      set "TargetFileNam=$(TargetFileName)"
+      set "TargetName=$(TargetName)"
+      set "TargetExt=$(TargetExt)"
+      set "IntDir=$(IntDir.TrimEnd('\'))"
+      set "IntrmDir=$(IntDir.TrimEnd('\'))"
     </ExportEnvvarsForVSPG>
 
-    <!-- Note: Only after Microsoft.Cpp.targets is imported, $(TargetFileName) and $(TargetName) is filled with values. -->
-    <VSPG_Start_9params>"$(VSPG_FeedbackFile)" "$(SolutionDir)" "$(ProjectDir)" "$(Configuration)" "$(PlatformName)" "$(TargetDir)" "$(TargetFileName)" "$(TargetName)" "$(IntDir)"</VSPG_Start_9params>
   </PropertyGroup>
 
-  <!-- Define VSPG's Prebuild-Event and PostBuild-Event stub. -->
+  <!-- Define VSPG's Prebuild target -->
 
-  <ItemDefinitionGroup>
-    <PreBuildEvent>
-      <Command>
-      $(ExportEnvvarsForVSPG)
-      "$(VSPG_BootsDir_NoTBS)\VSPG-Boots.bat" VSPG-PreBuild8.bat $(VSPG_Start_9params)
-      </Command>
-    </PreBuildEvent>
-    <PostBuildEvent>
-      <Command>
-      $(ExportEnvvarsForVSPG)
-      "$(VSPG_BootsDir_NoTBS)\VSPG-Boots.bat" VSPG-PostBuild8.bat $(VSPG_Start_9params)
-      </Command>
-    </PostBuildEvent>
-  </ItemDefinitionGroup>
+  <Target Name="VSPG_PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command='$(ExportEnvvarsForVSPG) call "$(VSPG_BootsDir_NoTBS)\VSPG-Boots.bat" VSPG-PreBuild.bat'
+    	WorkingDirectory="$(ProjectDir.TrimEnd('\'))"
+    	IgnoreStandardErrorWarningFormat="true" 
+    	/>
+  </Target>
+
+  <!-- Define VSPG's Postbuild target -->
+
+  <Target Name="VSPG_PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command='$(ExportEnvvarsForVSPG) call "$(VSPG_BootsDir_NoTBS)\VSPG-Boots.bat" VSPG-PostBuild.bat'
+    	WorkingDirectory="$(ProjectDir.TrimEnd('\'))"
+    	IgnoreStandardErrorWarningFormat="true" 
+    	/>
+  </Target>
 
   <!-- A "Clean" Target that helps delete extra copied files by PostBuild-CopyOutput4.bat -->
 
   <Target Name="VSPG_Clean" AfterTargets="Clean">
-    <PropertyGroup>
-      <VSPG_Clean_cmd>
-      $(ExportEnvvarsForVSPG)
-      @REM VSPG-CleanProject.bat will further search VSPU-CleanProject.bat in various folders.
-      "$(VSPG_BootsDir_NoTBS)\VSPG-Boots.bat" VSPG-CleanProject.bat $(VSPG_Start_9params)
-      </VSPG_Clean_cmd>
-    </PropertyGroup>
-    <Exec Command="$(VSPG_Clean_cmd)" />
+    <Exec Command='$(ExportEnvvarsForVSPG) call "$(VSPG_BootsDir_NoTBS)\VSPG-Boots.bat" VSPG-CleanProject.bat'
+    	WorkingDirectory="$(ProjectDir.TrimEnd('\'))"
+    	IgnoreStandardErrorWarningFormat="true" 
+    	/>
   </Target>
 
   <!-- ====================================================================== -->

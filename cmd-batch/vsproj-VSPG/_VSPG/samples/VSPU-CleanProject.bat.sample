@@ -1,7 +1,5 @@
 @echo off
 setlocal EnableDelayedExpansion
-REM Called as this:
-REM <this>.bat $(SolutionDir) $(ProjectDir) $(BuildConf) $(PlatformName) $(TargetDir) $(TargetFileNam) $(TargetName) $(IntrmDir)
 
 set batfilenam=%~n0%~x0
 set batdir=%~dp0
@@ -9,28 +7,15 @@ set batdir=%batdir:~0,-1%
 set _vspgINDENTS=%_vspgINDENTS%.
 call :Echos START from %batdir%
 
-
-REM _SolutionDir_ has double-quotes around, SolutionDir has no quotes.
-set _SolutionDir_=%1&set SolutionDir=%~1
-set _ProjectDir_=%2&set ProjectDir=%~2
-set _BuildConf_=%3&set BuildConf=%~3
-set _PlatformName_=%4&set PlatformName=%~4
-set _TargetDir_=%5&set TargetDir=%~5
-set _TargetFilenam_=%6&set TargetFilenam=%~6
-set _TargetName_=%7&set TargetName=%~7
-set _IntrmDir_=%8&set IntrmDir=%~8
-
-set ExeDllDir=%TargetDir%
-
-REM == debugging purpose ==
-REM call :EchoVar SolutionDir
-REM call :EchoVar ProjectDir
-REM call :EchoVar _BuildConf_
-REM call :EchoVar BuildConf
-REM call :EchoVar IntrmDir
-REM call :EchoVar TargetDir
-REM call :EchoVar PlatformName
-REM call :EchoVar TargetName
+if defined vspg_DO_SHOW_VERBOSE (
+	call :EchoVar SolutionDir
+	call :EchoVar ProjectDir
+	call :EchoVar BuildConf
+	call :EchoVar IntrmDir
+	call :EchoVar TargetDir
+	call :EchoVar PlatformName
+	call :EchoVar TargetName
+)
 
 REM ==== Prelude Above ====
 
@@ -57,7 +42,7 @@ rem
 call :PackDoubleQuotes %AGILE_BARN_DIRS%
 set __DestDirs__=%_vspg_dqpacked%
 
-set DestSubdir=__%BuildConf%\%PlatformName%
+set DestSubdir=%PlatformName%\%BuildConf%
 
 set VSPG_COPYFILE_DO_DELETE=1
 call "%bootsdir%\AgileCopyOrDelete.bat"  "%ExeDllDir%"  "%__SourcePatterns__%"  "%__DestDirs__%"  "%DestSubdir%"

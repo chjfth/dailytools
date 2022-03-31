@@ -11,9 +11,9 @@ REM 	if exists ".\boots\VSPG-Boots.bat" (echo Condition OK.)
 REM 	mklink /j boots-dev "D:\gitw\dailytools\cmd-batch\vsproj-VSPG\_VSPG\boots"
 REM 	
 REM Now, "D:\some\big work\_VSPG\boots\VSPG-Boots.bat" will next-step call content in
-REM      "D:\some\big work\_VSPG\boots-dev\VSPG-StartBat9_.bat" 
+REM      "D:\some\big work\_VSPG\boots-dev\VSPG-StartBat.bat" 
 REM instead of
-REM	     "D:\some\big work\_VSPG\boots\VSPG-StartBat9_.bat"
+REM	     "D:\some\big work\_VSPG\boots\VSPG-StartBat.bat"
 REM .
 
 REM set batfilenam to .bat filename(no directory prefix)
@@ -30,14 +30,14 @@ call "%_vspg_bootsdir%\PathSplit.bat" "%_vspg_bootsdir%" ParentDir Subdir
 set "_vspg_userbatdir=%ParentDir%"
 
 
-if exist "%ParentDir%\boots-dev\VSPG-StartBat9_.bat" (
+if exist "%ParentDir%\boots-dev\VSPG-StartBat.bat" (
 	REM Override _vspg_bootsdir to be the -dev one.
 	set "_vspg_bootsdir=%ParentDir%\boots-dev"
 	set "_vspg_use_dev=1"
 	call :Echos Detected [boots-dev]. Will use VSPG from "!_vspg_bootsdir!" .
 )
 
-call "%_vspg_bootsdir%\VSPG-StartBat9_.bat" %*
+call "%_vspg_bootsdir%\VSPG-StartBat.bat" %*
 
 if errorlevel 1 exit /b 4
 
@@ -50,6 +50,7 @@ call :Echos Copying [boots-dev] content to user [boots] ...
 
 copy "%_vspg_bootsdir%\*.bat"   "%batdir%" 
 if errorlevel 1 exit /b 4
+
 copy "%_vspg_bootsdir%\*.props" "%batdir%" 
 if errorlevel 1 exit /b 4
 

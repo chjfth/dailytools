@@ -17,9 +17,7 @@ REM Param3: All params passed to subbat.
 REM         (when pass in, surrounded by quotes, when calling subbat, quotes stripped)
 REM Params remain: Each param is a directory to search for subbat.
 
-  if defined vspgdebug_SearchAndExecSubbat (
-    echo %_vspgINDENTS%.[%_tmp_batfilenam%] ====DBG====CALLED WITH: %*
-  )
+  call :EchosDD CALLED WITH: %*
   
   set _tmp_greedy=%~1
   set _tmp_greedy=%_tmp_greedy:~-1%
@@ -38,7 +36,7 @@ REM Params remain: Each param is a directory to search for subbat.
   
   set _vspg_SearchedDirs=
   REM -- Each searched dir will be appended to the var, with minor decoration, like this:
-  REM -- [*c:\dir1*][*c:\dir2*]
+  REM -- [#c:\dir1#][#c:\dir2#]
   
 :loop_SearchAndExecSubbat  
   
@@ -61,24 +59,25 @@ REM Params remain: Each param is a directory to search for subbat.
 
     if "!isfound!" == "1" (
     
-      if defined vspgdebug_SearchAndExecSubbat (
-        call :Echos ====DBG====Searched: "%_vspg_SubbatFilenam%" in "%trydir%" ^(skipped^)
-      )
+      call :EchosD1 Searched: "%_vspg_SubbatFilenam%" in "%trydir%" ^(skipped^)
       
       goto :endlocal_GoNextLoop
     )
   )
 
-  if defined vspgdebug_SearchAndExecSubbat (
-    call :Echos ====DBG====Searching "%_vspg_SubbatFilenam%" in "%trydir%"
-  )
+  call :EchosD1 Searching "%_vspg_SubbatFilenam%" in "%trydir%"
   
   set trybat=%trydir%\%_vspg_SubbatFilenam%
 
-  if not exist "%trybat%" goto :endlocal_GoNextLoop
+  if not exist "%trybat%" (
+    call :EchosD1 [Not Found]
+    goto :endlocal_GoNextLoop
+  )
   
-  REM [Shortcut1] Just replace "" with " ; that is enough to pass VSproj's packed params to %trybat%.
-  endlocal & ( call "%trybat%" %_vspg_SubbatParams:""="% )
+  REM [Shortcut1] Just replace "" with " --that is enough to pass VSproj's packed params to %trybat%.
+  endlocal & (
+    call "%trybat%" %_vspg_SubbatParams:""="%
+  )
 
   set _vspg_LastError=%ERRORLEVEL%
 
@@ -129,3 +128,27 @@ exit /b %ERRORLEVEL%
   setlocal & set Varname=%~1
   call echo %_vspgINDENTS%[%batfilenam%]%~2 %Varname% = %%%Varname%%%
 exit /b 0
+
+:EchosV1
+  REM echo %* only when vspg_DO_SHOW_VERBOSE=1 .
+  setlocal & set LastError=%ERRORLEVEL%
+  if not defined vspg_DO_SHOW_VERBOSE goto :_EchosV1_done
+  echo %_vspgINDENTS%[%batfilenam%]# %*
+:_EchosV1_done
+exit /b %LastError%
+
+:EchosD1
+  REM echo %* only when vspgdebug_SearchAndExecSubbat=1 .
+  setlocal & set LastError=%ERRORLEVEL%
+  if not defined vspgdebug_SearchAndExecSubbat goto :_EchosD1_done
+  echo %_vspgINDENTS%[%batfilenam%]====DBG==== %*
+:_EchosD1_done
+exit /b %LastError%
+
+:EchosDD
+  REM echo %* only when vspgdebug_SearchAndExecSubbat=1 .
+  setlocal & set LastError=%ERRORLEVEL%
+  if not defined vspgdebug_SearchAndExecSubbat goto :_EchosDD_done
+  echo %_vspgINDENTS%.[%_tmp_batfilenam%]====DBG==== %*
+:_EchosDD_done
+exit /b %LastError%

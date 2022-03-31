@@ -55,7 +55,9 @@ exit /b 0
 :UnpackDoubleQuotes
   setlocal & set allparams=%~2
   set unpacked=%allparams:""="%
-  endlocal & (set %~1=%unpacked%)
+  endlocal & (
+    set %~1=%unpacked%
+  )
 exit /b 0
 
 
