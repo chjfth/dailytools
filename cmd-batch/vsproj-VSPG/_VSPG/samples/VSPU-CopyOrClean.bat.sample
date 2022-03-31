@@ -59,9 +59,9 @@ REM =========================================================================
 
 REM Check param1 validity, must be 1 or 0
 if "%~1"=="1" (
-	set VSPG_COPYFILE_DO_DELETE=
+	set vspg_COPYORCLEAN_DO_CLEAN=
 ) else if "%~1"=="0" (
-	set VSPG_COPYFILE_DO_DELETE=1
+	set vspg_COPYORCLEAN_DO_CLEAN=1
 ) else (
 	call :Echos [ERROR] First parameter must be 1 or 0. 1=docopy, 0=doclean.
 	exit /b 4

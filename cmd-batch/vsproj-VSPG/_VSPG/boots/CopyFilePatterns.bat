@@ -8,8 +8,8 @@ set batdir=%~dp0
 set batdir=%batdir:~0,-1%
 set _vspgINDENTS=%_vspgINDENTS%.
 
-if "%VSPG_COPYFILE_DO_DELETE%" == "1" (
-	call :EchosV1 See VSPG_COPYFILE_DO_DELETE=1, run in delete mode.
+if "%vspg_COPYORCLEAN_DO_CLEAN%" == "1" (
+	call :EchosV1 See vspg_COPYORCLEAN_DO_CLEAN=1, run in delete mode.
 )
 
 :CopyFilePatterns
@@ -27,7 +27,7 @@ REM      d:\test\*.dll
 REM then it is considered absolute path, and Param1 is not userd.
 REM 
 REM [Env-var input]
-REM If env-var VSPG_COPYFILE_DO_DELETE=1, target file is actually deleted.
+REM If env-var vspg_COPYORCLEAN_DO_CLEAN=1, target file is actually deleted.
 REM This feature can be used in VSPU-CleanProject.bat .
 REM If a file pattern contains wildcard(* or ?), then the wildcard is matched
 REM against source folder instead of the target folder.
@@ -50,7 +50,7 @@ REM against source folder instead of the target folder.
   if "%pattern%" == "" (
     REM All patterns finished. Do we really copy any files? If none, assert error.
     
-    if "%isFileMet%" == "false" if not defined VSPG_COPYFILE_DO_DELETE (
+    if "%isFileMet%" == "false" if not defined vspg_COPYORCLEAN_DO_CLEAN (
       call :Echos [VSPG-Error] No files are found by your patterns: %AllPatterns%
       exit /b 4
     )
@@ -64,7 +64,7 @@ REM against source folder instead of the target folder.
   call "%bootsdir%\IsSubStr.bat" hasQuesmark "%pattern%" ?
   call "%bootsdir%\IsSubStr.bat" hasWildcard "%hasAsterisk%%hasQuesmark%" 1
   if "%hasWildcard%" == "1" (
-    if "%VSPG_COPYFILE_DO_DELETE%" == "1" (
+    if "%vspg_COPYORCLEAN_DO_CLEAN%" == "1" (
       call :Echos Deleting files matching pattern "%pattern%" ...
     ) else (
       call :Echos Copying files matching pattern "%pattern%" ...
@@ -88,7 +88,7 @@ REM against source folder instead of the target folder.
     
     set curdstpath=%DirDst%\!thisfilenam!
 
-    if "%VSPG_COPYFILE_DO_DELETE%" == "1" (
+    if "%vspg_COPYORCLEAN_DO_CLEAN%" == "1" (
       if exist "!curdstpath!" (
         call :EchoAndExec del "!curdstpath!"
         REM For simplicity, ignore deleting error.
@@ -110,7 +110,7 @@ REM against source folder instead of the target folder.
   )
   
   if "%seefile%" == "" (
-    if "%VSPG_COPYFILE_DO_DELETE%" == "1" (
+    if "%vspg_COPYORCLEAN_DO_CLEAN%" == "1" (
       call :Echos No files matching "%dirpfx_pattern%", no file deleted.
     ) else (
       call :Echos No files matching "%dirpfx_pattern%", no file copied.

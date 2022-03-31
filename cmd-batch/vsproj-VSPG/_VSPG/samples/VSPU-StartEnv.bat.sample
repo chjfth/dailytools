@@ -27,8 +27,7 @@ REM you can set it here.
 
 REM ################ KEY CONTENT HERE ################ 
 
-REM call :SetEnvVar AGILE_COPY_PATTERNS="%ExeDllDir%\%TargetFilenam%"
-REM call :SetEnvVar AGILE_BARN_DIRS=d:\barn "d:\barn output"
+rem call :SetEnvVar vspg_USER_BAT_SEARCH_DIRS="%ProjectDir%\.." "%ProjectDir%\..\.."
 
 exit /b 0
 
