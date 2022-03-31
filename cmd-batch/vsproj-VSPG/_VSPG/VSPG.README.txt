@@ -32,7 +32,7 @@ PostBuild-SyncOutput4.bat is your personal stuff to tune/tweak, catering
 your personal need(copy output EXE to a remote machine for live debugging etc).
 
 On the other hand, if you want VSPG to work for all your team members, you can 
-write commands in Team-Prebuild8.bat and/or Team-Postbuild8.bat and check them into
+write commands in Team-Prebuild.bat and/or Team-Postbuild.bat and check them into
 svn/git server. These very two .bat filenames are checked explicitly by VSPG 
 framework code, so in user's perspective, their existence is enough to take effect.
 
@@ -114,10 +114,10 @@ overwrite that of VSPG's. If you really have your own Pre-build/Post-build
 actions to do, there is a suitable place for them, that is, you hook yours into 
 VSPG framework, by creating one or more of the following:
 
-	Team-Prebuild8.bat 
-	Personal-Prebuild8.bat 
-	Team-Postbuild8.bat 
-	Personal-Postbuild8.bat 
+	Team-Prebuild.bat 
+	Personal-Prebuild.bat 
+	Team-Postbuild.bat 
+	Personal-Postbuild.bat 
 
 VSPG will search for these files in many-tiers of folders:
 

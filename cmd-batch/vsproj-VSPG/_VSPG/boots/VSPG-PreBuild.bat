@@ -28,12 +28,12 @@ REM PreBuild-SubWCRev1.bat.sample .
 rem call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 PreBuild-SubWCRev1.bat %SubbatSearchDirsNarrowToWide%
 rem if errorlevel 1 exit /b 4
 
-REM ==== Call Team-Prebuild8.bat if exist. ====
-call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 Team-PreBuild8.bat "" %SubbatSearchDirsNarrowToWide%
+REM ==== Call Team-Prebuild.bat if exist. ====
+call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 Team-PreBuild.bat "" %SubbatSearchDirsNarrowToWide%
 if errorlevel 1 exit /b 4
 
-REM ==== Call Personal-Prebuild8.bat if exist. ====
-call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 Personal-PreBuild8.bat "" %SubbatSearchDirsNarrowToWide%
+REM ==== Call Personal-Prebuild.bat if exist. ====
+call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 Personal-PreBuild.bat "" %SubbatSearchDirsNarrowToWide%
 if errorlevel 1 exit /b 4
 
 

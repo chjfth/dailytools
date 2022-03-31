@@ -1,24 +1,14 @@
+@REM This sample applies to all of 
+@	Team-Prebuild.bat, Team-Postbuild.bat, Personal-Prebuild.bat, Personal-Postbuild.bat
+
 @echo off
 setlocal EnableDelayedExpansion
-REM Called as this:
-REM <this>.bat $(SolutionDir) $(ProjectDir) $(BuildConf) $(PlatformName) $(TargetDir) $(TargetFileNam) $(TargetName) $(IntrmDir)
 
 set batfilenam=%~n0%~x0
 set batdir=%~dp0
 set batdir=%batdir:~0,-1%
 set _vspgINDENTS=%_vspgINDENTS%.
-call :Echos START from %batdir%
-
-
-REM _SolutionDir_ has double-quotes around, SolutionDir has no quotes.
-set _SolutionDir_=%1&set SolutionDir=%~1
-set _ProjectDir_=%2&set ProjectDir=%~2
-set _BuildConf_=%3&set BuildConf=%~3
-set _PlatformName_=%4&set PlatformName=%~4
-set _TargetDir_=%5&set TargetDir=%~5
-set _TargetFilenam_=%6&set TargetFilenam=%~6
-set _TargetName_=%7&set TargetName=%~7
-set _IntrmDir_=%8&set IntrmDir=%~8
+call :Echos START from "%batdir%"
 
 REM == debugging purpose ==
 REM call :EchoVar SolutionDir
@@ -31,8 +21,6 @@ REM call :EchoVar PlatformName
 REM call :EchoVar TargetName
 
 REM ==== Prelude Above ====
-
-
 
 
 
