@@ -24,7 +24,7 @@ REM * This function currently does not resurce into subdirectory for source file
 REM * If a pattern contains a colon, for example,
 REM      d:\test\foo.exe 
 REM      d:\test\*.dll 
-REM then it is considered absolute path, and Param1 is not userd.
+REM then it is considered absolute path, and Param1 is not used.
 REM 
 REM [Env-var input]
 REM If env-var vspg_COPYORCLEAN_DO_CLEAN=1, target file is actually deleted.
