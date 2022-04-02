@@ -11,6 +11,7 @@ set bootsdir=%~dp0
 set bootsdir=%bootsdir:~0,-1%
 REM Use PathSplit to get parent directory of bootsdir.
 call "%bootsdir%\GetParentDir.bat" userbatdir "%bootsdir%"
+set VSPG_StartDir=userbatdir
 set _vspgINDENTS=%_vspgINDENTS%.
 REM
 set SubworkBatfile=%~1
@@ -39,7 +40,7 @@ call :GetParentDir ProjectDir_up "%ProjectDir%"
 call :GetParentDir ProjectDir_upup "%ProjectDir_up%"
 
 set SubbatSearchDirsWideToNarrow=^
-  "%userbatdir%"^
+  "%VSPG_StartDir%"^
   "%SolutionDir%"^
   "%ProjectDir_upup%"^
   "%ProjectDir_up%"^
@@ -59,7 +60,7 @@ REM ==== Prepare directory search list for other .bat-s.
 
 REM From VSPU-StartEnv.bat, user can append new search dirs in vspg_USER_BAT_SEARCH_DIRS, so that they will be searched.
 
-set SubbatSearchDirsNarrowToWide=%vspg_USER_BAT_SEARCH_DIRS% "%ProjectDir%" "%SolutionDir%" "%userbatdir%"
+set SubbatSearchDirsNarrowToWide=%vspg_USER_BAT_SEARCH_DIRS% "%ProjectDir%" "%SolutionDir%" "%VSPG_StartDir%"
 
 
 
