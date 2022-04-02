@@ -4,7 +4,6 @@ setlocal EnableDelayedExpansion
 set batfilenam=%~n0%~x0
 set bootsdir=%~dp0
 set bootsdir=%bootsdir:~0,-1%
-call "%bootsdir%\GetParentDir.bat" userbatdir "%bootsdir%"
 set _vspgINDENTS=%_vspgINDENTS%.
 
 if defined vspg_DO_SHOW_VERBOSE (

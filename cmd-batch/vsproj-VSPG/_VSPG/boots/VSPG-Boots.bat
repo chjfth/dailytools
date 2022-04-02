@@ -27,8 +27,6 @@ REM
 
 call "%_vspg_bootsdir%\PathSplit.bat" "%_vspg_bootsdir%" ParentDir Subdir
 
-set "_vspg_userbatdir=%ParentDir%"
-
 
 if exist "%ParentDir%\boots-dev\VSPG-StartBat.bat" (
 	REM Override _vspg_bootsdir to be the -dev one.
