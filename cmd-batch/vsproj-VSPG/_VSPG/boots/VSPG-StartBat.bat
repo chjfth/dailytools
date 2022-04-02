@@ -11,7 +11,7 @@ set bootsdir=%~dp0
 set bootsdir=%bootsdir:~0,-1%
 REM Use PathSplit to get parent directory of bootsdir.
 call "%bootsdir%\GetParentDir.bat" userbatdir "%bootsdir%"
-set VSPG_StartDir=userbatdir
+set VSPG_StartDir=%userbatdir%
 set _vspgINDENTS=%_vspgINDENTS%.
 REM
 set SubworkBatfile=%~1
