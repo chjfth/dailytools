@@ -83,6 +83,9 @@ REM against source folder instead of the target folder.
   set seefile=
   for %%g in ("%dirpfx_pattern%") do (
 
+	REM Example of a %%g: 
+	REM 	d:\myproj\output\*.exe
+
     set seefile=%%~g
     call "%bootsdir%\PathSplit.bat" "!seefile!" __thisdir thisfilenam
     

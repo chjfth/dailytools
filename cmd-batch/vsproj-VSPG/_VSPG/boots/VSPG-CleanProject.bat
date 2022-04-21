@@ -6,6 +6,12 @@ set bootsdir=%~dp0
 set bootsdir=%bootsdir:~0,-1%
 set _vspgINDENTS=%_vspgINDENTS%.
 
+call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 Team-Clean.bat "" %SubbatSearchDirsNarrowToWide%
+if errorlevel 1 exit /b 4
+
+call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 Personal-Clean.bat "" %SubbatSearchDirsNarrowToWide%
+if errorlevel 1 exit /b 4
+
 call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 VSPU-CopyOrClean.bat 0 %SubbatSearchDirsNarrowToWide%
 
 if errorlevel 1 exit /b 4
