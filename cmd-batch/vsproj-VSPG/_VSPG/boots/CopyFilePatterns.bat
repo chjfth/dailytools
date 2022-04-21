@@ -41,7 +41,7 @@ REM against source folder instead of the target folder.
   set DirDst=%~1
   shift
   
-  if not exist "%DirDst%" mkdir "%DirDst"
+  if not exist "%DirDst%" mkdir "%DirDst%"
   
 :loop_CopyFilePatterns
   set pattern=%~1
