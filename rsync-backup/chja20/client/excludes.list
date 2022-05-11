@@ -13,3 +13,7 @@ WpSystem
 
 *.crc-error.*
 *.crc-error
+
+; See these two files(8KB) in Win10 C:\ and D:\ , unreadable
+DumpStack.log
+DumpStack.log,tmp
