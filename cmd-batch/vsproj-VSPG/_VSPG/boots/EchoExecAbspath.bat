@@ -51,8 +51,7 @@ rem call :Echos _exename_slen=%param1len%
 call set params_all=%%input_cmd_all:~%param1len%%%
 set abspath_cmd_all="%exepath%" %params_all%
 
-call :EchoExec %abspath_cmd_all%
-call %abspath_cmd_all%
+call :EchoAndExec %abspath_cmd_all%
 
 exit /b %ERRORLEVEL%
 
@@ -63,9 +62,13 @@ REM ====== Functions Below ======
 REM =============================
 
 :Echos
+  REM This function preserves %ERRORLEVEL% for the caller,
+  REM and, LastError does NOT pollute the caller.
+  setlocal & set LastError=%ERRORLEVEL%
   echo %_vspgINDENTS%[%batfilenam%] %*
-exit /b
+exit /b %LastError%
 
-:EchoExec
+:EchoAndExec
   echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
-exit /b
+  call %*
+exit /b %ERRORLEVEL%

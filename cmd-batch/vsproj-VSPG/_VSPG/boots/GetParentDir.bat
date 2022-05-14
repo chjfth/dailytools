@@ -1,44 +1,36 @@
 @echo off
 setlocal EnableDelayedExpansion
 
-:Function: IsNonEmptyFile
+:Function: GetParentDir
 
 set batfilenam=%~n0%~x0
 set batdir=%~dp0
 set batdir=%batdir:~0,-1%
 set _vspgINDENTS=%_vspgINDENTS%.
 
-set infile=%~1
+REM Usage: 
+REM call GetParentDir.bat varParent "c:\program files\d1\d2" 
+REM Output varParent=c:\program files\d2
+REM `varParent` can be any batch variable name user choose.
 
-if "%infile%" == "" (
-	call :Echos [ERROR] Missing input file as parameter.
+if "%~1" == "" (
+	call :Echos [ERROR] Missing 1st parameter: varParent.
 	exit /b 4
 )
 
-call "%batdir%\IsFolder.bat" "%infile%"
-if not errorlevel 1 (
-	call :Echos [ERROR] Input path "%infile%" is a directory. I need a file.
+if "%~2" == "" (
+	call :Echos [ERROR] Missing 2nd parameter: an input path.
 	exit /b 4
 )
+set inpath=%~2
 
-REM Must reset ERRORLEVEL here(could have been set by IsFolder.bat)
-call :SetErrorlevel 0
+for %%g in ("%inpath%") do set parentdir=%%~dpg
 
-set size=0
-for /f delims^=^ eol^= %%i in ("%infile%") do (
-	set size=%%~zi
+set parentdir=!parentdir:~0,-1!
+
+endlocal & (
+	set "%~1=%parentdir%"
 )
-if errorlevel 1 exit /b 4
-
-if "%size%" == "" (
-	REM The given file does not exist, we give FALSE answer.
-	exit /b 4
-)
-
-if "%size%" == "0" (
-	REM Zero byte output, something must gone wrong.
-	exit /b 4
-) 
 
 exit /b 0
 

@@ -44,9 +44,13 @@ REM ====== Functions Below ======
 REM =============================
 
 :Echos
+  REM This function preserves %ERRORLEVEL% for the caller,
+  REM and, LastError does NOT pollute the caller.
+  setlocal & set LastError=%ERRORLEVEL%
   echo %_vspgINDENTS%[%batfilenam%] %*
-exit /b 0
+exit /b %LastError%
 
-:EchoExec
+:EchoAndExec
   echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
-exit /b 0
+  call %*
+exit /b %ERRORLEVEL%

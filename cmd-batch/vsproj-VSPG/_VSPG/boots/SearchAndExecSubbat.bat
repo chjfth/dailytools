@@ -3,9 +3,10 @@ REM This bat is a function.
 REM setlocal EnableDelayedExpansion // Don't do this now, do it later! The Subbat may need to export arbitrary env-vars to outer env.
 REM Chj memo: It seems I will inevitably leaks some vars to the environment, _vspg_SubbatParams etc.
 
-set batfilenam=%~n0%~x0
-set batdir=%~dp0
-set batdir=%batdir:~0,-1%
+set _tmp_batfilenam=%~n0%~x0
+set _tmp_batdir=%~dp0
+set _tmp_batdir=%_tmp_batdir:~0,-1%
+set _tmp_outerbatnam=%batfilenam%
 
 REM Search for a series of dirs passed in as parameters, and call subbat(s) from them.
 REM Param1: "Greedy0" or "Greedy1". 
@@ -16,7 +17,7 @@ REM Param3: All params passed to subbat.
 REM         (when pass in, surrounded by quotes, when calling subbat, quotes stripped)
 REM Params remain: Each param is a directory to search for subbat.
 
-  rem call :Echos CALLED WITH: %*
+  call :EchosDD CALLED WITH: %*
   
   set _tmp_greedy=%~1
   set _tmp_greedy=%_tmp_greedy:~-1%
@@ -35,11 +36,15 @@ REM Params remain: Each param is a directory to search for subbat.
   
   set _vspg_SearchedDirs=
   REM -- Each searched dir will be appended to the var, with minor decoration, like this:
-  REM -- [*c:\dir1*][*c:\dir2*]
+  REM -- [#c:\dir1#][#c:\dir2#]
   
 :loop_SearchAndExecSubbat  
   
   setlocal EnableDelayedExpansion
+
+  set batfilenam=%_tmp_batfilenam%
+  set batdir=%_tmp_batdir%
+  set _vspgINDENTS=%_vspgINDENTS%.
 
   shift
   
@@ -47,27 +52,59 @@ REM Params remain: Each param is a directory to search for subbat.
   
   if "%trydir%" == "" exit /b 0
   
-  set trydirdeco=[*%trydir%*]
-  call "%batdir%\IsSubStr.bat" isfound "%_vspg_SearchedDirs%" "%trydirdeco%"
-  if %isfound% == 1 goto :endlocal_GoNextLoop
+  set trydirdeco=[#%trydir%#]
+  
+  if defined _vspg_SearchedDirs (
+    call "%batdir%\IsSubStr.bat" isfound "%_vspg_SearchedDirs%" "%trydirdeco%"
 
-  set _vspg_SearchedDirs=%_vspg_SearchedDirs%%trydirdeco%
+    if "!isfound!" == "1" (
+    
+      call :EchosD1 Searched: "%_vspg_SubbatFilenam%" in "%trydir%" ^(skipped^)
+      
+      goto :endlocal_GoNextLoop
+    )
+  )
 
+  call :EchosD1 Searching "%_vspg_SubbatFilenam%" in "%trydir%"
+  
   set trybat=%trydir%\%_vspg_SubbatFilenam%
 
-  if not exist "%trybat%" goto :endlocal_GoNextLoop
+  if not exist "%trybat%" (
+    call :EchosD1 [Not Found]
+    goto :endlocal_GoNextLoop
+  )
   
-  REM [Shortcut1] Just replace "" with " ; that is enough to pass VSproj's packed params to %trybat%.
-  endlocal & ( call "%trybat%" %_vspg_SubbatParams:""="% )
+  REM [Shortcut1] Just replace "" with " --that is enough to pass VSproj's packed params to %trybat%.
+  endlocal & (
+    call "%trybat%" %_vspg_SubbatParams:""="%
+  )
 
-  if errorlevel 1 exit /b 4
+  set _vspg_LastError=%ERRORLEVEL%
+
+  REM Enter local context again (N2).
+  setlocal EnableDelayedExpansion
+
+  set batfilenam=%_tmp_batfilenam%
+  set batdir=%_tmp_batdir%
+  set _vspgINDENTS=%_vspgINDENTS%.
   
-  if "%_tmp_greedy%" == "1" goto :loop_SearchAndExecSubbat
+  if not "%_vspg_LastError%" == "0" (
+REM call :Echos [[[[%_tmp_outerbatnam%]]]] GOT [ERRORLEVEL=%_vspg_LastError%] from Subbat.
+    exit /b 4
+  )
+
+REM  call :Echos [[[[%_tmp_outerbatnam%]]]] Successfully called Subbat.
+
+  if "%_tmp_greedy%" == "1" (
+    goto :endlocal_GoNextLoop
+  )
   
   exit /b 0
 
 :endlocal_GoNextLoop
-  endlocal
+  endlocal & (
+    set _vspg_SearchedDirs=%_vspg_SearchedDirs%%trydirdeco%
+  )
   goto :loop_SearchAndExecSubbat
 
 
@@ -75,17 +112,43 @@ REM =============================
 REM ====== Functions Below ======
 REM =============================
 
-REM %~n0%~x0 is batfilenam
 :Echos
-  echo [%~n0%~x0] %*
-exit /b 0
+  REM This function preserves %ERRORLEVEL% for the caller,
+  REM and, LastError does NOT pollute the caller.
+  setlocal & set LastError=%ERRORLEVEL%
+  echo %_vspgINDENTS%[%batfilenam%] %*
+exit /b %LastError%
 
-:EchoExec
-  echo [%~n0%~x0] EXEC: %*
-exit /b 0
+:EchoAndExec
+  echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
+  call %*
+exit /b %ERRORLEVEL%
 
 :EchoVar
-  REM Env-var double expansion trick from: https://stackoverflow.com/a/1200871/151453
-  set _Varname=%1
-  for /F %%i in ('echo %_Varname%') do echo [%batfilenam%] %_Varname% = !%%i!
+  setlocal & set Varname=%~1
+  call echo %_vspgINDENTS%[%batfilenam%]%~2 %Varname% = %%%Varname%%%
 exit /b 0
+
+:EchosV1
+  REM echo %* only when vspg_DO_SHOW_VERBOSE=1 .
+  setlocal & set LastError=%ERRORLEVEL%
+  if not defined vspg_DO_SHOW_VERBOSE goto :_EchosV1_done
+  echo %_vspgINDENTS%[%batfilenam%]# %*
+:_EchosV1_done
+exit /b %LastError%
+
+:EchosD1
+  REM echo %* only when vspgdebug_SearchAndExecSubbat=1 .
+  setlocal & set LastError=%ERRORLEVEL%
+  if not defined vspgdebug_SearchAndExecSubbat goto :_EchosD1_done
+  echo %_vspgINDENTS%[%batfilenam%]====DBG==== %*
+:_EchosD1_done
+exit /b %LastError%
+
+:EchosDD
+  REM echo %* only when vspgdebug_SearchAndExecSubbat=1 .
+  setlocal & set LastError=%ERRORLEVEL%
+  if not defined vspgdebug_SearchAndExecSubbat goto :_EchosDD_done
+  echo %_vspgINDENTS%.[%_tmp_batfilenam%]====DBG==== %*
+:_EchosDD_done
+exit /b %LastError%

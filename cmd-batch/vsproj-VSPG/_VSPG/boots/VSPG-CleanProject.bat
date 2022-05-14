@@ -2,30 +2,21 @@
 setlocal EnableDelayedExpansion
 
 set batfilenam=%~n0%~x0
-set batdir=%~dp0
-set batdir=%batdir:~0,-1%
+set bootsdir=%~dp0
+set bootsdir=%bootsdir:~0,-1%
 set _vspgINDENTS=%_vspgINDENTS%.
-REM call :Echos START from %batdir%
 
-: This is a function.
-:DelOneFile
+call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 Team-Clean.bat "" %SubbatSearchDirsNarrowToWide%
+if errorlevel 1 exit /b 4
 
-: Param1: the filepath to delete
+call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 Personal-Clean.bat "" %SubbatSearchDirsNarrowToWide%
+if errorlevel 1 exit /b 4
 
-if not exist "%~1" (
-	call :Echos Already deleted: "%~1"
-	exit /b 0
-)
+call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 VSPU-CopyOrClean.bat 0 %SubbatSearchDirsNarrowToWide%
 
-call :Echos del "%~1"
+if errorlevel 1 exit /b 4
 
-: Now delete a file and correctly reports ERRORLEVEL.
-: Thanks to: https://stackoverflow.com/a/33403497/151453
-
-> nul ver & for /F "tokens=*" %%# in ('del /Q "%~1" 2^>^&1 1^> nul') do (2> nul set =)
-
-exit /b %ERRORLEVEL%
-
+exit /b 0
 
 
 REM =============================
@@ -41,10 +32,16 @@ exit /b %LastError%
 
 :EchoAndExec
   echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
-  %*
+  call %*
 exit /b %ERRORLEVEL%
 
 :EchoVar
   setlocal & set Varname=%~1
   call echo %_vspgINDENTS%[%batfilenam%] %Varname% = %%%Varname%%%
 exit /b 0
+
+:SetErrorlevel
+  REM Usage example:
+  REM call :SetErrorlevel 4
+exit /b %1
+

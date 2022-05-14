@@ -1,31 +1,22 @@
 @echo off
 setlocal EnableDelayedExpansion
 
+: This is a function :
+
 set batfilenam=%~n0%~x0
 set batdir=%~dp0
 set batdir=%batdir:~0,-1%
 set _vspgINDENTS=%_vspgINDENTS%.
-REM call :Echos START from %batdir%
+call :Echos START from %batdir%
 
-: This is a function.
-:DelOneFile
+REM Param1: One source folder. This folder is reference when a pattern contains wildcard(* or ?).
+REM Param2: One destination folder. Files in there will be deleted.
+REM Remaining params: Each is a filename or a pattern.
 
-: Param1: the filepath to delete
-
-if not exist "%~1" (
-	call :Echos Already deleted: "%~1"
-	exit /b 0
-)
-
-call :Echos del "%~1"
-
-: Now delete a file and correctly reports ERRORLEVEL.
-: Thanks to: https://stackoverflow.com/a/33403497/151453
-
-> nul ver & for /F "tokens=*" %%# in ('del /Q "%~1" 2^>^&1 1^> nul') do (2> nul set =)
+set vspg_COPYORCLEAN_DO_CLEAN=1
+call "%bootsdir%\CopyFilePatterns" %*
 
 exit /b %ERRORLEVEL%
-
 
 
 REM =============================
@@ -41,10 +32,10 @@ exit /b %LastError%
 
 :EchoAndExec
   echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
-  %*
+  call %*
 exit /b %ERRORLEVEL%
 
 :EchoVar
   setlocal & set Varname=%~1
-  call echo %_vspgINDENTS%[%batfilenam%] %Varname% = %%%Varname%%%
+  call echo %_vspgINDENTS%[%batfilenam%]%~2 %Varname% = %%%Varname%%%
 exit /b 0
