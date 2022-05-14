@@ -8,8 +8,8 @@ set batdir=%~dp0
 set batdir=%batdir:~0,-1%
 set _vspgINDENTS=%_vspgINDENTS%.
 
-if "%VSPG_COPYFILE_DO_DELETE%" == "1" (
-	call :Echos See VSPG_COPYFILE_DO_DELETE=1, run in delete mode.
+if "%vspg_COPYORCLEAN_DO_CLEAN%" == "1" (
+	call :EchosV1 See vspg_COPYORCLEAN_DO_CLEAN=1, run in delete mode.
 )
 
 :CopyFilePatterns
@@ -24,10 +24,10 @@ REM * This function currently does not resurce into subdirectory for source file
 REM * If a pattern contains a colon, for example,
 REM      d:\test\foo.exe 
 REM      d:\test\*.dll 
-REM then it is considered absolute path, and Param1 is not userd.
+REM then it is considered absolute path, and Param1 is not used.
 REM 
 REM [Env-var input]
-REM If env-var VSPG_COPYFILE_DO_DELETE=1, target file is actually deleted.
+REM If env-var vspg_COPYORCLEAN_DO_CLEAN=1, target file is actually deleted.
 REM This feature can be used in VSPU-CleanProject.bat .
 REM If a file pattern contains wildcard(* or ?), then the wildcard is matched
 REM against source folder instead of the target folder.
@@ -41,7 +41,7 @@ REM against source folder instead of the target folder.
   set DirDst=%~1
   shift
   
-  if not exist "%DirDst%" mkdir "%DirDst"
+  if not exist "%DirDst%" mkdir "%DirDst%"
   
 :loop_CopyFilePatterns
   set pattern=%~1
@@ -50,12 +50,12 @@ REM against source folder instead of the target folder.
   if "%pattern%" == "" (
     REM All patterns finished. Do we really copy any files? If none, assert error.
     
-    if "%isFileMet%" == "false" (
+    if "%isFileMet%" == "false" if not defined vspg_COPYORCLEAN_DO_CLEAN (
       call :Echos [VSPG-Error] No files are found by your patterns: %AllPatterns%
       exit /b 4
-    ) else (
-      exit /b 0
     )
+
+    exit /b 0
   )
   
 :process_pattern
@@ -64,7 +64,7 @@ REM against source folder instead of the target folder.
   call "%bootsdir%\IsSubStr.bat" hasQuesmark "%pattern%" ?
   call "%bootsdir%\IsSubStr.bat" hasWildcard "%hasAsterisk%%hasQuesmark%" 1
   if "%hasWildcard%" == "1" (
-    if "%VSPG_COPYFILE_DO_DELETE%" == "1" (
+    if "%vspg_COPYORCLEAN_DO_CLEAN%" == "1" (
       call :Echos Deleting files matching pattern "%pattern%" ...
     ) else (
       call :Echos Copying files matching pattern "%pattern%" ...
@@ -83,21 +83,27 @@ REM against source folder instead of the target folder.
   set seefile=
   for %%g in ("%dirpfx_pattern%") do (
 
+	REM Example of a %%g: 
+	REM 	d:\myproj\output\*.exe
+
     set seefile=%%~g
     call "%bootsdir%\PathSplit.bat" "!seefile!" __thisdir thisfilenam
     
-    if "%VSPG_COPYFILE_DO_DELETE%" == "1" (
-      set curfilepath=%DirDst%\!thisfilenam!
-      if exist "!curfilepath!" (
-        call :EchoAndExec del "!curfilepath!"
+    set curdstpath=%DirDst%\!thisfilenam!
+
+    if "%vspg_COPYORCLEAN_DO_CLEAN%" == "1" (
+      if exist "!curdstpath!" (
+        call :EchoAndExec del "!curdstpath!"
         REM For simplicity, ignore deleting error.
       ) else (
-        call :Echos Already deleted "!curfilepath!"
+        if defined vspg_DO_SHOW_VERBOSE (
+          call :Echos Already deleted "!curdstpath!"
+        )
       )
     ) else (
       REM ---- call :EchoAndExec copy "%%g" "%DirDst%"
       REM ---- Use following instead:
-      call "%bootsdir%\LoopExecUntilSucc.bat" #5# "%bootsdir%\vspg_copy1file.bat" "!seefile!" "%DirDst%\!thisfilenam!"
+      call "%bootsdir%\LoopExecUntilSucc.bat" #5# "%bootsdir%\vspg_copy1file.bat" "!seefile!" "!curdstpath!"
       REM
       if errorlevel 1 (
         call :Echos [ERROR] Copy file failed after multiple retries!
@@ -107,7 +113,7 @@ REM against source folder instead of the target folder.
   )
   
   if "%seefile%" == "" (
-    if "%VSPG_COPYFILE_DO_DELETE%" == "1" (
+    if "%vspg_COPYORCLEAN_DO_CLEAN%" == "1" (
       call :Echos No files matching "%dirpfx_pattern%", no file deleted.
     ) else (
       call :Echos No files matching "%dirpfx_pattern%", no file copied.
@@ -134,6 +140,14 @@ REM =============================
   REM and, LastError does NOT pollute the caller.
   setlocal & set LastError=%ERRORLEVEL%
   echo %_vspgINDENTS%[%batfilenam%] %*
+exit /b %LastError%
+
+:EchosV1
+  REM echo %* only when vspg_DO_SHOW_VERBOSE=1 .
+  setlocal & set LastError=%ERRORLEVEL%
+  if not defined vspg_DO_SHOW_VERBOSE goto :_EchosV1_done
+  echo %_vspgINDENTS%[%batfilenam%]# %*
+:_EchosV1_done
 exit /b %LastError%
 
 :EchoAndExec

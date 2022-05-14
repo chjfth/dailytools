@@ -9,7 +9,7 @@ set batfilenam=%~n0%~x0
 set batdir=%~dp0
 set batdir=%batdir:~0,-1%
 set _vspgINDENTS=%_vspgINDENTS%.
-call :Echos START from %batdir%
+call :Echos START from %batdir% (Loading Env-vars affecting parent env)
 
 call "%bootsdir%\GetParentDir.bat" parentdir "%batdir%"
 
@@ -25,12 +25,9 @@ endlocal & (
 REM If you have special environment variable(env-var) to set for you own .bat files,
 REM you can set it here.
 
-call :Echos0 Loading Env-vars (affecting parent env).
-
 REM ################ KEY CONTENT HERE ################ 
 
-REM call :SetEnvVar AGILE_COPY_PATTERNS="%ExeDllDir%\%TargetFilenam%"
-REM call :SetEnvVar AGILE_BARN_DIRS=d:\barn "d:\barn output"
+rem call :SetEnvVar vspg_USER_BAT_SEARCH_DIRS="%ProjectDir%\.." "%ProjectDir%\..\.."
 
 exit /b 0
 

@@ -54,12 +54,6 @@ REM   source files from different BuildConf/Platform into different subdirs.
   call :UnpackDoubleQuotes DestDirs "%~3"
   call :UnpackDoubleQuotes DestSubdir "%~4"
 
-  if "%DestSubdir%" == "" (
-    call :Echos [ERROR] Calling AgileCopy function, missing parameters, 4 parameters required.
-    exit /b 4
-  )
-
-
   for %%d in (%DestDirs%) do (
 
 	if "%DestSubdir%" == "" (
@@ -122,8 +116,14 @@ exit /b %1
 exit /b 0
 
 :UnpackDoubleQuotes
+  if "%~2" == "" (
+    set %~1=
+    exit /b 0
+  )
   setlocal & set allparams=%~2
   set unpacked=%allparams:""="%
-  endlocal & (set %~1=%unpacked%)
+  endlocal & (
+    set %~1=%unpacked%
+  )
 exit /b 0
 

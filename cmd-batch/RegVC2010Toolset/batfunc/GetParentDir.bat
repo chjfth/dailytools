@@ -1,20 +1,36 @@
 @echo off
 setlocal EnableDelayedExpansion
 
+:Function: GetParentDir
+
 set batfilenam=%~n0%~x0
-set bootsdir=%~dp0
-set bootsdir=%bootsdir:~0,-1%
+set batdir=%~dp0
+set batdir=%batdir:~0,-1%
 set _vspgINDENTS=%_vspgINDENTS%.
 
-call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 Team-Clean.bat "" %SubbatSearchDirsNarrowToWide%
-if errorlevel 1 exit /b 4
+REM Usage: 
+REM call GetParentDir.bat varParent "c:\program files\d1\d2" 
+REM Output varParent=c:\program files\d2
+REM `varParent` can be any batch variable name user choose.
 
-call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 Personal-Clean.bat "" %SubbatSearchDirsNarrowToWide%
-if errorlevel 1 exit /b 4
+if "%~1" == "" (
+	call :Echos [ERROR] Missing 1st parameter: varParent.
+	exit /b 4
+)
 
-call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 VSPU-CopyOrClean.bat 0 %SubbatSearchDirsNarrowToWide%
+if "%~2" == "" (
+	call :Echos [ERROR] Missing 2nd parameter: an input path.
+	exit /b 4
+)
+set inpath=%~2
 
-if errorlevel 1 exit /b 4
+for %%g in ("%inpath%") do set parentdir=%%~dpg
+
+set parentdir=!parentdir:~0,-1!
+
+endlocal & (
+	set "%~1=%parentdir%"
+)
 
 exit /b 0
 
@@ -35,13 +51,7 @@ exit /b %LastError%
   call %*
 exit /b %ERRORLEVEL%
 
-:EchoVar
-  setlocal & set Varname=%~1
-  call echo %_vspgINDENTS%[%batfilenam%] %Varname% = %%%Varname%%%
-exit /b 0
-
 :SetErrorlevel
   REM Usage example:
   REM call :SetErrorlevel 4
 exit /b %1
-

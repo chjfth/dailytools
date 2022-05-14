@@ -22,6 +22,14 @@ REM =============================
   echo %_vspgINDENTS%[%batfilenam%] %*
 exit /b %LastError%
 
+:EchosV1
+  REM echo %* only when vspg_DO_SHOW_VERBOSE=1 .
+  setlocal & set LastError=%ERRORLEVEL%
+  if not defined vspg_DO_SHOW_VERBOSE goto :_EchosV1_done
+  echo %_vspgINDENTS%[%batfilenam%]# %*
+:_EchosV1_done
+exit /b %LastError%
+
 :EchoAndExec
   echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
   call %*
@@ -45,9 +53,15 @@ exit /b %1
 exit /b 0
 
 :UnpackDoubleQuotes
+  if "%~2" == "" (
+    set %~1=
+    exit /b 0
+  )
   setlocal & set allparams=%~2
   set unpacked=%allparams:""="%
-  endlocal & (set %~1=%unpacked%)
+  endlocal & (
+    set %~1=%unpacked%
+  )
 exit /b 0
 
 
@@ -72,3 +86,26 @@ exit /b 0
   shift
   goto :AssertHasValue
 exit /b 444
+
+
+:Touch
+  REM Touch updates a file's modification time to current.
+  REM NOTE: No way to check for success/fail here. So, call it only when 
+  REM you have decided to fail the whole bat.
+
+  copy /b "%~1"+,, "%~1" >NUL 2>&1
+exit /b %ERRORLEVEL%
+
+:GetParentDir
+  REM Example
+  REM
+  REM   call :GetParentDir outputvar "c:\program files\d1\d2"
+  REM 
+  REM Return:
+  REM 
+  REM   outputvar=c:\program files\d2
+  setlocal
+  if "%~1"=="" exit /b 4
+  for %%g in ("%~2") do set parentdir=%%~dpg
+  endlocal & ( set "%~1=%parentdir:~0,-1%" )
+exit /b 0

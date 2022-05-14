@@ -6,15 +6,9 @@ set batdir=%batdir:~0,-1%
 set _vspgINDENTS=%_vspgINDENTS%.
 call :Echos START from %batdir%
 
-REM
-set BuildConf=%~1
-set _BuildConf_=%1
-set PlatformName=%~2
-set _TargetDir_=%3
-set TargetDir=%~3
-set TargetName=%~4
-
-set ExeDllDir=%TargetDir%
+REM Parameter: 1 or 0
+REM If 1, do copy action.
+REM If 0, do clean action.
 
 REM == debugging purpose ==
 REM call :EchoVar _BuildConf_
@@ -24,10 +18,9 @@ REM call :EchoVar _ExeDllDir_
 REM call :EchoVar ExeDllDir
 REM call :EchoVar TargetName
 
-REM ==== Prelude Above ====
-
 REM =========================================================================
-REM This bat copies VSIDE project output(EXE/DLL etc) to other directories. 
+REM This bat copies VSIDE project output(EXE/DLL etc) to other target directories,
+REM or clean(=delete) them from those target directories. 
 REM Let's call these directories barns.
 REM 
 REM Typical usage cases:
@@ -39,6 +32,8 @@ REM
 REM Two variables control the copy operation implemented in this bat.
 REM 
 REM (1) AGILE_COPY_PATTERNS
+REM
+rem set AGILE_COPY_PATTERNS="%ExeDllDir%\%TargetFilenam%"
 REM 
 REM		This sets what file (a concrete filename) or file-pattern (*.exe etc) to copy.
 REM	
@@ -52,6 +47,8 @@ REM		NOTE: If a barn path has space char, you must wrap it in double-quotes.
 REM	
 REM	(2) AGILE_BARN_DIRS
 REM 
+rem set AGILE_BARN_DIRS=d:\barn "d:\barn output"
+REM
 REM		You can list multiple barn dirs, separated by spaces.
 REM 
 REM		Also, if a barn dir contains space char, you must wrap that dir-path in double-quotes.
@@ -60,13 +57,24 @@ REM Hint: You can set/modify these AGILE_xxx vars directly in this bat file,
 REM       or set them from parent environment.
 REM =========================================================================
 
-set AGILE_COPY_PATTERNS="%ExeDllDir%\%TargetFilenam%"
-REM or
-REM set AGILE_COPY_PATTERNS=*.exe *.dll
+REM Check param1 validity, must be 1 or 0
+if "%~1"=="1" (
+	set vspg_COPYORCLEAN_DO_CLEAN=
+) else if "%~1"=="0" (
+	set vspg_COPYORCLEAN_DO_CLEAN=1
+) else (
+	call :Echos [ERROR] First parameter must be 1 or 0. 1=docopy, 0=doclean.
+	exit /b 4
+)
 
-set AGILE_BARN_DIRS=d:\barn "d:\barn output"
+
+rem set AGILE_COPY_PATTERNS="%ExeDllDir%\%TargetFilenam%"
+REM or
+rem set AGILE_COPY_PATTERNS=*.exe *.dll
+REM -- using wildcard is not recommended, bcz it is not "clean"-friendly.
 
 if not defined AGILE_BARN_DIRS (
+	REM This is not considered error, it just means user do not want to do copy/clean now.
 	call :Echos AGILE_BARN_DIRS is empty, nothing to copy.
 	exit /b 0
 )
@@ -84,7 +92,6 @@ call :PackDoubleQuotes %AGILE_BARN_DIRS%
 set __DestDirs__=%_vspg_dqpacked%
 set DestSubdir=%PlatformName%\__%BuildConf%
 
-set VSPG_COPYFILE_DO_DELETE=
 call "%bootsdir%\AgileCopyOrDelete.bat"  "%ExeDllDir%"  "%__SourcePatterns__%"  "%__DestDirs__%"  "%DestSubdir%"
 
 exit /b %ERRORLEVEL%
@@ -123,11 +130,5 @@ exit /b %1
   REM The return value is put in global var _vspg_dqpacked .
   set allparams=%*
   set _vspg_dqpacked=%allparams:"=""%
-exit /b 0
-
-:UnpackDoubleQuotes
-  setlocal & set allparams=%~2
-  set unpacked=%allparams:""="%
-  endlocal & (set %~1=%unpacked%)
 exit /b 0
 

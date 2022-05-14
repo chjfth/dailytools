@@ -54,8 +54,14 @@ exit /b %LastError%
 exit /b %ERRORLEVEL%
 
 :UnpackDoubleQuotes
+  if "%~2" == "" (
+    set %~1=
+    exit /b 0
+  )
   setlocal & set allparams=%~2
   set unpacked=%allparams:""="%
-  endlocal & (set %~1=%unpacked%)
+  endlocal & (
+    set %~1=%unpacked%
+  )
 exit /b 0
 

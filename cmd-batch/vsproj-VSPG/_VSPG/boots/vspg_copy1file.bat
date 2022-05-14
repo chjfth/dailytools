@@ -35,7 +35,9 @@ if not exist "%dstdir%" (
 call "%batdir%\IsFiletimeSame.bat" "%srcfile%" "%dstfile%"
 
 if not errorlevel 1 (
-	call :Echos Already same: "%srcfile%" and "%dstfile%"
+	if defined vspg_DO_SHOW_VERBOSE (
+		call :Echos Already same: "%srcfile%" and "%dstfile%"
+	)
 	exit /b 0
 )
 

@@ -13,7 +13,7 @@ REM Param1: One source folder. This folder is reference when a pattern contains 
 REM Param2: One destination folder. Files in there will be deleted.
 REM Remaining params: Each is a filename or a pattern.
 
-set VSPG_COPYFILE_DO_DELETE=1
+set vspg_COPYORCLEAN_DO_CLEAN=1
 call "%bootsdir%\CopyFilePatterns" %*
 
 exit /b %ERRORLEVEL%

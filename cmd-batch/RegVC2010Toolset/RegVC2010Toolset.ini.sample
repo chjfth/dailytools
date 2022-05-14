@@ -1,0 +1,7 @@
+; Note: 
+; Do not add extra space-chars, otherwise ini analyzing will err.
+; Directory path here should not end with backslash.
+[dirs]
+msbuildv4=C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0
+vs2010=C:\Program Files (x86)\Microsoft Visual Studio 10.0
+winsdk7=C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A
