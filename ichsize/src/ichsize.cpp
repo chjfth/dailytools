@@ -5,92 +5,14 @@
 #include <ps_headers.h>
 #include <shared.h>
 
-typedef int RE_CODE;
-#define NOERROR_0 0
 
-// Exit value defines:
-#define EXIT_SUCCESS 0
-#define EXIT_INVALID_OPTION 1
-#define EXIT_FILE_OPEN_ERROR 2
-#define EXIT_GET_SIZE_ERROR 3
-#define EXIT_SET_SIZE_ERROR 4
-
-TCHAR *
-hpGetWinErrStr(DWORD winerr)
+const TCHAR *OsErrStr()
 {
-	TCHAR *lpMsgBuf;
-	FormatMessage( 
-		FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_IGNORE_INSERTS,
-		NULL,
-		winerr,
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
-		(TCHAR*)&lpMsgBuf,
-		0,
-		NULL 
-	);
-	return lpMsgBuf;
+	static TCHAR buf[400];
+	DWORD winerr = GetLastError();
+	return ps_get_os_errstring(winerr, buf, ARRAYSIZE(buf));
 }
 
-void 
-hpFreeWinErrStr(TCHAR *szErr)
-{
-	LocalFree(szErr);
-}
-
-HANDLE 
-hpOpenFile(const TCHAR szfn[]) // hp: helper
-{
-	HANDLE h = CreateFile(szfn, GENERIC_WRITE, 
-		0, NULL,
-		OPEN_EXISTING,
-		0, NULL);
-	if(h==INVALID_HANDLE_VALUE)
-	{
-		DWORD werr = GetLastError();
-		_tprintf(_T("Open file error! WinErr(%d): %s\n"),
-			werr, hpGetWinErrStr(werr));
-		exit(EXIT_FILE_OPEN_ERROR);
-	}
-
-	return h;
-}
-
-__int64 
-hpGetFileSize(HANDLE h)
-{
-	LARGE_INTEGER li;
-	BOOL b = GetFileSizeEx(h, &li);
-	if(!b)
-	{
-		DWORD werr = GetLastError();
-		_tprintf(_T("Get file size error! WinErr(%d): %s\n"),
-			werr, hpGetWinErrStr(werr));
-		exit(EXIT_GET_SIZE_ERROR);
-	}
-	
-	return li.QuadPart;
-}
-
-RE_CODE 
-hpSetFileSize(HANDLE h, __int64 NewSize)
-{
-	BOOL b;
-	LARGE_INTEGER ili, oli;
-	ili.QuadPart = NewSize;
-
-	b = SetFilePointerEx(h, ili, &oli, FILE_BEGIN);
-	assert(ili.QuadPart==oli.QuadPart);
-	b = SetEndOfFile(h);
-	if(!b)
-	{
-		DWORD werr = GetLastError();
-		_tprintf(_T("Set file size error! WinErr(%d): %s\n"),
-			werr, hpGetWinErrStr(werr));
-		exit(EXIT_SET_SIZE_ERROR);
-	}
-	
-	return NOERROR_0;
-}
 
 __int64 
 CalNewSize(__int64 OldSize, const TCHAR szUserHint[])
@@ -118,8 +40,14 @@ DoInteractive(const TCHAR szfn[])
 {
 	TCHAR buf[256];
 
-	HANDLE h = hpOpenFile(szfn);
-	__int64 OldSize = hpGetFileSize(h);
+	FHANDLE fh = ps_openfile(szfn);
+	if (!fh)
+	{
+		_tprintf(_T("Open file error! %s\n"), OsErrStr());
+		exit(EXIT_FILE_OPEN_ERROR);
+	}
+
+	int64 OldSize = ps_get_filesize(fh);
 	
 	_tprintf(_T("Current file size: %I64d\n"), OldSize);
 	_tprintf(_T("   Input new size: "));
@@ -143,29 +71,37 @@ DoInteractive(const TCHAR szfn[])
 		exit(EXIT_SUCCESS);
 	}	
 
-	hpSetFileSize(h, NewSize);
+	ps_set_filesize(fh, NewSize);
 
 	_tprintf(_T("Set file size done.\n"));
 
-	CloseHandle(h);
+	CloseHandle(fh);
 }
 
 void 
 DoNonInteractive(const TCHAR szfn[], const TCHAR szUserHint[])
 {
-	HANDLE h = hpOpenFile(szfn);
-	__int64 OldSize = hpGetFileSize(h);
+	HANDLE fh = ps_openfile(szfn);
+	if (!fh)
+	{
+		_tprintf(_T("Open file error! %s\n"), OsErrStr());
+		exit(EXIT_FILE_OPEN_ERROR);
+	}
+
+	int64 OldSize = ps_get_filesize(fh);
 	
-	__int64 NewSize = CalNewSize(OldSize, szUserHint);
+	int64 NewSize = CalNewSize(OldSize, szUserHint);
 
-	hpSetFileSize(h, NewSize);
+	ps_set_filesize(fh, NewSize);
 
-	CloseHandle(h);
+	CloseHandle(fh);
 }
 
 void 
 PrintUsageAndQuit()
 {
+	printf("Program compile date: %s, %s\n", __DATE__, __TIME__);
+
 	_tprintf(_T("Usage:\n"));
 	_tprintf(_T("Interactive use:\n"));
 	_tprintf(_T("    ichsize -i <filepath>\n"));

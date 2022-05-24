@@ -148,6 +148,7 @@
    -->
   <ItemGroup>
     <ClCompile Include="..\src\ichsize.cpp" />
+    <ClCompile Include="..\src\mswin\ps_funcs.cpp" />
   </ItemGroup>
 
   <ItemGroup>
