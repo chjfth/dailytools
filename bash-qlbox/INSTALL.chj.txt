@@ -1,22 +1,26 @@
-[2017-07-13] 
+[2022-05-14] 
 
 The word qlbox means "quick-launch toolbox". It consists of mainly two things:
-1. Scripts to launch tmux as a login-session persistent facility.
+1. Scripts to launch tmux as a login-session persistent facility (Easytmux).
 2. An info-rich PS1 prompt string and some Bash alias to make better 
   Linux command-line experience.
 
-Installation of this qlbox tool consists of just one step: 
+Installation of this qlbox tool needs one step: 
 
 At the end of your ~/.bashrc, add one line:
 
     source <SOME-DIR-PREFIX>/bash-qlbox/bash.rc.qlbox
 
+for example:
+
+    source ~/gitw/dailytools/bash-qlbox/bash.rc.qlbox
+
 Requirements for your Linux env:
 
 [1] tmux 1.3 or above
-[2] Python 2.7
+[2] Python 2.7 or 3.x
 
-If requirements are not met, you will see error message:
+If some requirement is not met, you will see error message:
 
     launch_tmux.py fail!
 
