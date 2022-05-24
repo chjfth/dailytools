@@ -100,7 +100,7 @@
 
       <PreprocessorDefinitions>WIN32;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
 
-      <AdditionalIncludeDirectories>.;$(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\src\mswin;..\src;$(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -148,6 +148,11 @@
    -->
   <ItemGroup>
     <ClCompile Include="..\src\ichsize.cpp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ClInclude Include="..\src\mswin\ps_headers.h" />
+    <ClInclude Include="..\src\shared.h" />
   </ItemGroup>
 
   <!-- MSBuild system stock Cpp.targets -->

@@ -2,20 +2,11 @@
 	Should be 64-bit capable.
 */
 
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <windows.h>
+#include <ps_headers.h>
+#include <shared.h>
 
-#include <tchar.h>
-#include <locale.h>
-
-//#include <commdefs.h>
 typedef int RE_CODE;
 #define NOERROR_0 0
-#define GetEleQuan(array) ( sizeof(array)/sizeof(array[0]) )
-#define GetEleQuan_i(array) ((int)GetEleQuan(array))
 
 // Exit value defines:
 #define EXIT_SUCCESS 0
@@ -133,7 +124,7 @@ DoInteractive(const TCHAR szfn[])
 	_tprintf(_T("Current file size: %I64d\n"), OldSize);
 	_tprintf(_T("   Input new size: "));
 	
-	_fgetts(buf, GetEleQuan_i(buf), stdin);
+	_fgetts(buf, ARRAYSIZE(buf), stdin);
 
 	int ulen = _tcslen(buf);
 	if(buf[ulen-1]=='\r' || buf[ulen-1]=='\n')
@@ -145,7 +136,7 @@ DoInteractive(const TCHAR szfn[])
 	__int64 NewSize = CalNewSize(OldSize, buf);
 
 	_tprintf(_T("  New size set to: %I64d, right(y/n)?"), NewSize);
-	_fgetts(buf, GetEleQuan_i(buf), stdin);
+	_fgetts(buf, ARRAYSIZE(buf), stdin);
 	if(buf[0]!='y' && buf[1]!='Y')
 	{
 		_tprintf(_T("Nothing Done.\n"));
