@@ -30,6 +30,7 @@ typedef int FHANDLE; // file-handle type
 
 typedef long long int64;
 
+#define _tmain main // the main() entrance for exe
 
 #ifdef __cplusplus
 } // extern"C"

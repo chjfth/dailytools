@@ -15,12 +15,20 @@ ps_get_os_errstring(int oserr, TCHAR *buf, int bufchars)
 	);
 
 	buf[0] = 0;
-	_sntprintf_s(buf, bufchars-1, _TRUNCATE, TEXT("[%d] %s"), oserr, lpMsgBuf);
+	_sntprintf_s(buf, bufchars-1, _TRUNCATE, TEXT("[WinErr=%d] %s"), oserr, lpMsgBuf);
 
 	LocalFree(lpMsgBuf);
 
 	return buf;
 }
+
+const TCHAR *OsErrStr()
+{
+	static TCHAR buf[400];
+	DWORD winerr = GetLastError();
+	return ps_get_os_errstring(winerr, buf, ARRAYSIZE(buf));
+}
+
 
 FHANDLE 
 ps_openfile(const TCHAR *szfilename)
@@ -38,6 +46,12 @@ ps_openfile(const TCHAR *szfilename)
 		return h;
 	}
 }
+
+void ps_closefile(FHANDLE fh)
+{
+	CloseHandle(fh);
+}
+
 
 int64 
 ps_get_filesize(FHANDLE fh)
@@ -65,9 +79,22 @@ ps_set_filesize(HANDLE fh, int64 NewSize)
 	b = SetEndOfFile(fh);
 	if (!b)
 	{
-		_tprintf(_T("Set file size error! %s\n"), OsErrStr());
+		_tprintf(_T("Set file size(%I64d) error! %s\n"), NewSize, OsErrStr());
 		exit(EXIT_SET_SIZE_ERROR);
 	}
 
 	return NOERROR_0;
 }
+
+int64
+ps_str2i64(const TCHAR *s)
+{
+	return _tcstoi64(s, NULL, 0);
+}
+
+TCHAR *ps_fgets_stdin(TCHAR *buf, int bufchars)
+{
+	_fgetts(buf, bufchars, stdin);
+	return buf;
+}
+

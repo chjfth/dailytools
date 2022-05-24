@@ -5,17 +5,8 @@
 #include <ps_headers.h>
 #include <shared.h>
 
-
-const TCHAR *OsErrStr()
-{
-	static TCHAR buf[400];
-	DWORD winerr = GetLastError();
-	return ps_get_os_errstring(winerr, buf, ARRAYSIZE(buf));
-}
-
-
-__int64 
-CalNewSize(__int64 OldSize, const TCHAR szUserHint[])
+int64 
+CalNewSize(int64 OldSize, const TCHAR szUserHint[])
 {
 	enum { SizeSet=0, SizeInc=1, SizeDec=-1 };
 	int proc = SizeSet;
@@ -24,9 +15,9 @@ CalNewSize(__int64 OldSize, const TCHAR szUserHint[])
 	else if(szUserHint[0]==_T('-'))
 		proc = SizeDec;
 
-	__int64 iUserInput = _ttoi64(szUserHint);
+	int64 iUserInput = ps_str2i64(szUserHint);
 
-	__int64 NewSize;
+	int64 NewSize;
 	if(proc==SizeSet)
 		NewSize = iUserInput;
 	else
@@ -52,7 +43,7 @@ DoInteractive(const TCHAR szfn[])
 	_tprintf(_T("Current file size: %I64d\n"), OldSize);
 	_tprintf(_T("   Input new size: "));
 	
-	_fgetts(buf, ARRAYSIZE(buf), stdin);
+	ps_fgets_stdin(buf, ARRAYSIZE(buf));
 
 	int ulen = (int)_tcslen(buf);
 	if(buf[ulen-1]=='\r' || buf[ulen-1]=='\n')
@@ -61,10 +52,10 @@ DoInteractive(const TCHAR szfn[])
 		ulen--;
 	buf[ulen] = '\0';
 
-	__int64 NewSize = CalNewSize(OldSize, buf);
+	int64 NewSize = CalNewSize(OldSize, buf);
 
 	_tprintf(_T("  New size set to: %I64d, right(y/n)?"), NewSize);
-	_fgetts(buf, ARRAYSIZE(buf), stdin);
+	ps_fgets_stdin(buf, ARRAYSIZE(buf));
 	if(buf[0]!='y' && buf[1]!='Y')
 	{
 		_tprintf(_T("Nothing Done.\n"));
@@ -75,7 +66,7 @@ DoInteractive(const TCHAR szfn[])
 
 	_tprintf(_T("Set file size done.\n"));
 
-	CloseHandle(fh);
+	ps_closefile(fh);
 }
 
 void 
@@ -94,7 +85,7 @@ DoNonInteractive(const TCHAR szfn[], const TCHAR szUserHint[])
 
 	ps_set_filesize(fh, NewSize);
 
-	CloseHandle(fh);
+	ps_closefile(fh);
 }
 
 void 

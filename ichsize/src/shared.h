@@ -12,6 +12,7 @@ extern"C" {
 
 // define ARRAYSIZE macro, borrowed from Visual C++ winnt.h, will used by Linux
 
+extern"C++"
 template <typename T, size_t N>
 char (*
 	RtlpNumberOf( T (& func_param)[N] )
@@ -33,10 +34,10 @@ typedef int RE_CODE;
 #define EXIT_SET_SIZE_ERROR 4
 
 
-const TCHAR *OsErrStr();
-
 
 // Platform-specific functions
+
+const TCHAR *OsErrStr();
 
 const TCHAR *ps_get_os_errstring(int oserr, TCHAR *buf, int bufchars);
 // Windows: oserr is from GetLastError()
@@ -45,9 +46,15 @@ const TCHAR *ps_get_os_errstring(int oserr, TCHAR *buf, int bufchars);
 FHANDLE ps_openfile(const TCHAR *szfilename);
 // -- return 0 on error.
 
+void ps_closefile(FHANDLE fh);
+
 int64 ps_get_filesize(FHANDLE fh);
 
 RE_CODE ps_set_filesize(HANDLE fh, int64 NewSize);
+
+int64 ps_str2i64(const TCHAR *s);
+
+TCHAR *ps_fgets_stdin(TCHAR *buf, int bufchars);
 
 
 #ifdef __cplusplus
