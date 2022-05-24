@@ -47,7 +47,7 @@
 
   <PropertyGroup Label="Globals">
     <ProjectGuid>{20220524-0000-0000-0000-154410000001}</ProjectGuid>
-    <ProjectName>ichsize</ProjectName>
+    <ProjectName>ichsize-mswin</ProjectName>
      <TargetName>ichsize</TargetName>
     <ConfigurationType>Application</ConfigurationType>
   </PropertyGroup>
@@ -147,7 +147,7 @@
     Source file list:
    -->
   <ItemGroup>
-    <ClCompile Include="ichsize.cpp" />
+    <ClCompile Include="..\src\ichsize.cpp" />
   </ItemGroup>
 
   <!-- MSBuild system stock Cpp.targets -->
