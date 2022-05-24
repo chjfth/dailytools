@@ -54,7 +54,7 @@ DoInteractive(const TCHAR szfn[])
 	
 	_fgetts(buf, ARRAYSIZE(buf), stdin);
 
-	int ulen = _tcslen(buf);
+	int ulen = (int)_tcslen(buf);
 	if(buf[ulen-1]=='\r' || buf[ulen-1]=='\n')
 		ulen--;
 	if(buf[ulen-1]=='\r' || buf[ulen-1]=='\n')
