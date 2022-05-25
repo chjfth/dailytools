@@ -11,6 +11,7 @@
       set "PlatformShortName=$(PlatformShortName)"
       set "PlatformToolsetVersion=$(PlatformToolsetVersion)"
       set "PlatformToolset=$(PlatformToolset)"
+      set "ProjectName=$(ProjectName)"
       set "SolutionDir=$(SolutionDir.TrimEnd('\'))"
       set "ProjectDir=$(ProjectDir.TrimEnd('\'))"
       set "Configuration=$(Configuration)"
