@@ -38,26 +38,21 @@
       <Platform>ARM64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-
   <!-- User project properties -->
-  
   <PropertyGroup Label="Globals">
     <PlatformToolset>WSL_1_0</PlatformToolset>
   </PropertyGroup>
-
   <PropertyGroup Label="Globals">
     <ProjectGuid>{20220524-0000-0000-0000-154410000002}</ProjectGuid>
     <ProjectName>ichsize-linux</ProjectName>
-     <TargetName>ichsize</TargetName>
+    <TargetName>ichsize</TargetName>
     <Keyword>Linux</Keyword>
     <ApplicationType>Linux</ApplicationType>
     <ApplicationTypeRevision>1.0</ApplicationTypeRevision>
     <TargetLinuxPlatform>Generic</TargetLinuxPlatform>
     <LinuxProjectType>{D51BCBC9-82E9-4017-911E-C93873C4EA2B}</LinuxProjectType>
   </PropertyGroup>
-  
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  
   <!-- Debug or Release -->
   <PropertyGroup Condition="$(Configuration.StartsWith('Debug'))" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
@@ -65,31 +60,47 @@
   <PropertyGroup Condition="$(Configuration.StartsWith('Release'))" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
   </PropertyGroup>
-
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
   </ImportGroup>
-
   <PropertyGroup Label="UserMacros" />
-
+  
+  <!-- Always use target-platform-prefixed gcc/g++ command lines, so that WSL can cope with multiple target platforms. -->
+  
+  <PropertyGroup Condition="'$(Platform)'=='x86'">
+    <!-- On Win10 WSL, we should have x86 compiler installed. Using Ubuntu Linux for example:
+    	
+    	sudo apt install g++-i686-linux-gnu
+     -->
+    <RemoteCCompileToolExe>i686-linux-gnu-g++</RemoteCCompileToolExe>
+    <RemoteCppCompileToolExe>i686-linux-gnu-g++</RemoteCppCompileToolExe>
+    <RemoteLdToolExe>i686-linux-gnu-g++</RemoteLdToolExe>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Platform)'=='x64'">
+    <RemoteCCompileToolExe>x86_64-linux-gnu-g++</RemoteCCompileToolExe>
+    <RemoteCppCompileToolExe>x86_64-linux-gnu-g++</RemoteCppCompileToolExe>
+    <RemoteLdToolExe>x86_64-linux-gnu-g++</RemoteLdToolExe>
+  </PropertyGroup>
+  
   <!-- Better .obj/.exe/.pdb output folder structure -->
   <PropertyGroup>
-     <IntDir>$(ProjectDir)obj-$(PlatformToolset)\$(Platform)\$(Configuration)\</IntDir>
-    <OutDir>$(SolutionDir)bin-$(PlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)obj\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
-
+  <PropertyGroup>
+    <RemoteIntRelDir>$(RemoteProjectRelDir)/obj/$(Platform)/$(Configuration)</RemoteIntRelDir>
+    <RemoteOutRelDir>$(RemoteProjectRelDir)/bin/$(Platform)/$(Configuration)</RemoteOutRelDir>
+  </PropertyGroup>
   <!-- 
   	Compiler/Linker Behavior Settings : shared 
   -->
   <ItemDefinitionGroup>
     <ClCompile>
       <PreprocessorDefinitions>_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-
       <AdditionalIncludeDirectories>..\src\linux;..\src;$(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -124,7 +135,6 @@
     <Link>
     </Link>
   </ItemDefinitionGroup>
-
   <!-- 
     Source file list:
    -->
@@ -132,19 +142,16 @@
     <ClCompile Include="..\src\ichsize.cpp" />
     <ClCompile Include="..\src\linux\ps_funcs.cpp" />
   </ItemGroup>
-
   <ItemGroup>
     <ClInclude Include="..\src\linux\ps_headers.h" />
     <ClInclude Include="..\src\shared.h" />
   </ItemGroup>
-
   <!-- MSBuild system stock Cpp.targets -->
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
-
   <!-- import VSPG start -->
-                                        <!-- 
+  <!-- 
   <PropertyGroup>
     <VSPG_BootsDir_NoTBS>$(SolutionDir)_VSPG\boots</VSPG_BootsDir_NoTBS>
   </PropertyGroup>
@@ -153,4 +160,13 @@
   </ImportGroup>
                                         -->
   <!-- import VSPG end -->
+  
+  <Target Name="VSPG_PreBuild" BeforeTargets="PreBuildEvent">
+    <Message Text='Pre: ResolvedRemoteTarget=$(ResolvedRemoteTarget)'/>
+  </Target>
+  <Target Name="VSPG_PostBuild" AfterTargets="PostBuildEvent">
+    <Message Text='Post: ResolvedRemoteTarget=$(ResolvedRemoteTarget)'/>
+  </Target>
+  
+  
 </Project>
