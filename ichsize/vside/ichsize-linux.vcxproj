@@ -89,7 +89,12 @@
     <RemoteLdToolExe>x86_64-linux-gnu-g++</RemoteLdToolExe>
   </PropertyGroup>
   
-  <!-- Better .obj/.exe/.pdb output folder structure -->
+  <!-- Adaptive .obj/.exe/.pdb output folder structure:
+  
+  	You may need to add this to your .vcxproj.user, 
+  	to make final executable file have x bit on Linux:
+  		<PreLaunchCommand>chmod +x $(RemoteOutDir)/$(TargetFilename)</PreLaunchCommand>
+  -->
   <PropertyGroup>
      <IntDir>$(ProjectDir)obj\$(Platform)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
