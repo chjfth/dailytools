@@ -38,7 +38,9 @@
       <Platform>ARM64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  
   <!-- User project properties -->
+  
   <PropertyGroup Label="Globals">
     <PlatformToolset>WSL_1_0</PlatformToolset>
   </PropertyGroup>
@@ -53,6 +55,7 @@
     <LinuxProjectType>{D51BCBC9-82E9-4017-911E-C93873C4EA2B}</LinuxProjectType>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  
   <!-- Debug or Release -->
   <PropertyGroup Condition="$(Configuration.StartsWith('Debug'))" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
@@ -88,13 +91,14 @@
   
   <!-- Better .obj/.exe/.pdb output folder structure -->
   <PropertyGroup>
-    <IntDir>$(ProjectDir)obj\$(Platform)\$(Configuration)\</IntDir>
+     <IntDir>$(ProjectDir)obj\$(Platform)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup>
     <RemoteIntRelDir>$(RemoteProjectRelDir)/obj/$(Platform)/$(Configuration)</RemoteIntRelDir>
     <RemoteOutRelDir>$(RemoteProjectRelDir)/bin/$(Platform)/$(Configuration)</RemoteOutRelDir>
   </PropertyGroup>
+  
   <!-- 
   	Compiler/Linker Behavior Settings : shared 
   -->
@@ -114,6 +118,7 @@
       <Path>$(IntDir)__$(MSBuildProjectName).build.log</Path>
     </BuildLog>
   </ItemDefinitionGroup>
+  
   <!-- 
   	Compiler Behavior Settings : Debug 
   -->
@@ -125,6 +130,7 @@
     <Link>
     </Link>
   </ItemDefinitionGroup>
+  
   <!-- 
   	Compiler Behavior Settings : Release 
   -->
@@ -135,6 +141,7 @@
     <Link>
     </Link>
   </ItemDefinitionGroup>
+  
   <!-- 
     Source file list:
    -->
@@ -146,25 +153,26 @@
     <ClInclude Include="..\src\linux\ps_headers.h" />
     <ClInclude Include="..\src\shared.h" />
   </ItemGroup>
+
   <!-- MSBuild system stock Cpp.targets -->
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+
   <!-- import VSPG start -->
-  <!-- 
   <PropertyGroup>
-    <VSPG_BootsDir_NoTBS>$(SolutionDir)_VSPG\boots</VSPG_BootsDir_NoTBS>
+    <VSPG_BootsDir_NoTBS>..\_VSPG\boots</VSPG_BootsDir_NoTBS>
   </PropertyGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(VSPG_BootsDir_NoTBS)\_VSPG.props" />
   </ImportGroup>
-                                        -->
   <!-- import VSPG end -->
-  
-  <Target Name="VSPG_PreBuild" BeforeTargets="PreBuildEvent">
+
+  <!-- below code is just for test -->
+  <Target Name="test1_PreBuild" BeforeTargets="PreBuildEvent">
     <Message Text='Pre: ResolvedRemoteTarget=$(ResolvedRemoteTarget)'/>
   </Target>
-  <Target Name="VSPG_PostBuild" AfterTargets="PostBuildEvent">
+  <Target Name="test2_PostBuild" AfterTargets="PostBuildEvent">
     <Message Text='Post: ResolvedRemoteTarget=$(ResolvedRemoteTarget)'/>
   </Target>
   

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <!-- List variable names(MSBuild Property names) here, so that their values is dumped. -->
+    <showvars>TargetName;TargetPath;ProjectGuid</showvars>
+  </PropertyGroup>
+
+</Project>
