@@ -20,7 +20,7 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
     <!-- ARM -->
-    <ProjectConfiguration Include="Debug|ARM">
+    <ProjectConfiguration Include="Debug|ARM64">
       <Configuration>Debug</Configuration>
       <Platform>ARM</Platform>
     </ProjectConfiguration>
@@ -87,6 +87,16 @@
     <RemoteCCompileToolExe>x86_64-linux-gnu-g++</RemoteCCompileToolExe>
     <RemoteCppCompileToolExe>x86_64-linux-gnu-g++</RemoteCppCompileToolExe>
     <RemoteLdToolExe>x86_64-linux-gnu-g++</RemoteLdToolExe>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Platform)'=='ARM'">
+    <RemoteCCompileToolExe>arm-linux-gnueabi-g++</RemoteCCompileToolExe>
+    <RemoteCppCompileToolExe>arm-linux-gnueabi-g++</RemoteCppCompileToolExe>
+    <RemoteLdToolExe>arm-linux-gnueabi-g++</RemoteLdToolExe>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Platform)'=='ARM64'">
+    <RemoteCCompileToolExe>aarch64-linux-gnu-g++</RemoteCCompileToolExe>
+    <RemoteCppCompileToolExe>aarch64-linux-gnu-g++</RemoteCppCompileToolExe>
+    <RemoteLdToolExe>aarch64-linux-gnu-g++</RemoteLdToolExe>
   </PropertyGroup>
   
   <!-- Adaptive .obj/.exe/.pdb output folder structure:
