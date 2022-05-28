@@ -20,7 +20,7 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
     <!-- ARM -->
-    <ProjectConfiguration Include="Debug|ARM64">
+    <ProjectConfiguration Include="Debug|ARM">
       <Configuration>Debug</Configuration>
       <Platform>ARM</Platform>
     </ProjectConfiguration>
@@ -29,7 +29,7 @@
       <Platform>ARM</Platform>
     </ProjectConfiguration>
     <!-- ARM64 -->
-    <ProjectConfiguration Include="Debug|ARM">
+    <ProjectConfiguration Include="Debug|ARM64">
       <Configuration>Debug</Configuration>
       <Platform>ARM64</Platform>
     </ProjectConfiguration>
