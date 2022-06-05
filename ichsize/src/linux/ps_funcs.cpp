@@ -70,7 +70,15 @@ ps_str2i64(const TCHAR *s)
 
 TCHAR *ps_fgets_stdin(TCHAR *buf, int bufchars)
 {
-	fgets(buf, bufchars, stdin);
+	if (bufchars <= 0)
+		return NULL;
+
+	TCHAR * bufret = fgets(buf, bufchars, stdin);
+	if (!bufret)
+	{
+		buf[0] = 0;
+	}
+
 	return buf;
 }
 

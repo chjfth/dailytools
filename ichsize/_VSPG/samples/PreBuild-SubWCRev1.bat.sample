@@ -1,0 +1,85 @@
+@echo off
+setlocal enabledelayedexpansion
+set batfilenam=%~n0%~x0
+set batdir=%~dp0
+set batdir=%batdir:~0,-1%
+set _vspgINDENTS=%_vspgINDENTS%.
+call :Echos START from %batdir%
+
+set svndir=%~1
+
+set subparams=
+
+REM =========================================================================
+REM This bat examines same-dir SubWCRev.csv for SrcVersionFile,DstVersionFile pairs to pass to SubWCRev.exe
+REM and call SubWCRev.exe to embed Subversion revision numbers into those DstVersionFile(s).
+REM 
+REM SubWCRev.csv.sample is a working sample.
+REM
+REM Customization:
+REM * If you want, subparams defines what extra params are passed to SubWCRev.
+REM =========================================================================
+
+set csvpath=%batdir%\SubWCRev.csv
+
+if not exist %csvpath% (
+	call :Echos Cannot find %csvpath%
+	exit /b 4
+)
+
+call :PathSplit %batdir% svndir _tmp
+
+call :SetErrorlevel 4
+
+for /f "usebackq tokens=1-2 delims=," %%a in ("%csvpath%") do (
+	set execmd=SubWCRev.exe "%svndir%" "%svndir%\%%a" "%svndir%\%%b" %subparams%
+	call :Echos !execmd!
+	!execmd!
+	if errorlevel 1 exit /b 4
+)
+
+
+
+REM =============================
+REM ====== Functions Below ======
+REM =============================
+
+:SetErrorlevel
+exit /b %1
+
+:Echos
+  REM This function preserves %ERRORLEVEL% for the caller,
+  REM and, LastError does NOT pollute the caller.
+  setlocal & set LastError=%ERRORLEVEL%
+  echo %_vspgINDENTS%[%batfilenam%] %*
+exit /b %LastError%
+
+:EchoAndExec
+  echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
+  %*
+exit /b %ERRORLEVEL%
+
+:EchoVar
+  setlocal & set Varname=%~1
+  call echo %_vspgINDENTS%[%batfilenam%] %Varname% = %%%Varname%%%
+exit /b 0
+
+:SetErrorlevel
+  REM Usage example:
+  REM call :SetErrorlevel 4
+exit /b %1
+
+:PathSplit
+REM Usage: 
+REM call :PathSplit "c:\program files\d2\d3.txt" dname fname
+  setlocal
+  Set path=%~1
+  For %%A in ("%path%") do (
+    Set Folder=%%~dpA
+    Set Name=%%~nxA
+  )
+  endlocal & (
+    set "%~2=%Folder:~0,-1%"
+    set "%~3=%Name%"
+  )
+exit /b

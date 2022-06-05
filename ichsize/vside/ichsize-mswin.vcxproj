@@ -53,7 +53,7 @@
       <Platform>ARM</Platform>
     </ProjectConfiguration>
     <!-- ARM64 -->
-    <ProjectConfiguration Include="Debug|ARM">
+    <ProjectConfiguration Include="Debug|ARM64">
       <Configuration>Debug</Configuration>
       <Platform>ARM64</Platform>
     </ProjectConfiguration>

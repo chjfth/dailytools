@@ -10,6 +10,10 @@
       <Configuration>Release</Configuration>
       <Platform>x86</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug-remote-gcc|x86">
+      <Configuration>Debug-remote-gcc</Configuration>
+      <Platform>x86</Platform>
+    </ProjectConfiguration>
     <!-- x64 -->
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
@@ -17,6 +21,10 @@
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug-remote-gcc|x64">
+      <Configuration>Debug-remote-gcc</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
     <!-- ARM -->
@@ -28,8 +36,12 @@
       <Configuration>Release</Configuration>
       <Platform>ARM</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug-remote-gcc|ARM">
+      <Configuration>Debug-remote-gcc</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
     <!-- ARM64 -->
-    <ProjectConfiguration Include="Debug|ARM">
+    <ProjectConfiguration Include="Debug|ARM64">
       <Configuration>Debug</Configuration>
       <Platform>ARM64</Platform>
     </ProjectConfiguration>
@@ -37,25 +49,32 @@
       <Configuration>Release</Configuration>
       <Platform>ARM64</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug-remote-gcc|ARM64">
+      <Configuration>Debug-remote-gcc</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
   </ItemGroup>
-
+  
   <!-- User project properties -->
   
-  <PropertyGroup Label="Globals">
+  <PropertyGroup Condition="!$(Configuration.EndsWith('-remote-gcc'))" Label="Globals">
     <PlatformToolset>WSL_1_0</PlatformToolset>
   </PropertyGroup>
-
+  <PropertyGroup Condition=" $(Configuration.EndsWith('-remote-gcc'))" Label="Globals">
+    <PlatformToolset>Remote_GCC_1_0</PlatformToolset>
+  </PropertyGroup>
+  
+  
   <PropertyGroup Label="Globals">
     <ProjectGuid>{20220524-0000-0000-0000-154410000002}</ProjectGuid>
     <ProjectName>ichsize-linux</ProjectName>
-     <TargetName>ichsize</TargetName>
+    <TargetName>ichsize</TargetName>
     <Keyword>Linux</Keyword>
     <ApplicationType>Linux</ApplicationType>
     <ApplicationTypeRevision>1.0</ApplicationTypeRevision>
     <TargetLinuxPlatform>Generic</TargetLinuxPlatform>
     <LinuxProjectType>{D51BCBC9-82E9-4017-911E-C93873C4EA2B}</LinuxProjectType>
   </PropertyGroup>
-  
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   
   <!-- Debug or Release -->
@@ -65,31 +84,63 @@
   <PropertyGroup Condition="$(Configuration.StartsWith('Release'))" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
   </PropertyGroup>
-
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
   </ImportGroup>
-
   <PropertyGroup Label="UserMacros" />
-
-  <!-- Better .obj/.exe/.pdb output folder structure -->
-  <PropertyGroup>
-     <IntDir>$(ProjectDir)obj-$(PlatformToolset)\$(Platform)\$(Configuration)\</IntDir>
-    <OutDir>$(SolutionDir)bin-$(PlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
+  
+  <!-- Always use target-platform-prefixed gcc/g++ command lines, so that WSL can cope with multiple target platforms. -->
+  
+  <PropertyGroup Condition="'$(Platform)'=='x86'">
+    <!-- On Win10 WSL, we should have x86 compiler installed. Using Ubuntu Linux for example:
+    	
+    	sudo apt install g++-i686-linux-gnu
+     -->
+    <RemoteCCompileToolExe>i686-linux-gnu-g++</RemoteCCompileToolExe>
+    <RemoteCppCompileToolExe>i686-linux-gnu-g++</RemoteCppCompileToolExe>
+    <RemoteLdToolExe>i686-linux-gnu-g++</RemoteLdToolExe>
   </PropertyGroup>
-
+  <PropertyGroup Condition="'$(Platform)'=='x64'">
+    <RemoteCCompileToolExe>x86_64-linux-gnu-g++</RemoteCCompileToolExe>
+    <RemoteCppCompileToolExe>x86_64-linux-gnu-g++</RemoteCppCompileToolExe>
+    <RemoteLdToolExe>x86_64-linux-gnu-g++</RemoteLdToolExe>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Platform)'=='ARM'">
+    <RemoteCCompileToolExe>arm-linux-gnueabi-g++</RemoteCCompileToolExe>
+    <RemoteCppCompileToolExe>arm-linux-gnueabi-g++</RemoteCppCompileToolExe>
+    <RemoteLdToolExe>arm-linux-gnueabi-g++</RemoteLdToolExe>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Platform)'=='ARM64'">
+    <RemoteCCompileToolExe>aarch64-linux-gnu-g++</RemoteCCompileToolExe>
+    <RemoteCppCompileToolExe>aarch64-linux-gnu-g++</RemoteCppCompileToolExe>
+    <RemoteLdToolExe>aarch64-linux-gnu-g++</RemoteLdToolExe>
+  </PropertyGroup>
+  
+  <!-- Adaptive .obj/.exe/.pdb output folder structure:
+  
+  	You may need to add this to your .vcxproj.user, 
+  	to make final executable file have x bit on Linux:
+  		<PreLaunchCommand>chmod +x $(RemoteOutDir)/$(TargetFilename)</PreLaunchCommand>
+  -->
+  <PropertyGroup>
+     <IntDir>$(ProjectDir)obj\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RemoteIntRelDir>$(RemoteProjectRelDir)/obj/$(Platform)/$(Configuration)</RemoteIntRelDir>
+    <RemoteOutRelDir>$(RemoteProjectRelDir)/bin/$(Platform)/$(Configuration)</RemoteOutRelDir>
+  </PropertyGroup>
+  
   <!-- 
   	Compiler/Linker Behavior Settings : shared 
   -->
   <ItemDefinitionGroup>
     <ClCompile>
       <PreprocessorDefinitions>_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-
       <AdditionalIncludeDirectories>..\src\linux;..\src;$(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -103,6 +154,7 @@
       <Path>$(IntDir)__$(MSBuildProjectName).build.log</Path>
     </BuildLog>
   </ItemDefinitionGroup>
+  
   <!-- 
   	Compiler Behavior Settings : Debug 
   -->
@@ -114,6 +166,7 @@
     <Link>
     </Link>
   </ItemDefinitionGroup>
+  
   <!-- 
   	Compiler Behavior Settings : Release 
   -->
@@ -124,7 +177,7 @@
     <Link>
     </Link>
   </ItemDefinitionGroup>
-
+  
   <!-- 
     Source file list:
    -->
@@ -132,7 +185,6 @@
     <ClCompile Include="..\src\ichsize.cpp" />
     <ClCompile Include="..\src\linux\ps_funcs.cpp" />
   </ItemGroup>
-
   <ItemGroup>
     <ClInclude Include="..\src\linux\ps_headers.h" />
     <ClInclude Include="..\src\shared.h" />
@@ -144,13 +196,21 @@
   </ImportGroup>
 
   <!-- import VSPG start -->
-                                        <!-- 
   <PropertyGroup>
-    <VSPG_BootsDir_NoTBS>$(SolutionDir)_VSPG\boots</VSPG_BootsDir_NoTBS>
+    <VSPG_BootsDir_NoTBS>..\_VSPG\boots</VSPG_BootsDir_NoTBS>
   </PropertyGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(VSPG_BootsDir_NoTBS)\_VSPG.props" />
   </ImportGroup>
-                                        -->
   <!-- import VSPG end -->
+
+  <!-- below code is just for test -->
+  <Target Name="test1_PreBuild" BeforeTargets="PreBuildEvent">
+    <Message Text='Pre: ResolvedRemoteTarget=$(ResolvedRemoteTarget)'/>
+  </Target>
+  <Target Name="test2_PostBuild" AfterTargets="PostBuildEvent">
+    <Message Text='Post: ResolvedRemoteTarget=$(ResolvedRemoteTarget)'/>
+  </Target>
+  
+  
 </Project>
