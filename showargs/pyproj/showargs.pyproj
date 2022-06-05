@@ -34,5 +34,5 @@
   </Target>
   <Target Name="AfterBuild">
   </Target>
-  <Import Project="launch-params.props" />
+  <Import Project="launch-params.props" Condition="exists('launch-params.props')" />
 </Project>
