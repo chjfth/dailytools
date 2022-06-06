@@ -75,6 +75,9 @@
     <TargetLinuxPlatform>Generic</TargetLinuxPlatform>
     <LinuxProjectType>{D51BCBC9-82E9-4017-911E-C93873C4EA2B}</LinuxProjectType>
   </PropertyGroup>
+
+  <!-- Microsoft.Cpp.Default.props 
+  	For Linux .vcxproj, this should be after above "global" Properties. -->
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   
   <!-- Debug or Release -->
@@ -119,13 +122,10 @@
     <RemoteCppCompileToolExe>aarch64-linux-gnu-g++</RemoteCppCompileToolExe>
     <RemoteLdToolExe>aarch64-linux-gnu-g++</RemoteLdToolExe>
   </PropertyGroup>
+  <!-- Pending Q: when to use arm-linux-gnueabihf-g++ ? -->
   
-  <!-- Adaptive .obj/.exe/.pdb output folder structure:
+  <!-- Adaptive .obj/.exe/.pdb output folder structure -->
   
-  	You may need to add this to your .vcxproj.user, 
-  	to make final executable file have x bit on Linux:
-  		<PreLaunchCommand>chmod +x $(RemoteOutDir)/$(TargetFilename)</PreLaunchCommand>
-  -->
   <PropertyGroup>
      <IntDir>$(ProjectDir)obj\$(Platform)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
@@ -134,7 +134,21 @@
     <RemoteIntRelDir>$(RemoteProjectRelDir)/obj/$(Platform)/$(Configuration)</RemoteIntRelDir>
     <RemoteOutRelDir>$(RemoteProjectRelDir)/bin/$(Platform)/$(Configuration)</RemoteOutRelDir>
   </PropertyGroup>
-  
+
+  <!-- 
+  	You may need to add this to your .vcxproj.user, 
+  	to make final executable file have x(execution) bit on Linux.
+  	
+  	No, not necessary, VSIDE will do this for us via SSH tunnel. Do this only if you need to 
+  	copy extra executables.
+
+     <PropertyGroup>
+  		<PreLaunchCommand>chmod +x $(RemoteOutDir)/$(TargetFilename)</PreLaunchCommand>
+     </PropertyGroup>
+  	
+  -->
+
+
   <!-- 
   	Compiler/Linker Behavior Settings : shared 
   -->
