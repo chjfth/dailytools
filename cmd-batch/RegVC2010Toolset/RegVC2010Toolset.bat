@@ -50,6 +50,8 @@ rem
 set regkeyWinsdkInstallationFolder90=HKLM\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v6.0A
 set regvalWinsdkInstallationFolder90=%dirNLS%\compilers\MsSDK2008
 
+set gacutilexe=%regvalWinsdkCurrentInstallFolder%\Bin\NETFX 4.0 Tools\gacutil.exe
+
 
 REM ==== Reading related regitems, so to tell whether the "Register" operation had been applied.
 
@@ -75,7 +77,7 @@ if defined isWarnExist (
 REM ==== If run from Chj's NLS-Build-Env, just diretly goto TAKE_ACTION.
 set isChjCase=
 if exist "%batdir%\v4.0\Microsoft.Build.CPPTasks.Common.dll" (
-	isChjCase=1
+	set isChjCase=1
 	goto :TAKE_ACTION
 )
 
