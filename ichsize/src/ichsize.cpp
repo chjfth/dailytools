@@ -40,7 +40,7 @@ DoInteractive(const TCHAR szfn[])
 
 	int64 OldSize = ps_get_filesize(fh);
 	
-	_tprintf(_T("Current file size: " FMT_i64d "\n"), OldSize);
+	_tprintf(_T("Current file size: ") _T(FMT_i64d) _T("\n"), OldSize);
 	_tprintf(_T("   Input new size: "));
 	
 	ps_fgets_stdin(buf, ARRAYSIZE(buf));
@@ -54,7 +54,7 @@ DoInteractive(const TCHAR szfn[])
 
 	int64 NewSize = CalNewSize(OldSize, buf);
 
-	_tprintf(_T("  New size set to: " FMT_i64d ", right(y / n) ? "), NewSize);
+	_tprintf(_T("  New size set to: ") _T(FMT_i64d) _T(", right(y / n) ? "), NewSize);
 	ps_fgets_stdin(buf, ARRAYSIZE(buf));
 	if(buf[0]!='y' && buf[1]!='Y')
 	{
