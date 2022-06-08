@@ -38,6 +38,9 @@ ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc wince),1)
 	# 1: Use static CRT lib (compiler option /MT or /MTd)
 	# (null): use DLL CRT lib (compiler option /MD or /MDd)
 
+  gmu_up_list_SRC_FROM_ROOT += mswin/ps_funcs.cpp
+  gmu_ud_list_PRJ_HEADER += ../src/mswin
+
   # gmp_CFLAGS_NON_CODE_GEN += /W3
   
   # gmp_u_list_PLUGIN_TO_LOAD += PI_winres_msvc       # compile Windows resource(.rc)
@@ -53,6 +56,9 @@ ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc wince),1)
 else ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),linuxgcc),1)
   # GCC compiling linux program
 
+  gmu_up_list_SRC_FROM_ROOT += linux/ps_funcs.cpp
+  gmu_ud_list_PRJ_HEADER += ../src/linux
+  	  
   # gmp_u_list_PLUGIN_TO_LOAD += PI_gcc_strip_lo      # strip output executable
   # gmp_u_list_PLUGIN_TO_LOAD += PI_use_pch_gcc       # use precompile header
   
@@ -88,7 +94,7 @@ gmp_DECO_DEBUG_FOR_LINK_OUTPUT =
 # You can use a relative dir here, but note, it is relative to make-var $(CURDIR),
 # not to this mki file. Normally, $(CURDIR) is your start-up makefile directory.
 ############################################################################
-gmu_ud_SRC_ROOT = .
+gmu_ud_SRC_ROOT = ../src
 
 ############################################################################
 # GMU-var: gmu_up_list_SRC_FROM_ROOT
@@ -111,7 +117,7 @@ gmu_up_list_SRC_FROM_ROOT += ichsize.cpp
 #	1. They'll be passed to the compiler through ``-I <dir1> -I <dir2> ...'' .
 #	2. They'll be passed to `$(gmu_GCC_M_PREFIX)gcc -M' in favor of generating hdepend files.
 ############################################################################
-gmu_ud_list_PRJ_HEADER += # <dir1> <dir2> ...
+gmu_ud_list_PRJ_HEADER += ../src # <dir1> <dir2> ...
 	# Don't write ``-I'' in this var; -I will be prependded automatically.
 
 gmp_CFLAGS_INCLUDES += # $(addprefix -I,<dir1> <dir2> ...)
