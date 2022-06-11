@@ -17,3 +17,8 @@ WpSystem
 ; See these two files(8KB) in Win10 C:\ and D:\ , unreadable
 DumpStack.log
 DumpStack.log.tmp
+
+; d:\WSL-on-vhdx hold mount-points to VHDX virtual disks.
+; Those virtual disks accomodate WSL instance files in NTFS partitions.
+; My strategy is to back up those .vhdx container files, not files within the containers.
+WSL-on-vhdx
