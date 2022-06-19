@@ -1,0 +1,1 @@
+C:\cygwin64\home\chj\gitw\dailytools\cmd-batch\dosched\dosched3.bat %~dp0do-irsync.bat | "C:\Program Files\Git\usr\bin\tee.exe" start-from-cmd.log
