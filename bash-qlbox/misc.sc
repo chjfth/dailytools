@@ -44,3 +44,13 @@ run-to-death()
 if [ ! -f ~/.inputrc ]; then
 	cp "${BASH_SOURCE%/*}"/chj.input.rc ~/.inputrc
 fi
+
+pid-args()
+{
+	if [ "$1" = "" ]; then 
+		echo "Usage: Pass a pid as parameter, to show its argv[] values, one line each."
+		return 1
+	fi
+	
+	cat /proc/$1/cmdline | xargs -0 printf "%s\n"; echo
+}
