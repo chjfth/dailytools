@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # User can set IRSYNC_PARAMS and RSYNC_PARAMS to customize irsync's behavior.
 
 export CHJHOST=10.22.3.84
