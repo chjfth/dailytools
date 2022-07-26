@@ -89,6 +89,14 @@ int _tmain(int argc, TCHAR *argv[])
 	if(argc==1)
 	{
 		EnumCodepages();
+		
+		_tprintf(_T("\n"));
+
+		UINT acp = GetACP();
+		_tprintf(_T("Current system codepage, as returned by GetACP() : %d\n"), acp);
+		
+		_tprintf(_T("\n"));
+		
 		_tprintf(_T("Use \"%s [codepage]\" to invoke GetCPInfoEx() for that codepage.\n"), pfn);
 		_tprintf(_T("Example:\n"));
 		_tprintf(_T("    %s 1252\n"), pfn);
