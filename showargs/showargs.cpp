@@ -18,7 +18,6 @@ argc=3.
 
 $ ./showargshex OneWord "Two Words"
 argc=3.
-argc=3.
 (H13)argv[0]: 2e 2f 73 68 6f 77 61 72 67 73 68 65 78
 (H7)argv[1]: 4f 6e 65 57 6f 72 64
 (H9)argv[2]: 54 77 6f 20 57 6f 72 64 73
