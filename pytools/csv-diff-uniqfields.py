@@ -293,7 +293,7 @@ class DiffWork:
 def my_parse_args():
 	
 	ap = argparse.ArgumentParser(
-		formatter_class=argparse.RawTextHelpFormatter,
+#		formatter_class=argparse.RawTextHelpFormatter,
 		description='Compare two CSV files by some specific key-field(s), '
 			'so we can see which rows are added, which rows are deleted and which rows are modified. '
 			'The criteria for row-modifying is identified by one or more '
