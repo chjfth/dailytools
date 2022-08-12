@@ -50,7 +50,7 @@ int main(int argc, char *const argv[])
             return 4;
         }
        
-        printf("[PARENT] Subprocess wstatus is: %d (0x%X)\n", wstatus, wstatus);
+        printf("[PARENT] Subprocess exit wstatus is: %d (0x%X)\n", wstatus, wstatus);
     }
 
     return (0);
