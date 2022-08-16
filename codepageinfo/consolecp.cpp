@@ -9,12 +9,13 @@ and at the same time, the BOM makes MSVC compiler happy. */
 #include <locale.h>
 #include <windows.h>
 
+int g_chcp_sleep_sec = 0;
+
 TCHAR *GetFilenamePart(TCHAR *pPath)
 {
 	TCHAR *p = _tcsrchr(pPath, _T('\\'));
 	return p ? p+1 : pPath;
 }
-
 
 struct SampleStr_st
 {
@@ -97,16 +98,19 @@ void wprintf_Samples()
 		WCHAR hexbuf[16];
 		if(wlen==1)
 		{
-			wprintf(L"wprintf() one WCHAR [%s] => %s\n", 
+			wprintf(L"wprintf() one WCHAR [%s] => ", 
 				HexdumpW(pszw, hexbuf, ARRAYSIZE(hexbuf)), 
 				pszw);
 		}
 		else
 		{
-			wprintf(L"wprintf() %d WCHARs [%s] => %s\n", wlen,
+			wprintf(L"wprintf() %d WCHARs [%s] => ", wlen,
 				HexdumpW(pszw, hexbuf, ARRAYSIZE(hexbuf)), 
 				pszw);
 		}
+		
+		wprintf(L"%s", pszw);
+		wprintf(L"\n");
 	}
 	
 	my_tprintf(_T("\n"));
@@ -124,14 +128,14 @@ BOOL mySetConsoleOutputCP(UINT codepage)
 		}
 		else
 		{
-			my_tprintf(_T("[Unexpect] SetConsoleOutputCP(%d) success but no effect. GetConsoleOutputCP() returns %d\n"), codepage, cp2);
+			my_tprintf(_T("[Unexpect] SetConsoleOutputCP(%d) success but no effect. GetConsoleOutputCP() returns %d.\n"), codepage, cp2);
 			return FALSE;
 		}
 	}
 	else
 	{
 		DWORD winerr = GetLastError();
-		my_tprintf(_T("[Unexpect] SetConsoleOutputCP(%d) fail, winerr=%d\n"), codepage, winerr);
+		my_tprintf(_T("[Unexpect] SetConsoleOutputCP(%d) fail, winerr=%d.\n"), codepage, winerr);
 		return FALSE;
 	}
 }
@@ -145,11 +149,11 @@ void myWriteConsoleW(HANDLE hcOut, const WCHAR *pszw)
 	if(!succ)
 	{
 		DWORD winerr = GetLastError();
-		my_tprintf(_T("[Unexpect] WriteConsoleW(handle=0x%p) fail with winerr=%d\n"), (void*)hcOut, winerr);
+		my_tprintf(_T("[Unexpect] WriteConsoleW(handle=0x%p) fail with winerr=%d.\n"), (void*)hcOut, winerr);
 	}
 	if(succ && slen!=written)
 	{
-		my_tprintf(_T("[Unexpect] WriteConsoleW(handle=0x%p) written(%d) less than slen(%d)\n"), (void*)hcOut, written, slen);
+		my_tprintf(_T("[Unexpect] WriteConsoleW(handle=0x%p) written(%d) less than slen(%d).\n"), (void*)hcOut, written, slen);
 	}
 }
 
@@ -164,11 +168,11 @@ void myWriteAnsiBytes(HANDLE hcOut, bool is_console, const char *psza)
 		if(!succ)
 		{
 			DWORD winerr = GetLastError();
-			my_tprintf(_T("[Unexpect] WriteConsoleA(handle=0x%p) fail with winerr=%d\n"), (void*)hcOut, winerr);
+			my_tprintf(_T("[Unexpect] WriteConsoleA(handle=0x%p) fail with winerr=%d.\n"), (void*)hcOut, winerr);
 		}
 		if(succ && slen!=written)
 		{
-			my_tprintf(_T("[Unexpect] WriteConsoleA(handle=0x%p) written(%d) less than slen(%d)\n"), (void*)hcOut, written, slen);
+			my_tprintf(_T("[Unexpect] WriteConsoleA(handle=0x%p) written(%d) less than slen(%d).\n"), (void*)hcOut, written, slen);
 		}
 	}
 	else
@@ -177,11 +181,11 @@ void myWriteAnsiBytes(HANDLE hcOut, bool is_console, const char *psza)
 		if(!succ)
 		{
 			DWORD winerr = GetLastError();
-			my_tprintf(_T("[Unexpect] WriteFile(handle=0x%p) fail with winerr=%d\n"), (void*)hcOut, winerr);
+			my_tprintf(_T("[Unexpect] WriteFile(handle=0x%p) fail with winerr=%d.\n"), (void*)hcOut, winerr);
 		}
 		if(succ && slen!=written)
 		{
-			my_tprintf(_T("[Unexpect] WriteFile(handle=0x%p) written(%d) less than slen(%d)\n"), (void*)hcOut, written, slen);
+			my_tprintf(_T("[Unexpect] WriteFile(handle=0x%p) written(%d) less than slen(%d).\n"), (void*)hcOut, written, slen);
 		}
 	}
 }
@@ -247,7 +251,7 @@ void WriteAnsiBytes_Samples(HANDLE hcOut, bool is_console)
 		// Now write the meat (set "correct" console-codepage first)
 		//
 		if(!mySetConsoleOutputCP(codepage)) {
-			printf("Will see erroneous glyph: ");
+			my_tprintf(_T("Will see erroneous glyph: "));
 		}
 		myWriteAnsiBytes(hcOut, is_console, psza);
 
@@ -255,7 +259,10 @@ void WriteAnsiBytes_Samples(HANDLE hcOut, bool is_console)
 
 		// Do a pause, bcz switching console-output-codepage later 
 		// may(?) cause already displayed text glyph to be ruined.
-		Sleep(500);
+		if(g_chcp_sleep_sec==0) 
+			Sleep(100);
+		else
+			Sleep(g_chcp_sleep_sec*1000);
 	}
 
 	mySetConsoleOutputCP(orig_codepage);
@@ -314,6 +321,65 @@ const TCHAR *app_GetWindowsVersionStr3()
 	return s_verstr;
 }
 
+int apply_startup_user_params(TCHAR *argv[])
+{
+	// I recognize two instructions, can assign both in separate params:
+	//
+	// First,
+	// "locale:zh_CN.936" will call setlocale(LC_ALL, "zh_CN.936");
+	// "locale:.UTF-8" will call setlocale(LC_ALL, ".UTF-8"); // this is support since Win10.1803 with new UCRT.
+	// If no such instruction, setlocale(LC_ALL, ""); is called.
+	//
+	// Second,
+	// "codepage:936" will call SetConsoleOutputCP(936);
+	// "codepage:65001" will call SetConsoleOutputCP(65001);
+	// If no such instruction, SetConsoleOutputCP() is not called at startup.
+	//
+	// On input, argv should points to first param, not to the exe name/path.
+
+	const TCHAR szLOCALE[]   = _T("locale:");
+	const int   nzLOCALE     = ARRAYSIZE(szLOCALE)-1;
+	const TCHAR szCODEPAGE[] = _T("codepage:");
+	const int   nzCODEPAGE   = ARRAYSIZE(szCODEPAGE)-1;
+
+	const TCHAR *start_locale = _T("");
+	int start_codepage = 0;
+
+	int params = 0;
+	for(; *argv!=NULL; argv++)
+	{
+		if(_tcsnicmp(szLOCALE, *argv, nzLOCALE)==0)
+		{
+			start_locale = (*argv)+nzLOCALE;
+			params++;
+		}
+		else if(_tcsnicmp(szCODEPAGE, *argv, nzCODEPAGE)==0)
+		{
+			start_codepage = _ttoi((*argv)+nzCODEPAGE);
+			params++;
+		}
+	}
+
+	my_tprintf(_T("Startup: setlocale(\"%s\") .\n"), start_locale);
+	const TCHAR *ret_locale = _tsetlocale(LC_ALL, start_locale);
+	if(ret_locale)
+	{
+		my_tprintf(_T("> setlocale() success, returns: %s\n"), ret_locale);
+	}
+	else
+	{
+		my_tprintf(_T("> setlocale() fail, errno=%d.\n"), errno);
+	}
+
+	if(start_codepage>0)
+	{
+		my_tprintf(_T("Startup: SetConsoleOutputCP(%d) .\n"), start_codepage);
+		mySetConsoleOutputCP(start_codepage);
+	}
+
+	return params;
+}
+
 void check_debugbreak(const TCHAR *prefix)
 {
 	// MEMO:
@@ -329,28 +395,33 @@ void check_debugbreak(const TCHAR *prefix)
 
 int _tmain(int argc, TCHAR *argv[])
 {
-	setlocale(LC_ALL, "");
-
 	TCHAR *pfn = GetFilenamePart(argv[0]);
 	// -- For MSVC, argv[0] always contains the full pathname.
 
 	check_debugbreak(pfn);
 
 	my_tprintf(_T("%s compiled at %s with _MSC_VER=%d\n"), pfn, _T(__DATE__), _MSC_VER);
-
 	my_tprintf(_T("This Windows OS version: %s\n"), app_GetWindowsVersionStr3());
+	my_tprintf(_T("\n"));
 
+#if 1
+	int params_done = apply_startup_user_params(argv+1);
+
+	if(*(argv+1+params_done) != NULL)
+	{
+		// todo
+		exit(0);
+	}
+#endif
 	HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
 	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 	HANDLE hErr = GetStdHandle(STD_ERROR_HANDLE);
 
+	// just test >>>
 	HANDLE fhIn = CreateFile_stdio(_T("CONIN$"));
 	HANDLE fhOut = CreateFile_stdio(_T("CONOUT$"));
 	HANDLE fhErr = CreateFile_stdio(_T("CONERR$"));
-
-//	DWORD xret1=0, xret2=0;
-//	BOOL b1 = WriteFile(hOut, L"MMNN", 8, &xret1, NULL);
-//	BOOL b2 = WriteFile(fhOut, L"mmnn", 8, &xret2, NULL);
+	// just test <<<
 
 	UINT orig_ocp = GetConsoleOutputCP();
 	my_tprintf(_T("Initial GetConsoleCP()       = %d\n"), GetConsoleCP());
