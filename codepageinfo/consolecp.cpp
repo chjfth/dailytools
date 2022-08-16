@@ -116,28 +116,58 @@ void wprintf_Samples()
 	my_tprintf(_T("\n"));
 }
 
-BOOL mySetConsoleOutputCP(UINT codepage)
+BOOL mySetConsoleOutputCP2(UINT codepage)
 {
-	BOOL succ = SetConsoleOutputCP(codepage);
-	if(succ)
+	bool is_err = false;
+
+	do
 	{
-		UINT cp2 = GetConsoleOutputCP();
-		if(cp2==codepage)
+		BOOL succ = SetConsoleOutputCP(codepage);
+		if(succ)
 		{
-			return TRUE;
+			UINT cp2 = GetConsoleOutputCP();
+			if(cp2!=codepage)
+			{
+				my_tprintf(_T("[Unexpect] SetConsoleOutputCP(%d) success but no effect. GetConsoleOutputCP() returns %d.\n"), codepage, cp2);
+				is_err = true;
+			}
+			break;
 		}
 		else
 		{
-			my_tprintf(_T("[Unexpect] SetConsoleOutputCP(%d) success but no effect. GetConsoleOutputCP() returns %d.\n"), codepage, cp2);
-			return FALSE;
+			DWORD winerr = GetLastError();
+			my_tprintf(_T("[Unexpect] SetConsoleOutputCP(%d) fail, winerr=%d.\n"), codepage, winerr);
+			is_err = true;
+			break;
 		}
-	}
-	else
+	}while(0);
+
+	// Win10.21H2: In order to get the *same* effect as `chcp <codepage>` command,
+	// we need to set console-input-codepage(SetConsoleCP) as well.
+
+	do
 	{
-		DWORD winerr = GetLastError();
-		my_tprintf(_T("[Unexpect] SetConsoleOutputCP(%d) fail, winerr=%d.\n"), codepage, winerr);
-		return FALSE;
-	}
+		BOOL succ = SetConsoleCP(codepage);
+		if(succ)
+		{
+			UINT cp2 = GetConsoleCP();
+			if(cp2!=codepage)
+			{
+				my_tprintf(_T("[Unexpect] SetConsoleCP(%d) success but no effect. GetConsoleCP() returns %d.\n"), codepage, cp2);
+				is_err = true;
+			}
+			break;
+		}
+		else
+		{
+			DWORD winerr = GetLastError();
+			my_tprintf(_T("[Unexpect] SetConsoleCP(%d) fail, winerr=%d.\n"), codepage, winerr);
+			is_err = true;
+			break;
+		}
+	}while(0);
+
+	return is_err ? FALSE : TRUE;
 }
 
 void myWriteConsoleW(HANDLE hcOut, const WCHAR *pszw)
@@ -250,7 +280,7 @@ void WriteAnsiBytes_Samples(HANDLE hcOut, bool is_console)
 
 		// Now write the meat (set "correct" console-codepage first)
 		//
-		if(!mySetConsoleOutputCP(codepage)) {
+		if(!mySetConsoleOutputCP2(codepage)) {
 			my_tprintf(_T("Will see erroneous glyph: "));
 		}
 		myWriteAnsiBytes(hcOut, is_console, psza);
@@ -265,7 +295,7 @@ void WriteAnsiBytes_Samples(HANDLE hcOut, bool is_console)
 			Sleep(g_chcp_sleep_sec*1000);
 	}
 
-	mySetConsoleOutputCP(orig_codepage);
+	mySetConsoleOutputCP2(orig_codepage);
 	my_tprintf(_T("\n"));
 }
 
@@ -360,7 +390,7 @@ int apply_startup_user_params(TCHAR *argv[])
 		}
 	}
 
-	my_tprintf(_T("Startup: setlocale(\"%s\") .\n"), start_locale);
+	my_tprintf(_T("Startup: setlocale(LC_ALL, \"%s\") .\n"), start_locale);
 	const TCHAR *ret_locale = _tsetlocale(LC_ALL, start_locale);
 	if(ret_locale)
 	{
@@ -373,8 +403,8 @@ int apply_startup_user_params(TCHAR *argv[])
 
 	if(start_codepage>0)
 	{
-		my_tprintf(_T("Startup: SetConsoleOutputCP(%d) .\n"), start_codepage);
-		mySetConsoleOutputCP(start_codepage);
+		my_tprintf(_T("Startup: Set Console-codepage to %d .\n"), start_codepage);
+		mySetConsoleOutputCP2(start_codepage);
 	}
 
 	return params;
@@ -440,6 +470,6 @@ int _tmain(int argc, TCHAR *argv[])
 
 	WriteAnsiBytes_Samples(hOut, false); // WriteFile
 
-	mySetConsoleOutputCP(orig_ocp);
+	mySetConsoleOutputCP2(orig_ocp);
 	return 0;
 }
