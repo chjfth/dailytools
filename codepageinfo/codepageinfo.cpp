@@ -93,7 +93,9 @@ int _tmain(int argc, TCHAR *argv[])
 		_tprintf(_T("\n"));
 
 		UINT acp = GetACP();
+		UINT oemcp = GetOEMCP();
 		_tprintf(_T("Current system codepage, as returned by GetACP() : %d\n"), acp);
+		_tprintf(_T("Current OEM codepage,   as returned by GetOEMP() : %d\n"), oemcp);
 		
 		_tprintf(_T("\n"));
 		

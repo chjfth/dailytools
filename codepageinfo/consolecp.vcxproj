@@ -129,6 +129,7 @@
   -->
   <ItemDefinitionGroup Condition="$(Configuration.StartsWith('Release'))">
     <ClCompile>
+      <Optimization>Disabled</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
