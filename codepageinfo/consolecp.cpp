@@ -563,17 +563,19 @@ void print_stock_samples()
 
 	wprintf_Samples();
 	// -- Note: GetConsoleOutputCP() may have been changed inside wprintf_Samples().
-
+	//
+	// Check whether wprintf() internally changes console-codepage.
+	//
 	UINT icp2 = GetConsoleCP();
 	UINT ocp2 = GetConsoleOutputCP();
 	//
 	if(icp2!=icp1)
 	{
-		my_tprintf(_T("!!! GetConsoleCP() value changed during wprint().\n"));
+		my_tprintf(_T("[PANIC] GetConsoleCP() value changed during wprint().\n"));
 	}
 	if(ocp2!=ocp1)
 	{
-		my_tprintf(_T("!!! GetConsoleOutputCP() value changed during wprint().\n"));
+		my_tprintf(_T("[PANIC] GetConsoleOutputCP() value changed during wprint().\n"));
 	}
 
 	WriteConsoleW_Samples(hOut);
@@ -583,12 +585,22 @@ void print_stock_samples()
 	WriteAnsiBytes_Samples(hOut, false); // WriteFile
 }
 
+void temp_test()
+{
+#if 0
+	_setmode(_fileno(stdout), _O_U16TEXT);
+	printf("Crash the CRT!\n");
+#endif
+}
+
 int _tmain(int argc, TCHAR *argv[])
 {
 	TCHAR *pfn = GetFilenamePart(argv[0]);
 	// -- For MSVC, argv[0] always contains the full pathname.
 
 	check_debugbreak(pfn);
+
+	temp_test();
 
 	my_tprintf(_T("%s compiled at %s with _MSC_VER=%d (v%s)\n"), pfn, _T(__DATE__), _MSC_VER, g_szversion);
 	my_tprintf(_T("This Windows OS version: %s\n"), app_GetWindowsVersionStr3());
