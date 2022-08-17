@@ -7,6 +7,8 @@ and at the same time, the BOM makes MSVC compiler happy. */
 #include <string.h>
 #include <tchar.h>
 #include <locale.h>
+#include <io.h>
+#include <fcntl.h>
 #include <windows.h>
 
 const TCHAR *g_szversion = _T("1.0");
@@ -355,7 +357,8 @@ const TCHAR *app_GetWindowsVersionStr3()
 
 int apply_startup_user_params(TCHAR *argv[])
 {
-	// I recognize two instructions, can assign both in separate params:
+	// On input, argv should points to first param, not to the exe name/path.
+	// I recognize three instructions, can assign both in separate params:
 	//
 	// First,
 	// "locale:zh_CN.936" will call setlocale(LC_ALL, "zh_CN.936");
@@ -367,33 +370,46 @@ int apply_startup_user_params(TCHAR *argv[])
 	// "codepage:65001" will call SetConsoleOutputCP(65001);
 	// If no such instruction, SetConsoleOutputCP() is not called at startup.
 	//
-	// On input, argv should points to first param, not to the exe name/path.
+	// Third,
+	// "setmode:utf16" 
+	// "setmode:utf8"
+	// 
+	// "setmode:utf16" enables wprint()'s internal behavior of 
+	// passing WCHARs to WriteConsoleW() directly, not doing a stupid 
+	// Unicode -> ANSI -> Unicode round trip.
 
 	const TCHAR szLOCALE[]   = _T("locale:");
 	const int   nzLOCALE     = ARRAYSIZE(szLOCALE)-1;
 	const TCHAR szCODEPAGE[] = _T("codepage:");
 	const int   nzCODEPAGE   = ARRAYSIZE(szCODEPAGE)-1;
+	const TCHAR szSETMODE[]  = _T("setmode:");
+	const int   nzSETMODE    = ARRAYSIZE(szSETMODE)-1;
 
-	const TCHAR *start_locale = _T("");
+	const TCHAR *psz_start_locale = _T("");
 	int start_codepage = 0;
+	const TCHAR *psz_fdmode = _T("");
 
 	int params = 0;
-	for(; *argv!=NULL; argv++)
+	for(; *argv!=NULL; argv++, params++)
 	{
-		if(_tcsnicmp(szLOCALE, *argv, nzLOCALE)==0)
+		if(_tcsnicmp(*argv, szLOCALE, nzLOCALE)==0)
 		{
-			start_locale = (*argv)+nzLOCALE;
-			params++;
+			psz_start_locale = (*argv)+nzLOCALE;
 		}
-		else if(_tcsnicmp(szCODEPAGE, *argv, nzCODEPAGE)==0)
+		else if(_tcsnicmp(*argv, szCODEPAGE, nzCODEPAGE)==0)
 		{
 			start_codepage = _ttoi((*argv)+nzCODEPAGE);
-			params++;
 		}
+		else if(_tcsnicmp(*argv, szSETMODE, nzSETMODE)==0)
+		{
+			psz_fdmode = (*argv)+nzSETMODE;
+		}
+		else
+			break;
 	}
 
-	my_tprintf(_T("Startup: setlocale(LC_ALL, \"%s\") .\n"), start_locale);
-	const TCHAR *ret_locale = _tsetlocale(LC_ALL, start_locale);
+	my_tprintf(_T("Startup: setlocale(LC_ALL, \"%s\") .\n"), psz_start_locale);
+	const TCHAR *ret_locale = _tsetlocale(LC_ALL, psz_start_locale);
 	if(ret_locale)
 	{
 		my_tprintf(_T("> setlocale() success, returns: %s\n"), ret_locale);
@@ -407,6 +423,27 @@ int apply_startup_user_params(TCHAR *argv[])
 	{
 		my_tprintf(_T("Startup: Set Console-codepage to %d .\n"), start_codepage);
 		mySetConsoleOutputCP2(start_codepage);
+	}
+
+	if(psz_fdmode[0])
+	{
+		int newmode = 0;
+		const TCHAR *modedesc = NULL;
+
+		if(_tcsicmp(psz_fdmode, _T("utf16"))==0) {
+			newmode = _O_U16TEXT;
+			modedesc = _T("_O_U16TEXT");
+		}
+		else if(_tcsicmp(psz_fdmode, _T("utf8"))==0) {
+			newmode = _O_U8TEXT;
+			modedesc = _T("_O_U8TEXT");
+		}
+
+		if(newmode!=0)
+		{
+			my_tprintf(_T("Startup: _setmode(stdout, %s) for wprintf.\n"), modedesc);
+			_setmode(_fileno(stdout), newmode);
+		}
 	}
 
 	return params;
@@ -538,7 +575,6 @@ void print_stock_samples()
 	{
 		my_tprintf(_T("!!! GetConsoleOutputCP() value changed during wprint().\n"));
 	}
-							//SetConsoleOutputCP(orig_ocp);xxx
 
 	WriteConsoleW_Samples(hOut);
 
@@ -562,10 +598,11 @@ int _tmain(int argc, TCHAR *argv[])
 	UINT orig_ocp = GetConsoleOutputCP();
 	my_tprintf(_T("Initial GetConsoleCP()       = %d\n"), orig_icp);
 	my_tprintf(_T("Initial GetConsoleOutputCP() = %d\n"), orig_ocp);
-	my_tprintf(_T("\n"));
 
 	int params_done = apply_startup_user_params(argv+1);
 	// -- deal with "locale:.950" and "codepage:950" params
+
+	my_tprintf(_T("\n"));
 
 	if(*(argv+1+params_done) == NULL)
 	{
