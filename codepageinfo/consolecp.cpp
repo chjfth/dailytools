@@ -9,6 +9,8 @@ and at the same time, the BOM makes MSVC compiler happy. */
 #include <locale.h>
 #include <windows.h>
 
+const TCHAR *g_szversion = _T("1.0");
+
 int g_chcp_sleep_sec = 0;
 
 TCHAR *GetFilenamePart(TCHAR *pPath)
@@ -410,10 +412,94 @@ int apply_startup_user_params(TCHAR *argv[])
 	return params;
 }
 
+void print_user_chars(TCHAR *argv[])
+{
+	// Each argv[] "points to" remaining command-line params like:
+	//
+	//	41 41 B5 E7 42 42
+	//	41 41 E7 94 B5 42 42
+	//	43 43 F0 9F 8D 8E 44 44
+	//
+	//	0041 41 7535 42 42
+	//	0043 43 D83C DF4E 44 44
+	//
+	// each param corresponds to one byte or one WCHAR that will feed to output.
+	// * If first param is two-chars(like 41), then all params are considered byte stream,
+	//   and will feed to printf() and WriteFile().
+	// * If first param is four-chars(like 0041), then all params are considered WCHAR stream,
+	//   and will feed to wprintf() and WriteConsoleW(). Note there is NO WriteFileW().
+
+	HANDLE hcOut = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	const int MAXCELLS = 80;
+	int i;
+
+	if(argv[0] && _tcslen(argv[0])<=2)
+	{
+		// user gives a byte stream
+		char ansibuf[MAXCELLS+1] = {};
+		char hexbuf[MAXCELLS*3+1] = {};
+
+		for(i=0; i<MAXCELLS; i++)
+		{
+			if(argv[i]==NULL)
+				break;
+
+			ansibuf[i] = (unsigned char)_tcstoul(argv[i], NULL, 16);
+		}
+
+		int nbytes = i;
+		my_tprintf(_T("Will dump %d bytes to \"screen\", hex below:\n"), nbytes);
+
+		printf("%s\n", HexdumpA(ansibuf, hexbuf, ARRAYSIZE(hexbuf)));
+		printf("\n");
+		fflush(stdout);
+
+		my_tprintf(_T("==== Using printf():\n"));
+		printf("%s\n", ansibuf);
+		printf("\n");
+		fflush(stdout);
+
+		my_tprintf(_T("==== Using WriteFile() to STD_OUTPUT_HANDLE:\n"));
+		myWriteAnsiBytes(hcOut, false, ansibuf);
+		my_tprintf(_T("\n"));
+	}
+	else
+	{
+		// user gives a WCHAR stream
+		WCHAR wcbuf[MAXCELLS+1] = {};
+		WCHAR hexbuf[MAXCELLS*5+1] = {};
+
+		for(i=0; i<MAXCELLS; i++)
+		{
+			if(argv[i]==NULL)
+				break;
+
+			wcbuf[i] = (WCHAR)_tcstoul(argv[i], NULL, 16);
+		}
+
+		int ncell = i;
+		my_tprintf(_T("Will dump %d WCHARs to \"screen\", hex below:\n"), ncell);
+
+		wprintf(L"%s\n", HexdumpW(wcbuf, hexbuf, ARRAYSIZE(hexbuf)));
+		wprintf(L"\n");
+		fflush(stdout);
+
+		my_tprintf(_T("Using wprintf():\n"));
+		wprintf(L"%s\n", wcbuf);
+		wprintf(L"\n");
+		fflush(stdout);
+
+		my_tprintf(_T("==== Using WriteConsoleW() to STD_OUTPUT_HANDLE:\n"));
+		myWriteConsoleW(hcOut, wcbuf);
+		my_tprintf(_T("\n"));
+	}
+}
+
 void check_debugbreak(const TCHAR *prefix)
 {
 	// MEMO:
-	//	set consolecp.exe_BREAK=1
+	//	`set consolecp.exe_BREAK=1` to enable DebugBreak();
 
 	TCHAR szEnvvar[40] = {}, szVal[10] = {};
 	_sntprintf_s(szEnvvar, ARRAYSIZE(szEnvvar), _T("%s_BREAK"), prefix);
@@ -423,26 +509,8 @@ void check_debugbreak(const TCHAR *prefix)
 		DebugBreak();
 }
 
-int _tmain(int argc, TCHAR *argv[])
+void print_stock_samples()
 {
-	TCHAR *pfn = GetFilenamePart(argv[0]);
-	// -- For MSVC, argv[0] always contains the full pathname.
-
-	check_debugbreak(pfn);
-
-	my_tprintf(_T("%s compiled at %s with _MSC_VER=%d\n"), pfn, _T(__DATE__), _MSC_VER);
-	my_tprintf(_T("This Windows OS version: %s\n"), app_GetWindowsVersionStr3());
-	my_tprintf(_T("\n"));
-
-#if 1
-	int params_done = apply_startup_user_params(argv+1);
-
-	if(*(argv+1+params_done) != NULL)
-	{
-		// todo
-		exit(0);
-	}
-#endif
 	HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
 	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 	HANDLE hErr = GetStdHandle(STD_ERROR_HANDLE);
@@ -453,23 +521,64 @@ int _tmain(int argc, TCHAR *argv[])
 	HANDLE fhErr = CreateFile_stdio(_T("CONERR$"));
 	// just test <<<
 
-	UINT orig_ocp = GetConsoleOutputCP();
-	my_tprintf(_T("Initial GetConsoleCP()       = %d\n"), GetConsoleCP());
-	my_tprintf(_T("Initial GetConsoleOutputCP() = %d\n"), orig_ocp);
-
-	my_tprintf(_T("\n"));
+	UINT icp1 = GetConsoleCP();
+	UINT ocp1 = GetConsoleOutputCP();
 
 	wprintf_Samples();
 	// -- Note: GetConsoleOutputCP() may have been changed inside wprintf_Samples().
 
-	SetConsoleOutputCP(orig_ocp);
+	UINT icp2 = GetConsoleCP();
+	UINT ocp2 = GetConsoleOutputCP();
+	//
+	if(icp2!=icp1)
+	{
+		my_tprintf(_T("!!! GetConsoleCP() value changed during wprint().\n"));
+	}
+	if(ocp2!=ocp1)
+	{
+		my_tprintf(_T("!!! GetConsoleOutputCP() value changed during wprint().\n"));
+	}
+							//SetConsoleOutputCP(orig_ocp);xxx
 
 	WriteConsoleW_Samples(hOut);
 
 	WriteAnsiBytes_Samples(hOut, true); // WriteConsoleA
 
 	WriteAnsiBytes_Samples(hOut, false); // WriteFile
+}
 
-	mySetConsoleOutputCP2(orig_ocp);
+int _tmain(int argc, TCHAR *argv[])
+{
+	TCHAR *pfn = GetFilenamePart(argv[0]);
+	// -- For MSVC, argv[0] always contains the full pathname.
+
+	check_debugbreak(pfn);
+
+	my_tprintf(_T("%s compiled at %s with _MSC_VER=%d (v%s)\n"), pfn, _T(__DATE__), _MSC_VER, g_szversion);
+	my_tprintf(_T("This Windows OS version: %s\n"), app_GetWindowsVersionStr3());
+	my_tprintf(_T("\n"));
+
+	UINT orig_icp = GetConsoleCP();
+	UINT orig_ocp = GetConsoleOutputCP();
+	my_tprintf(_T("Initial GetConsoleCP()       = %d\n"), orig_icp);
+	my_tprintf(_T("Initial GetConsoleOutputCP() = %d\n"), orig_ocp);
+	my_tprintf(_T("\n"));
+
+	int params_done = apply_startup_user_params(argv+1);
+	// -- deal with "locale:.950" and "codepage:950" params
+
+	if(*(argv+1+params_done) == NULL)
+	{
+		print_stock_samples();
+	}
+	else
+	{
+		print_user_chars(argv+1+params_done);
+	}
+
+	// Restore original in/out-codepage.
+	SetConsoleCP(orig_icp);
+	SetConsoleOutputCP(orig_ocp);
+
 	return 0;
 }
