@@ -361,9 +361,9 @@ int apply_startup_user_params(TCHAR *argv[])
 	// I recognize FIVE instructions, can assign both in separate params:
 	//
 	// First,
-	// "locale:zh_CN.936" will call setlocale(LC_ALL, "zh_CN.936");
-	// "locale:.UTF-8" will call setlocale(LC_ALL, ".UTF-8"); // this is support since Win10.1803 with new UCRT.
-	// If no such instruction, setlocale(LC_ALL, ""); is called.
+	// "locale:zh_CN.936" will call setlocale(LC_CTYPE, "zh_CN.936");
+	// "locale:.UTF-8" will call setlocale(LC_CTYPE, ".UTF-8"); // this is support since Win10.1803 with new UCRT.
+	// If no such instruction, setlocale(LC_CTYPE, ""); is called.
 	//
 	// Second,
 	// "codepage:936" will call SetConsoleOutputCP(936);
@@ -428,8 +428,8 @@ int apply_startup_user_params(TCHAR *argv[])
 			break;
 	}
 
-	my_tprintf(_T("Startup: setlocale(LC_ALL, \"%s\")\n"), psz_start_locale);
-	const TCHAR *ret_locale = _tsetlocale(LC_ALL, psz_start_locale);
+	my_tprintf(_T("Startup: setlocale(LC_CTYPE, \"%s\")\n"), psz_start_locale);
+	const TCHAR *ret_locale = _tsetlocale(LC_CTYPE, psz_start_locale);
 	if(ret_locale)
 	{
 		my_tprintf(_T("> setlocale() success, returns: %s\n"), ret_locale);
@@ -505,8 +505,8 @@ void print_user_given_chars(TCHAR *argv[])
 			ansibuf[i] = (unsigned char)_tcstoul(argv[i], NULL, 16);
 		}
 
-		int nbytes = i;
-		my_tprintf(_T("Will dump %d bytes to \"screen\", hex below:\n"), nbytes);
+		int nbytes_to_write = i;
+		my_tprintf(_T("Will dump %d bytes to \"screen\", hex below:\n"), nbytes_to_write);
 
 		printf("%s\n", HexdumpA(ansibuf, hexbuf, ARRAYSIZE(hexbuf)));
 		printf("\n");
@@ -517,7 +517,20 @@ void print_user_given_chars(TCHAR *argv[])
 		printf("\n");
 		fflush(stdout);
 
-		my_tprintf(_T("==== Using WriteFile() to STD_OUTPUT_HANDLE:\n"));
+		my_tprintf(_T("==== Using _write(), to _fileno(stdout):\n"));
+		int fh1 = _fileno(stdout);
+		if(fh1!=1) {
+			my_tprintf(_T("[Strange] _fileno(stdout) is NOT 1.\n"));
+		}
+		int nwritten = _write(fh1, ansibuf, nbytes_to_write); 
+		printf("\n");
+		if(nwritten!=nbytes_to_write) {
+			my_tprintf(_T("[Unexpect] _write() returns %d, less than nbytes_to_write(%d).\n"), nwritten, nbytes_to_write);
+		}
+		printf("\n");
+		fflush(stdout);
+
+		my_tprintf(_T("==== Using WriteFile(), to STD_OUTPUT_HANDLE:\n"));
 		myWriteAnsiBytes(hcOut, false, ansibuf);
 		my_tprintf(_T("\n"));
 	}
@@ -546,6 +559,19 @@ void print_user_given_chars(TCHAR *argv[])
 		wprintf(L"%s\n", wcbuf);
 		wprintf(L"\n");
 		fflush(stdout);
+
+		my_tprintf(_T("==== Using _write(), to _fileno(stdout):\n"));
+		int fh1 = _fileno(stdout);
+		if(fh1!=1) {
+			my_tprintf(_T("[Strange] _fileno(stdout) is NOT 1.\n"));
+		}
+		int nbytes_to_write = ncell*sizeof(WCHAR);
+		int nwritten = _write(fh1, wcbuf, nbytes_to_write); 
+		wprintf(L"\n");
+		if(nwritten!=nbytes_to_write) {
+			my_tprintf(_T("[Unexpect] _write() returns %d, less than nbytes_to_write(%d).\n"), nwritten, nbytes_to_write);
+		}
+		wprintf(L"\n");
 
 		my_tprintf(_T("==== Using WriteConsoleW() to STD_OUTPUT_HANDLE:\n"));
 		myWriteConsoleW(hcOut, wcbuf);
