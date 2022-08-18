@@ -103,14 +103,14 @@ void wprintf_Samples()
 		if(wlen==1)
 		{
 			wprintf(L"wprintf() one WCHAR [%s] => ", 
-				HexdumpW(pszw, hexbuf, ARRAYSIZE(hexbuf)), 
-				pszw);
+				HexdumpW(pszw, hexbuf, ARRAYSIZE(hexbuf))
+				);
 		}
 		else
 		{
 			wprintf(L"wprintf() %d WCHARs [%s] => ", wlen,
-				HexdumpW(pszw, hexbuf, ARRAYSIZE(hexbuf)), 
-				pszw);
+				HexdumpW(pszw, hexbuf, ARRAYSIZE(hexbuf))
+				);
 		}
 		
 		wprintf(L"%s", pszw);
@@ -358,7 +358,7 @@ const TCHAR *app_GetWindowsVersionStr3()
 int apply_startup_user_params(TCHAR *argv[])
 {
 	// On input, argv should points to first param, not to the exe name/path.
-	// I recognize three instructions, can assign both in separate params:
+	// I recognize FOUR instructions, can assign both in separate params:
 	//
 	// First,
 	// "locale:zh_CN.936" will call setlocale(LC_ALL, "zh_CN.936");
@@ -377,6 +377,9 @@ int apply_startup_user_params(TCHAR *argv[])
 	// "setmode:utf16" enables wprint()'s internal behavior of 
 	// passing WCHARs to WriteConsoleW() directly, not doing a stupid 
 	// Unicode -> ANSI -> Unicode round trip.
+	//
+	// Fourth:
+	// "nobuf" This sets stdout to be no-buffering.
 
 	const TCHAR szLOCALE[]   = _T("locale:");
 	const int   nzLOCALE     = ARRAYSIZE(szLOCALE)-1;
@@ -404,11 +407,20 @@ int apply_startup_user_params(TCHAR *argv[])
 		{
 			psz_fdmode = (*argv)+nzSETMODE;
 		}
+		else if(_tcsicmp(*argv, _T("nobuf"))==0)
+		{
+			my_tprintf(_T("Startup: setvbuf(stdout, NULL, _IONBF, 0)"));
+			int err = setvbuf(stdout, NULL, _IONBF, 0);
+			if(err!=0)
+			{
+				my_tprintf(_T("[Unexpect] setvbuf() fail, errno=%d"), (int)errno);
+			}
+		}
 		else
 			break;
 	}
 
-	my_tprintf(_T("Startup: setlocale(LC_ALL, \"%s\") .\n"), psz_start_locale);
+	my_tprintf(_T("Startup: setlocale(LC_ALL, \"%s\")\n"), psz_start_locale);
 	const TCHAR *ret_locale = _tsetlocale(LC_ALL, psz_start_locale);
 	if(ret_locale)
 	{
@@ -421,7 +433,7 @@ int apply_startup_user_params(TCHAR *argv[])
 
 	if(start_codepage>0)
 	{
-		my_tprintf(_T("Startup: Set Console-codepage to %d .\n"), start_codepage);
+		my_tprintf(_T("Startup: Set Console-codepage to %d\n"), start_codepage);
 		mySetConsoleOutputCP2(start_codepage);
 	}
 
