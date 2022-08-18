@@ -358,7 +358,7 @@ const TCHAR *app_GetWindowsVersionStr3()
 int apply_startup_user_params(TCHAR *argv[])
 {
 	// On input, argv should points to first param, not to the exe name/path.
-	// I recognize FOUR instructions, can assign both in separate params:
+	// I recognize FIVE instructions, can assign both in separate params:
 	//
 	// First,
 	// "locale:zh_CN.936" will call setlocale(LC_ALL, "zh_CN.936");
@@ -380,6 +380,9 @@ int apply_startup_user_params(TCHAR *argv[])
 	//
 	// Fourth:
 	// "nobuf" This sets stdout to be no-buffering.
+	//
+	// Fifth:
+	// "debugbreak" This will call DebugBreak() .
 
 	const TCHAR szLOCALE[]   = _T("locale:");
 	const int   nzLOCALE     = ARRAYSIZE(szLOCALE)-1;
@@ -415,6 +418,11 @@ int apply_startup_user_params(TCHAR *argv[])
 			{
 				my_tprintf(_T("[Unexpect] setvbuf() fail, errno=%d"), (int)errno);
 			}
+		}
+		else if(_tcsicmp(*argv, _T("debugbreak"))==0)
+		{
+			my_tprintf(_T("Startup: Now calling DebugBreak(), so you have a chance to attach Visual C++ debugger for this very consolecp.exe instance.\n"));
+			DebugBreak();
 		}
 		else
 			break;
@@ -461,7 +469,7 @@ int apply_startup_user_params(TCHAR *argv[])
 	return params;
 }
 
-void print_user_chars(TCHAR *argv[])
+void print_user_given_chars(TCHAR *argv[])
 {
 	// Each argv[] "points to" remaining command-line params like:
 	//
@@ -545,19 +553,6 @@ void print_user_chars(TCHAR *argv[])
 	}
 }
 
-void check_debugbreak(const TCHAR *prefix)
-{
-	// MEMO:
-	//	`set consolecp.exe_BREAK=1` to enable DebugBreak();
-
-	TCHAR szEnvvar[40] = {}, szVal[10] = {};
-	_sntprintf_s(szEnvvar, ARRAYSIZE(szEnvvar), _T("%s_BREAK"), prefix);
-	GetEnvironmentVariable(szEnvvar, szVal, ARRAYSIZE(szVal));
-
-	if(szVal[0]==_T('1'))
-		DebugBreak();
-}
-
 void print_stock_samples()
 {
 	HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
@@ -610,8 +605,6 @@ int _tmain(int argc, TCHAR *argv[])
 	TCHAR *pfn = GetFilenamePart(argv[0]);
 	// -- For MSVC, argv[0] always contains the full pathname.
 
-	check_debugbreak(pfn);
-
 	temp_test();
 
 	my_tprintf(_T("%s compiled at %s with _MSC_VER=%d (v%s)\n"), pfn, _T(__DATE__), _MSC_VER, g_szversion);
@@ -634,7 +627,7 @@ int _tmain(int argc, TCHAR *argv[])
 	}
 	else
 	{
-		print_user_chars(argv+1+params_done);
+		print_user_given_chars(argv+1+params_done);
 	}
 
 	// Restore original in/out-codepage.
