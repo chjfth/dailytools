@@ -7,13 +7,17 @@ and at the same time, the BOM makes MSVC compiler happy. */
 #include <string.h>
 #include <tchar.h>
 #include <locale.h>
+#include <conio.h>
 #include <io.h>
 #include <fcntl.h>
 #include <windows.h>
 
-const TCHAR *g_szversion = _T("1.0");
+const TCHAR *g_szversion = _T("1.1");
 
-int g_chcp_sleep_sec = 0;
+int g_start_codepage = 0;
+
+int g_chcp_sleep_msec = 0;
+#define CHCP_DO_PAUSE (-1)
 
 TCHAR *GetFilenamePart(TCHAR *pPath)
 {
@@ -34,6 +38,7 @@ SampleStr_st ar_samps[] =
 	{ L"\x96FB", 936, "\xEB\x8A" }, // 電 E9 9B BB
 	{ L"\x96FB", 950, "\xB9\x71" }, // 電 E9 9B BB
 	{ L"\xD55C", 949, "\xC7\xD1" }, // 한 ED 95 9C
+	{ L"\x7535",       65001, "\xE7\x94\xB5" }, // 电 in UTF8 sequence
 	{ L"\xD83C\xDF4E", 65001, "\xF0\x9F\x8D\x8E" }, // RED APPLE: F0 9F 8D 8E (U+1F34E)
 
 	// 936=GBK, 950=Big5, 949=Korean, 65001=UTF-8
@@ -120,34 +125,39 @@ void wprintf_Samples()
 	my_tprintf(_T("\n"));
 }
 
-BOOL mySetConsoleOutputCP2(UINT codepage)
+void sleep_before_change_console_codepage(UINT icp, UINT ocp)
 {
-	bool is_err = false;
-
-	do
+	// Do a sleep, to make human user aware that switching console-output-codepage 
+	// may cause already displayed text glyph to be temporarily ruined.
+	// That is, the whole CMD window is redrawn with a different font.
+	if(g_chcp_sleep_msec>0) 
 	{
-		BOOL succ = SetConsoleOutputCP(codepage);
-		if(succ)
-		{
-			UINT cp2 = GetConsoleOutputCP();
-			if(cp2!=codepage)
-			{
-				my_tprintf(_T("[Unexpect] SetConsoleOutputCP(%d) success but no effect. GetConsoleOutputCP() returns %d.\n"), codepage, cp2);
-				is_err = true;
-			}
-			break;
-		}
-		else
-		{
-			DWORD winerr = GetLastError();
-			my_tprintf(_T("[Unexpect] SetConsoleOutputCP(%d) fail, winerr=%d.\n"), codepage, winerr);
-			is_err = true;
-			break;
-		}
-	}while(0);
+		Sleep(g_chcp_sleep_msec);
+	}
+	else if(g_chcp_sleep_msec==CHCP_DO_PAUSE)
+	{
+		my_tprintf(_T("<<Will change console-codepage to(%u,%u). Press a key to continue.>>\n"), icp, ocp);
+		_getch();
+	}
+	else
+	{
+		// Still make a small sleep, so that new user can get aware of the visual change.
+		Sleep(100);
+	}
+}
+
+BOOL mySetConsoleOutputCP2(UINT codepage, bool respect_sleep=true)
+{
+	if(respect_sleep)
+	{
+		sleep_before_change_console_codepage(codepage, codepage);
+	}
+
+	bool is_err = false;
 
 	// Win10.21H2: In order to get the *same* effect as `chcp <codepage>` command,
 	// we need to set console-input-codepage(SetConsoleCP) as well.
+	// Setting output-codepage alone seems to cause weird effect.
 
 	do
 	{
@@ -166,6 +176,28 @@ BOOL mySetConsoleOutputCP2(UINT codepage)
 		{
 			DWORD winerr = GetLastError();
 			my_tprintf(_T("[Unexpect] SetConsoleCP(%d) fail, winerr=%d.\n"), codepage, winerr);
+			is_err = true;
+			break;
+		}
+	}while(0);
+
+	do
+	{
+		BOOL succ = SetConsoleOutputCP(codepage);
+		if(succ)
+		{
+			UINT cp2 = GetConsoleOutputCP();
+			if(cp2!=codepage)
+			{
+				my_tprintf(_T("[Unexpect] SetConsoleOutputCP(%d) success but no effect. GetConsoleOutputCP() returns %d.\n"), codepage, cp2);
+				is_err = true;
+			}
+			break;
+		}
+		else
+		{
+			DWORD winerr = GetLastError();
+			my_tprintf(_T("[Unexpect] SetConsoleOutputCP(%d) fail, winerr=%d.\n"), codepage, winerr);
 			is_err = true;
 			break;
 		}
@@ -272,6 +304,10 @@ void WriteAnsiBytes_Samples(HANDLE hcOut, bool is_console)
 		int codepage = ar_samps[i].codepage;
 		const char *psza = ar_samps[i].psza;
 
+		if(!mySetConsoleOutputCP2(codepage)) {
+			my_tprintf(_T("Will see erroneous glyph: "));
+		}
+
 		char hintbuf[80], hexbuf[16];
 		HexdumpA(psza, hexbuf, ARRAYSIZE(hexbuf));
 
@@ -284,19 +320,9 @@ void WriteAnsiBytes_Samples(HANDLE hcOut, bool is_console)
 
 		// Now write the meat (set "correct" console-codepage first)
 		//
-		if(!mySetConsoleOutputCP2(codepage)) {
-			my_tprintf(_T("Will see erroneous glyph: "));
-		}
 		myWriteAnsiBytes(hcOut, is_console, psza);
 
 		myWriteAnsiBytes(hcOut, is_console, "\n");
-
-		// Do a pause, bcz switching console-output-codepage later 
-		// may(?) cause already displayed text glyph to be ruined.
-		if(g_chcp_sleep_sec==0) 
-			Sleep(100);
-		else
-			Sleep(g_chcp_sleep_sec*1000);
 	}
 
 	mySetConsoleOutputCP2(orig_codepage);
@@ -358,7 +384,7 @@ const TCHAR *app_GetWindowsVersionStr3()
 int apply_startup_user_params(TCHAR *argv[])
 {
 	// On input, argv should points to first param, not to the exe name/path.
-	// I recognize FIVE instructions, can assign both in separate params:
+	// I recognize SIX instructions, can assign both in separate params:
 	//
 	// First,
 	// "locale:zh_CN.936" will call setlocale(LC_CTYPE, "zh_CN.936");
@@ -383,6 +409,10 @@ int apply_startup_user_params(TCHAR *argv[])
 	//
 	// Fifth:
 	// "debugbreak" This will call DebugBreak() .
+	//
+	// Sixth:
+	// "chcpsleep:2000" If given, sleep 2000 millisec after calling SetConsoleOutputCP().
+	// "chcpsleep:pause" Will wait a key instead of sleep.
 
 	const TCHAR szLOCALE[]   = _T("locale:");
 	const int   nzLOCALE     = ARRAYSIZE(szLOCALE)-1;
@@ -390,10 +420,13 @@ int apply_startup_user_params(TCHAR *argv[])
 	const int   nzCODEPAGE   = ARRAYSIZE(szCODEPAGE)-1;
 	const TCHAR szSETMODE[]  = _T("setmode:");
 	const int   nzSETMODE    = ARRAYSIZE(szSETMODE)-1;
+	const TCHAR szCHCPSLEEP[]= _T("chcpsleep:");
+	const int   nzCHCPSLEEP  = ARRAYSIZE(szCHCPSLEEP)-1;
 
 	const TCHAR *psz_start_locale = _T("");
 	int start_codepage = 0;
 	const TCHAR *psz_fdmode = _T("");
+	const TCHAR *psz_chcpsleep = _T("");
 
 	int params = 0;
 	for(; *argv!=NULL; argv++, params++)
@@ -409,6 +442,10 @@ int apply_startup_user_params(TCHAR *argv[])
 		else if(_tcsnicmp(*argv, szSETMODE, nzSETMODE)==0)
 		{
 			psz_fdmode = (*argv)+nzSETMODE;
+		}
+		else if(_tcsnicmp(*argv, szCHCPSLEEP, nzCHCPSLEEP)==0)
+		{
+			psz_chcpsleep = (*argv)+nzCHCPSLEEP;
 		}
 		else if(_tcsicmp(*argv, _T("nobuf"))==0)
 		{
@@ -428,6 +465,21 @@ int apply_startup_user_params(TCHAR *argv[])
 			break;
 	}
 
+	if(psz_chcpsleep[0])
+	{
+		g_chcp_sleep_msec = _ttoi(psz_chcpsleep);
+		if(g_chcp_sleep_msec>0)
+		{
+			my_tprintf(_T("Startup: Will sleep %d millisec after each SetConsoleOutputCP().\n"), g_chcp_sleep_msec);
+		}
+
+		if(g_chcp_sleep_msec==0 && _tcsicmp(psz_chcpsleep, _T("pause"))==0)
+		{
+			my_tprintf(_T("Startup: Will pause after each SetConsoleOutputCP().\n"));
+			g_chcp_sleep_msec = CHCP_DO_PAUSE;
+		}
+	}
+
 	my_tprintf(_T("Startup: setlocale(LC_CTYPE, \"%s\")\n"), psz_start_locale);
 	const TCHAR *ret_locale = _tsetlocale(LC_CTYPE, psz_start_locale);
 	if(ret_locale)
@@ -441,6 +493,8 @@ int apply_startup_user_params(TCHAR *argv[])
 
 	if(start_codepage>0)
 	{
+		g_start_codepage = start_codepage;
+
 		my_tprintf(_T("Startup: Set Console-codepage to %d\n"), start_codepage);
 		mySetConsoleOutputCP2(start_codepage);
 	}
@@ -654,6 +708,11 @@ int _tmain(int argc, TCHAR *argv[])
 	else
 	{
 		print_user_given_chars(argv+1+params_done);
+	}
+
+	if(g_start_codepage)
+	{
+		sleep_before_change_console_codepage(orig_icp, orig_ocp);
 	}
 
 	// Restore original in/out-codepage.
