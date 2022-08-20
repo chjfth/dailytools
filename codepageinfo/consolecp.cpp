@@ -318,8 +318,8 @@ HANDLE CreateFile_stdio(const TCHAR *szfn)
 
 const TCHAR *app_GetWindowsVersionStr3()
 {
-	typedef DWORD PROC_RtlGetVersion(OSVERSIONINFOEX*);
-	typedef BOOL PROC_GetVersionEx(OSVERSIONINFOEX*);
+	typedef DWORD __stdcall PROC_RtlGetVersion(OSVERSIONINFOEX*);
+	typedef BOOL __stdcall PROC_GetVersionEx(OSVERSIONINFOEX*);
 
 	static TCHAR s_verstr[40];
 	OSVERSIONINFOEX exver = { sizeof(OSVERSIONINFOEX) };
@@ -412,11 +412,11 @@ int apply_startup_user_params(TCHAR *argv[])
 		}
 		else if(_tcsicmp(*argv, _T("nobuf"))==0)
 		{
-			my_tprintf(_T("Startup: setvbuf(stdout, NULL, _IONBF, 0)"));
+			my_tprintf(_T("Startup: setvbuf(stdout, NULL, _IONBF, 0);\n"));
 			int err = setvbuf(stdout, NULL, _IONBF, 0);
 			if(err!=0)
 			{
-				my_tprintf(_T("[Unexpect] setvbuf() fail, errno=%d"), (int)errno);
+				my_tprintf(_T("[Unexpect] setvbuf() fail, errno=%d\n"), (int)errno);
 			}
 		}
 		else if(_tcsicmp(*argv, _T("debugbreak"))==0)
