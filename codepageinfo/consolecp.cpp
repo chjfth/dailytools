@@ -408,7 +408,9 @@ int apply_startup_user_params(TCHAR *argv[])
 	// "nobuf" This sets stdout to be no-buffering.
 	//
 	// Fifth:
-	// "debugbreak" This will call DebugBreak() .
+	// "debug:break" On start, call DebugBreak() .
+	// "debug:pause" On start, call _getch() .
+	// -- These will give user a chance to attach a debugger at program start.
 	//
 	// Sixth:
 	// "chcpsleep:2000" If given, sleep 2000 millisec after calling SetConsoleOutputCP().
@@ -420,6 +422,8 @@ int apply_startup_user_params(TCHAR *argv[])
 	const int   nzCODEPAGE   = ARRAYSIZE(szCODEPAGE)-1;
 	const TCHAR szSETMODE[]  = _T("setmode:");
 	const int   nzSETMODE    = ARRAYSIZE(szSETMODE)-1;
+	const TCHAR szDEBUG[]    = _T("debug:");
+	const int   nzDEBUG      = ARRAYSIZE(szDEBUG)-1;
 	const TCHAR szCHCPSLEEP[]= _T("chcpsleep:");
 	const int   nzCHCPSLEEP  = ARRAYSIZE(szCHCPSLEEP)-1;
 
@@ -427,6 +431,7 @@ int apply_startup_user_params(TCHAR *argv[])
 	int start_codepage = 0;
 	const TCHAR *psz_fdmode = _T("");
 	const TCHAR *psz_chcpsleep = _T("");
+	bool need_debug = false;
 
 	int params = 0;
 	for(; *argv!=NULL; argv++, params++)
@@ -456,10 +461,21 @@ int apply_startup_user_params(TCHAR *argv[])
 				my_tprintf(_T("[Unexpect] setvbuf() fail, errno=%d\n"), (int)errno);
 			}
 		}
-		else if(_tcsicmp(*argv, _T("debugbreak"))==0)
+		else if(_tcsnicmp(*argv, szDEBUG, nzDEBUG)==0)
 		{
-			my_tprintf(_T("Startup: Now calling DebugBreak(), so you have a chance to attach Visual C++ debugger for this very consolecp.exe instance.\n"));
-			DebugBreak();
+			need_debug = true;
+
+			const TCHAR *psz_debug = (*argv)+nzDEBUG;
+			if(_tcsicmp(psz_debug, _T("break"))==0)
+			{
+				my_tprintf(_T("Startup: Now calling DebugBreak(), so you have a chance to attach Visual C++ debugger for this very consolecp.exe instance.\n"));
+				DebugBreak();
+			}
+			else if(_tcsicmp(psz_debug, _T("pause"))==0)
+			{
+				my_tprintf(_T("Startup: [PAUSE] Press a key to continue, or attach a debugger.\n"));
+				_getch();
+			}
 		}
 		else
 			break;
