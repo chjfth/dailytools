@@ -12,7 +12,7 @@ and at the same time, the BOM makes MSVC compiler happy. */
 #include <fcntl.h>
 #include <windows.h>
 
-const TCHAR *g_szversion = _T("1.1");
+const TCHAR *g_szversion = _T("1.2.0");
 
 int g_start_codepage = 0;
 
@@ -381,6 +381,53 @@ const TCHAR *app_GetWindowsVersionStr3()
 	return s_verstr;
 }
 
+void print_winapi_locale_detail(const TCHAR lcstr[], bool print_sys_unique_infos=false)
+{
+	LCID lcid = LocaleNameToLCID(lcstr, 0);
+	if(lcid>0)
+	{
+		my_tprintf(_T("# LCID = 0x%04X.%04X\n"), (lcid>>16)&0xFFFF, lcid&0xFFFF);
+	}
+	else
+	{
+		my_tprintf(_T("# LocaleNameToLCID(%s); fail. WinErr=%d\n"), lcstr, GetLastError());
+	}
+
+	if(print_sys_unique_infos)
+	{
+		my_tprintf(_T("# Default ANSI codepage,   GetACP()=%u\n"), GetACP());
+		my_tprintf(_T("# Default OEM codepage, GetOEMACP()=%u\n"), GetOEMCP());
+	}
+}
+
+void print_winapi_locale_info()
+{
+	TCHAR lcsys[LOCALE_NAME_MAX_LENGTH+1] = {};
+	TCHAR lcusr[LOCALE_NAME_MAX_LENGTH+1] = {};
+
+	if(GetSystemDefaultLocaleName(lcsys, LOCALE_NAME_MAX_LENGTH)>0)	{
+		my_tprintf(_T("GetSystemDefaultLocaleName() returns: %s\n"), lcsys);
+		print_winapi_locale_detail(lcsys, true);
+	} else {
+		my_tprintf(_T("GetSystemDefaultLocaleName() error. WinErr=%d\n"), GetLastError());
+	}
+
+	if(GetUserDefaultLocaleName(lcusr, LOCALE_NAME_MAX_LENGTH)>0) {
+		my_tprintf(_T("GetUserDefaultLocaleName() returns: %s\n"), lcusr);
+		
+		// print detail if user's and system's not equal
+		if(_tcscmp(lcusr, lcsys)!=0) {
+			print_winapi_locale_detail(lcusr);
+		} else {
+			my_tprintf(_T("# -- user-locale same as system-locale\n"));
+		}
+	} else {
+		my_tprintf(_T("GetUserDefaultLocaleName() error. WinErr=%d\n"), GetLastError());
+	}
+
+}
+
+
 int apply_startup_user_params(TCHAR *argv[])
 {
 	// On input, argv should points to first param, not to the exe name/path.
@@ -415,6 +462,9 @@ int apply_startup_user_params(TCHAR *argv[])
 	// Sixth:
 	// "chcpsleep:2000" If given, sleep 2000 millisec after calling SetConsoleOutputCP().
 	// "chcpsleep:pause" Will wait a key instead of sleep.
+	//
+	// More...
+	// 
 
 	const TCHAR szLOCALE[]   = _T("locale:");
 	const int   nzLOCALE     = ARRAYSIZE(szLOCALE)-1;
@@ -432,6 +482,7 @@ int apply_startup_user_params(TCHAR *argv[])
 	const TCHAR *psz_fdmode = _T("");
 	const TCHAR *psz_chcpsleep = _T("");
 	bool need_debug = false;
+	bool print_winapi_loc = false;
 
 	int params = 0;
 	for(; *argv!=NULL; argv++, params++)
@@ -477,8 +528,17 @@ int apply_startup_user_params(TCHAR *argv[])
 				_getch();
 			}
 		}
+		else if(_tcsicmp(*argv, _T("printwinapiloc"))==0)
+		{
+			print_winapi_loc = true;
+		}
 		else
 			break;
+	}
+
+	if(print_winapi_loc)
+	{
+		print_winapi_locale_info();
 	}
 
 	if(psz_chcpsleep[0])
@@ -706,6 +766,9 @@ int _tmain(int argc, TCHAR *argv[])
 	my_tprintf(_T("%s compiled at %s with _MSC_VER=%d (v%s)\n"), pfn, _T(__DATE__), _MSC_VER, g_szversion);
 	my_tprintf(_T("This Windows OS version: %s\n"), app_GetWindowsVersionStr3());
 	my_tprintf(_T("\n"));
+
+	TCHAR *orig_lcctype = _tsetlocale(LC_CTYPE, NULL);
+	_locale_t orig_locale = _get_current_locale();
 
 	UINT orig_icp = GetConsoleCP();
 	UINT orig_ocp = GetConsoleOutputCP();
