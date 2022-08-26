@@ -29,12 +29,24 @@ void my_tprintf(const TCHAR *szfmt, ...)
 struct EnumInfo_t
 {
 	int count;
+	int empty;
 };
 
 BOOL CALLBACK EnumLocalesProcEx(LPWSTR lpLocaleString,  DWORD dwFlags, LPARAM lParam)
 {
 	int &count = ((EnumInfo_t*)lParam)->count;
 	count++;
+
+	if(!lpLocaleString || !lpLocaleString[0])
+	{
+		my_tprintf(_T("[%d] Empty!!!\n"), count);
+		((EnumInfo_t*)lParam)->empty ++ ;
+		return TRUE;
+	}
+
+	TCHAR szLang[40] = {}, szRegn[40] = {};
+	GetLocaleInfoEx(lpLocaleString, LOCALE_SENGLANGUAGE, szLang, ARRAYSIZE(szLang));
+	GetLocaleInfoEx(lpLocaleString, LOCALE_SENGCOUNTRY, szRegn, ARRAYSIZE(szRegn));
 
 	TCHAR exflags[80] = {};
 	if(dwFlags&LOCALE_REPLACEMENT)
@@ -52,11 +64,14 @@ BOOL CALLBACK EnumLocalesProcEx(LPWSTR lpLocaleString,  DWORD dwFlags, LPARAM lP
 			exflags[slen-2] = _T('\0');
 	}
 
+	my_tprintf(_T("[%d] %s ; %s @ %s"), count, lpLocaleString, szLang, szRegn);
+	//
 	if(exflags[0])
-		my_tprintf(_T("[%d] %s (%s)\n"), count, lpLocaleString, exflags);
-	else
-		my_tprintf(_T("[%d] %s\n"), count, lpLocaleString);
-	
+	{
+		my_tprintf(_T(" (%s)"), exflags);
+	}
+	my_tprintf(_T("\n"));
+
 	return TRUE;
 }
 
@@ -81,6 +96,8 @@ int AskUserForFlags()
 
 int _tmain(int argc, TCHAR *argv[])
 {
+	_tsetlocale(LC_CTYPE, _T(""));
+
 	int flags = 0;
 	if(argc==1 || (flags=_ttoi(argv[1]))<0)
 	{
@@ -94,6 +111,9 @@ int _tmain(int argc, TCHAR *argv[])
 	{
 		if(exi.count==0)
 			my_tprintf(_T("None.\n"));
+		
+		if(exi.empty>0)
+			my_tprintf(_T("NOTE: There are %d empty locale-name given by EnumSystemLocalesEx().\n"), exi.empty);
 	}
 	else
 	{
