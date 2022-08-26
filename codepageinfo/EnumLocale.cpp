@@ -44,9 +44,17 @@ BOOL CALLBACK EnumLocalesProcEx(LPWSTR lpLocaleString,  DWORD dwFlags, LPARAM lP
 		return TRUE;
 	}
 
+	TCHAR self[LOCALE_NAME_MAX_LENGTH+1] = {};
+	GetLocaleInfoEx(lpLocaleString, LOCALE_SNAME, self, ARRAYSIZE(self));
+	if(_tcscmp(lpLocaleString, self)!=0)
+	{
+		my_tprintf(_T("[PANIC] Locale-name round-trip query not match! \"%s\" -> \"%s\"\n"),
+			lpLocaleString, self);
+	}
+
 	TCHAR szLang[40] = {}, szRegn[40] = {};
-	GetLocaleInfoEx(lpLocaleString, LOCALE_SENGLANGUAGE, szLang, ARRAYSIZE(szLang));
-	GetLocaleInfoEx(lpLocaleString, LOCALE_SENGCOUNTRY, szRegn, ARRAYSIZE(szRegn));
+	GetLocaleInfoEx(lpLocaleString, LOCALE_SENGLISHLANGUAGENAME, szLang, ARRAYSIZE(szLang));
+	GetLocaleInfoEx(lpLocaleString, LOCALE_SENGLISHCOUNTRYNAME, szRegn, ARRAYSIZE(szRegn));
 
 	TCHAR exflags[80] = {};
 	if(dwFlags&LOCALE_REPLACEMENT)
@@ -56,6 +64,10 @@ BOOL CALLBACK EnumLocalesProcEx(LPWSTR lpLocaleString,  DWORD dwFlags, LPARAM lP
 	if(dwFlags&LOCALE_SPECIFICDATA)
 		_tcscat_s(exflags, _T("LOCALE_SPECIFICDATA |"));
 
+	TCHAR szLCID[20] = {};
+	LCID lcid = LocaleNameToLCID(lpLocaleString, LOCALE_ALLOW_NEUTRAL_NAMES); // LOCALE_ALLOW_NEUTRAL_NAMES effective since Win7
+	_sntprintf_s(szLCID, ARRAYSIZE(szLCID), _T("0x%04X.%04X"), lcid>>16, lcid&0xFFFF);
+
 	int slen = _tcslen(exflags);
 
 	if(slen>=2)
@@ -64,13 +76,20 @@ BOOL CALLBACK EnumLocalesProcEx(LPWSTR lpLocaleString,  DWORD dwFlags, LPARAM lP
 			exflags[slen-2] = _T('\0');
 	}
 
-	my_tprintf(_T("[%d] %s ; %s @ %s"), count, lpLocaleString, szLang, szRegn);
+	my_tprintf(_T("[%d] %s ; %s @ %s ; LCID=%s"), count, lpLocaleString, szLang, szRegn, szLCID);
 	//
 	if(exflags[0])
 	{
 		my_tprintf(_T(" (%s)"), exflags);
 	}
 	my_tprintf(_T("\n"));
+
+	// TEST "localized" names. Why still get English text?
+	GetLocaleInfoEx(lpLocaleString, LOCALE_SLOCALIZEDLANGUAGENAME, szLang, ARRAYSIZE(szLang));
+	GetLocaleInfoEx(lpLocaleString, LOCALE_SLOCALIZEDCOUNTRYNAME, szRegn, ARRAYSIZE(szRegn));
+	TCHAR tbuf[100];
+	_sntprintf_s(tbuf, ARRAYSIZE(tbuf), _T("Local: %s @ %s\n"), szLang, szRegn);
+	OutputDebugString(tbuf);
 
 	return TRUE;
 }
