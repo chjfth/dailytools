@@ -12,7 +12,7 @@ and at the same time, the BOM makes MSVC compiler happy. */
 #include <fcntl.h>
 #include <windows.h>
 
-const TCHAR *g_szversion = _T("1.2.0");
+const TCHAR *g_szversion = _T("1.2.1");
 
 int g_start_codepage = 0;
 
@@ -74,16 +74,15 @@ WCHAR *HexdumpW(const WCHAR *pszw, WCHAR *hexbuf, int bufchars)
 	return hexbuf;
 }
 
-char *HexdumpA(const char *psza, char *hexbuf, int bufchars)
+char *HexdumpA(const char *pbytes, int count, char *hexbuf, int bufchars)
 {
-	int alen = (int)strlen(psza);
-	for(int i=0; i<alen; i++)
+	for(int i=0; i<count; i++)
 	{
 		_snprintf_s(hexbuf+i*3, bufchars-i*3, _TRUNCATE, 
-			"%02X ", (unsigned char)psza[i]);
+			"%02X ", (unsigned char)pbytes[i]);
 	}
 
-	alen = (int)strlen(hexbuf);
+	int alen = (int)strlen(hexbuf);
 	if(alen>0 && hexbuf[alen-1]==' ')
 		hexbuf[alen-1] = L'\0';
 
@@ -206,52 +205,61 @@ BOOL mySetConsoleOutputCP2(UINT codepage, bool respect_sleep=true)
 	return is_err ? FALSE : TRUE;
 }
 
-void myWriteConsoleW(HANDLE hcOut, const WCHAR *pszw)
+void myWriteConsoleW(HANDLE hcOut, const WCHAR *pwchars, int wchars_to_write=-1)
 {
 	BOOL succ = FALSE;
 	DWORD written = 0;
-	int slen = (int)wcslen(pszw);
-	succ = WriteConsoleW(hcOut, pszw, slen, &written, NULL);
+	
+	if(wchars_to_write==-1)
+		wchars_to_write = (int)wcslen(pwchars);
+
+	succ = WriteConsoleW(hcOut, pwchars, wchars_to_write, &written, NULL);
 	if(!succ)
 	{
 		DWORD winerr = GetLastError();
 		my_tprintf(_T("[Unexpect] WriteConsoleW(handle=0x%p) fail with winerr=%d.\n"), (void*)hcOut, winerr);
 	}
-	if(succ && slen!=written)
+	if(succ && wchars_to_write!=written)
 	{
-		my_tprintf(_T("[Unexpect] WriteConsoleW(handle=0x%p) written(%d) less than slen(%d).\n"), (void*)hcOut, written, slen);
+		my_tprintf(_T("[Unexpect] WriteConsoleW(handle=0x%p) written(%d) less than wchars_to_write(%d).\n"),
+			(void*)hcOut, written, wchars_to_write);
 	}
 }
 
-void myWriteAnsiBytes(HANDLE hcOut, bool is_console, const char *psza)
+void myWriteAnsiBytes(HANDLE hcOut, bool is_console, const char *pbytes, int nbytes_to_write=-1)
 {
 	BOOL succ = FALSE;
 	DWORD written = 0;
-	int slen = (int)strlen(psza);
+
+	if(nbytes_to_write==-1)
+		nbytes_to_write = (int)strlen(pbytes);
+
 	if(is_console)
 	{
-		succ = WriteConsoleA(hcOut, psza, slen, &written, NULL);
+		succ = WriteConsoleA(hcOut, pbytes, nbytes_to_write, &written, NULL);
 		if(!succ)
 		{
 			DWORD winerr = GetLastError();
 			my_tprintf(_T("[Unexpect] WriteConsoleA(handle=0x%p) fail with winerr=%d.\n"), (void*)hcOut, winerr);
 		}
-		if(succ && slen!=written)
+		if(succ && nbytes_to_write!=written)
 		{
-			my_tprintf(_T("[Unexpect] WriteConsoleA(handle=0x%p) written(%d) less than slen(%d).\n"), (void*)hcOut, written, slen);
+			my_tprintf(_T("[Unexpect] WriteConsoleA(handle=0x%p) written(%d) less than nbytes_to_write(%d).\n"), 
+				(void*)hcOut, written, nbytes_to_write);
 		}
 	}
 	else
 	{
-		succ = WriteFile(hcOut, psza, slen, &written, NULL);
+		succ = WriteFile(hcOut, pbytes, nbytes_to_write, &written, NULL);
 		if(!succ)
 		{
 			DWORD winerr = GetLastError();
 			my_tprintf(_T("[Unexpect] WriteFile(handle=0x%p) fail with winerr=%d.\n"), (void*)hcOut, winerr);
 		}
-		if(succ && slen!=written)
+		if(succ && nbytes_to_write!=written)
 		{
-			my_tprintf(_T("[Unexpect] WriteFile(handle=0x%p) written(%d) less than slen(%d).\n"), (void*)hcOut, written, slen);
+			my_tprintf(_T("[Unexpect] WriteFile(handle=0x%p) written(%d) less than slen(%d).\n"),
+				(void*)hcOut, written, nbytes_to_write);
 		}
 	}
 }
@@ -309,7 +317,8 @@ void WriteAnsiBytes_Samples(HANDLE hcOut, bool is_console)
 		}
 
 		char hintbuf[80], hexbuf[16];
-		HexdumpA(psza, hexbuf, ARRAYSIZE(hexbuf));
+		int bytes = (int)strlen(psza);
+		HexdumpA(psza, bytes, hexbuf, ARRAYSIZE(hexbuf));
 
 		_snprintf_s(hintbuf, ARRAYSIZE(hintbuf), 
 			"SetConsoleOutputCP()=%d and write %d bytes [%s]: ",
@@ -599,7 +608,7 @@ int apply_startup_user_params(TCHAR *argv[])
 	return params;
 }
 
-void print_user_given_chars(TCHAR *argv[])
+void print_user_dump(TCHAR *argv[])
 {
 	// Each argv[] "points to" remaining command-line params like:
 	//
@@ -638,7 +647,7 @@ void print_user_given_chars(TCHAR *argv[])
 		int nbytes_to_write = i;
 		my_tprintf(_T("Will dump %d bytes to \"screen\", hex below:\n"), nbytes_to_write);
 
-		printf("%s\n", HexdumpA(ansibuf, hexbuf, ARRAYSIZE(hexbuf)));
+		printf("%s\n", HexdumpA(ansibuf, nbytes_to_write, hexbuf, ARRAYSIZE(hexbuf)));
 		printf("\n");
 		fflush(stdout);
 
@@ -661,7 +670,7 @@ void print_user_given_chars(TCHAR *argv[])
 		fflush(stdout);
 
 		my_tprintf(_T("==== Using WriteFile(), to STD_OUTPUT_HANDLE:\n"));
-		myWriteAnsiBytes(hcOut, false, ansibuf);
+		myWriteAnsiBytes(hcOut, false, ansibuf, nbytes_to_write);
 		my_tprintf(_T("\n"));
 	}
 	else
@@ -704,7 +713,7 @@ void print_user_given_chars(TCHAR *argv[])
 		wprintf(L"\n");
 
 		my_tprintf(_T("==== Using WriteConsoleW() to STD_OUTPUT_HANDLE:\n"));
-		myWriteConsoleW(hcOut, wcbuf);
+		myWriteConsoleW(hcOut, wcbuf, ncell);
 		my_tprintf(_T("\n"));
 	}
 }
@@ -786,7 +795,8 @@ int _tmain(int argc, TCHAR *argv[])
 	}
 	else
 	{
-		print_user_given_chars(argv+1+params_done);
+		// User-dump
+		print_user_dump(argv+1+params_done);
 	}
 
 	if(g_start_codepage)
