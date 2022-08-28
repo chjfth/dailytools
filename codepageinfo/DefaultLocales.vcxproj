@@ -39,9 +39,9 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <!-- User project properties -->
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{F6DD1F2F-FE72-48AF-9F92-48C6B815961A}</ProjectGuid>
-    <ProjectName>EnumLocale</ProjectName>
-    <TargetName>EnumLocale</TargetName>
+    <ProjectGuid>{4712B06C-48F9-463E-B770-3F48A61A915A}</ProjectGuid>
+    <ProjectName>DefaultLocales</ProjectName>
+    <TargetName>DefaultLocales</TargetName>
     <ConfigurationType>Application</ConfigurationType>
   </PropertyGroup>
   <!-- Debug or Release -->
@@ -131,7 +131,7 @@
     Source file list:
    -->
   <ItemGroup>
-    <ClCompile Include="EnumLocale.cpp" />
+    <ClCompile Include="DefaultLocales.cpp" />
     <ClCompile Include="utils.cpp" />
   </ItemGroup>
   <ItemGroup>

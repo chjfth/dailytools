@@ -1,29 +1,14 @@
 ﻿/* This file has UTF8 BOM, so to contain UTF8 chars in .cpp source code,
 and at the same time, the BOM makes MSVC compiler happy. */
-#define WIN32_LEAN_AND_MEAN
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
-#include <tchar.h>
-#include <locale.h>
-#include <conio.h>
-#include <io.h>
-#include <fcntl.h>
-#include <windows.h>
 
-const TCHAR *g_szversion = _T("1.2.1");
+#include "utils.h"
+
+const TCHAR *g_szversion = _T("1.2.2");
 
 int g_start_codepage = 0;
 
 int g_chcp_sleep_msec = 0;
 #define CHCP_DO_PAUSE (-1)
-
-TCHAR *GetFilenamePart(TCHAR *pPath)
-{
-	TCHAR *p = _tcsrchr(pPath, _T('\\'));
-	return p ? p+1 : pPath;
-}
 
 struct SampleStr_st
 {
@@ -43,20 +28,6 @@ SampleStr_st ar_samps[] =
 
 	// 936=GBK, 950=Big5, 949=Korean, 65001=UTF-8
 };
-
-void my_tprintf(const TCHAR *szfmt, ...)
-{
-	va_list args;
-	va_start(args, szfmt);
-
-	TCHAR buf[200] = {};
-	_vsntprintf_s(buf, ARRAYSIZE(buf), szfmt, args);
-
-	va_end(args);
-
-	_tprintf(_T("%s"), buf);
-	fflush(stdout); // important
-}
 
 WCHAR *HexdumpW(const WCHAR *pszw, WCHAR *hexbuf, int bufchars)
 {
@@ -322,7 +293,7 @@ void WriteAnsiBytes_Samples(HANDLE hcOut, bool is_console)
 
 		_snprintf_s(hintbuf, ARRAYSIZE(hintbuf), 
 			"SetConsoleOutputCP()=%d and write %d bytes [%s]: ",
-			codepage, strlen(psza), hexbuf);
+			codepage, (int)strlen(psza), hexbuf);
 
 		DWORD written = 0;
 		myWriteAnsiBytes(hcOut, is_console, hintbuf);
@@ -349,45 +320,6 @@ HANDLE CreateFile_stdio(const TCHAR *szfn)
 		0, // FILE_FLAG_DELETE_ON_CLOSE,
 		NULL);
 	return fh;
-}
-
-const TCHAR *app_GetWindowsVersionStr3()
-{
-	typedef DWORD __stdcall PROC_RtlGetVersion(OSVERSIONINFOEX*);
-	typedef BOOL __stdcall PROC_GetVersionEx(OSVERSIONINFOEX*);
-
-	static TCHAR s_verstr[40];
-	OSVERSIONINFOEX exver = { sizeof(OSVERSIONINFOEX) };
-
-	PROC_RtlGetVersion *RtlGetVersion = (PROC_RtlGetVersion*)
-		GetProcAddress(GetModuleHandle(_T("ntdll")), "RtlGetVersion");
-
-	PROC_GetVersionEx *dllGetVersionEx = (PROC_GetVersionEx*)
-		GetProcAddress(GetModuleHandle(_T("kernel32")), "GetVersionEx");
-
-	if(RtlGetVersion)
-		RtlGetVersion(&exver);
-
-	if (exver.dwMajorVersion == 0)
-	{
-		// RtlGetVersion() fail, fall back to traditional GetVersionEx()
-		BOOL succ = dllGetVersionEx && dllGetVersionEx(&exver);
-		if (!succ)
-			exver.dwMajorVersion = 0;
-	}
-
-	if (exver.dwMajorVersion > 0)
-	{
-		_sntprintf_s(s_verstr, ARRAYSIZE(s_verstr), _T("%d.%d.%d"),
-			exver.dwMajorVersion, exver.dwMinorVersion, exver.dwBuildNumber);
-	}
-	else
-	{
-		_sntprintf_s(s_verstr, ARRAYSIZE(s_verstr), _T("%s"),
-			_T("Fail to get Windows OS version after trying NTDLL!RtlGetVersion() and GetVersionEx()!"));
-	}
-
-	return s_verstr;
 }
 
 void print_winapi_locale_detail(const TCHAR lcstr[], bool print_sys_unique_infos=false)
@@ -767,7 +699,7 @@ void temp_test()
 
 int _tmain(int argc, TCHAR *argv[])
 {
-	TCHAR *pfn = GetFilenamePart(argv[0]);
+	const TCHAR *pfn = app_GetFilenamePart(argv[0]);
 	// -- For MSVC, argv[0] always contains the full pathname.
 
 	temp_test();

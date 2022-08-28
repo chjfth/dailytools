@@ -1,41 +1,4 @@
-﻿/* This file has UTF8 BOM, so to contain UTF8 chars in .cpp source code,
-and at the same time, the BOM makes MSVC compiler happy. */
-#define WIN32_LEAN_AND_MEAN
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
-#include <tchar.h>
-#include <locale.h>
-#include <conio.h>
-#include <io.h>
-#include <fcntl.h>
-#include <windows.h>
-
-void my_tprintf(const TCHAR *szfmt, ...)
-{
-	va_list args;
-	va_start(args, szfmt);
-
-	TCHAR buf[200] = {};
-	_vsntprintf_s(buf, ARRAYSIZE(buf), szfmt, args);
-
-	va_end(args);
-
-	_tprintf(_T("%s"), buf);
-	fflush(stdout); // important
-}
-
-int my_getch_noblock()
-{
-	if(_isatty(_fileno(stdout)))
-	{
-		int key = _getch();
-		return key;
-	}
-	else 
-		return '0';		
-}
+﻿#include "utils.h"
 
 enum Filter_et
 {
@@ -91,7 +54,7 @@ BOOL CALLBACK EnumLocalesProcEx(LPWSTR lpLocaleString,  DWORD dwFlags, LPARAM lP
 	LCID lcid = LocaleNameToLCID(lpLocaleString, LOCALE_ALLOW_NEUTRAL_NAMES); // LOCALE_ALLOW_NEUTRAL_NAMES effective since Win7
 	_sntprintf_s(szLCID, ARRAYSIZE(szLCID), _T("0x%04X.%04X"), lcid>>16, lcid&0xFFFF);
 
-	int slen = _tcslen(exflags);
+	int slen = (int)_tcslen(exflags);
 
 	if(slen>=2)
 	{
