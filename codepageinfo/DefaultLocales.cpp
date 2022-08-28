@@ -1,7 +1,7 @@
 ﻿#include "utils.h"
 #include "..\cinclude\dlptr_winapi.h"
 
-const TCHAR *g_szversion = _T("1.0.1");
+const TCHAR *g_szversion = _T("1.0.2");
 
 const TCHAR *StrLCID(LCID lcid)
 {
@@ -120,6 +120,13 @@ void do_work()
 	UINT orig_ocp = GetConsoleOutputCP();
 	my_tprintf(_T("Current GetConsoleCP()       = %d\n"), orig_icp);
 	my_tprintf(_T("Current GetConsoleOutputCP() = %d\n"), orig_ocp);
+
+	newline();
+
+	/// Check what CRT locale() tells us.
+
+	const TCHAR *crtlocstr = _tsetlocale(LC_ALL, NULL); // query current
+	my_tprintf(_T("setlocale(LC_ALL) query returns: \n  %s\n"), crtlocstr);
 
 }
 
