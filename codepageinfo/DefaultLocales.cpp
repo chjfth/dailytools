@@ -88,19 +88,19 @@ void do_work()
 	langid = GetSystemDefaultUILanguage();
 	my_tprintf(_T("GetSystemDefaultUILanguage() => 0x%04X\n"), langid);
 
-	my_tprintf(_T("\n"));
+	newline();
 
 	/// User-level ///
 
 	lcid = GetUserDefaultLCID();
-	my_tprintf(_T("GetUserDefaultLCID() = %s (LangID=%u, decimal)\n"), 
+	my_tprintf(_T("GetUserDefaultLCID()   => %s (LangID=%u, decimal)\n"), 
 		StrLCID(lcid), LANGIDFROMLCID(lcid));
 
 	if(dlptr_GetUserDefaultLocaleName)
 	{
 		locname[0] = 0;
 		dlptr_GetUserDefaultLocaleName(locname, LOCALE_NAME_MAX_LENGTH);
-		my_tprintf(_T("GetUserDefaultLocaleName() => %s\n"), locname);
+		my_tprintf(_T("GetUserDefaultLocaleName()   => %s\n"), locname);
 
 		verify_locname_lcid_match(locname, lcid);
 
@@ -110,7 +110,16 @@ void do_work()
 		print_api_notavai(_T("GetUserDefaultLocaleName"));
 
 	langid = GetUserDefaultUILanguage();
-	my_tprintf(_T("GetUserDefaultUILanguage() => 0x%04X\n"), langid);
+	my_tprintf(_T("GetUserDefaultUILanguage()   => 0x%04X\n"), langid);
+
+	newline();
+
+	/// Show console-codepage ///
+
+	UINT orig_icp = GetConsoleCP();
+	UINT orig_ocp = GetConsoleOutputCP();
+	my_tprintf(_T("Current GetConsoleCP()       = %d\n"), orig_icp);
+	my_tprintf(_T("Current GetConsoleOutputCP() = %d\n"), orig_ocp);
 
 }
 

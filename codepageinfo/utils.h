@@ -19,5 +19,10 @@ int my_getch_noblock();
 
 void my_tprintf(const TCHAR *szfmt, ...);
 
+inline void newline()
+{
+	my_tprintf(_T("\n"));
+}
+
 const TCHAR *app_GetWindowsVersionStr3();
 
