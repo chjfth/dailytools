@@ -56,11 +56,16 @@ namespace {
 
 /* Example Usage: 
 
-#include <stdio.h>
+//////////////////////////////////////////////////////////////////////////
 
-DEFINE_DLPTR_WINAPI("user32.dll", MessageBoxW)
+#include <stdio.h>
+#include <tchar.h>
+
 DEFINE_DLPTR_WINAPI("kernel32.dll", GetWindowsDirectoryW)
 DEFINE_DLPTR_WINAPI("kernel32.dll", GetSystemDirectoryW)
+
+// [Stramphibian ready] This will auto select MessageBoxA or MessageBoxW
+DEFINE_DLPTR_WINAPI("user32.dll", MessageBox) 
 
 // You may "instantiate" a callable future-WINAPI as a function-pointer.
 //
@@ -90,7 +95,9 @@ int main()
 		: 0;
 	printf("GetDpiForWindow() = %d\n", windpi); // Will print 96 etc on Win10.1607+
 
-	dlptr_MessageBoxW(NULL, L"Hello.", L"Title", MB_OK);
+	dlptr_MessageBox(NULL, _T("Hello."), _T("Title"), MB_OK);
+
+	return 0;
 }
 
 */
