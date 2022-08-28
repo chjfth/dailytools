@@ -1,7 +1,7 @@
 ﻿#include "utils.h"
 #include "..\cinclude\dlptr_winapi.h"
 
-const TCHAR *g_szversion = _T("1.0.2");
+const TCHAR *g_szversion = _T("1.0.3");
 
 const TCHAR *StrLCID(LCID lcid)
 {
@@ -135,11 +135,11 @@ void do_work()
 int _tmain(int argc, TCHAR *argv[])
 {
 	_tsetlocale(LC_CTYPE, _T(""));
+//	setlocale(LC_ALL, "cht_JPN.936"); // OK for VC2010 CRT, ="Chinese (Traditional)_Japan.936"
 
 	app_print_version(argv[0], g_szversion);
 
 	do_work();
-
 
 	return 0;
 }
