@@ -28,14 +28,18 @@ const TCHAR *get_ll2info(LCID lcid, LCTYPE ll2type)
 // Dynamic loading of some Vista+ WinAPI. 
 DEFINE_DLPTR_WINAPI("kernel32.dll", GetSystemDefaultLocaleName)
 DEFINE_DLPTR_WINAPI("kernel32.dll", GetUserDefaultLocaleName)
-
+DEFINE_DLPTR_WINAPI("kernel32.dll", LCIDToLocaleName)
+DEFINE_DLPTR_WINAPI("kernel32.dll", LocaleNameToLCID)
 
 void verify_locname_lcid_match(const TCHAR *locname, LCID lcid)
 {
 	// Locale-name is like: en-US
 	// LCID is like: 0x00000409
 
-	LCID lcid2 = LocaleNameToLCID(locname, LOCALE_ALLOW_NEUTRAL_NAMES); //  LOCALE_ALLOW_NEUTRAL_NAMES since Win7
+	if(!dlptr_LocaleNameToLCID)
+		return;
+
+	LCID lcid2 = dlptr_LocaleNameToLCID(locname, LOCALE_ALLOW_NEUTRAL_NAMES); //  LOCALE_ALLOW_NEUTRAL_NAMES since Win7
 	// -- TODO: Check for retval LOCALE_CUSTOM_DEFAULT and LOCALE_CUSTOM_UNSPECIFIED
 	if(lcid!=lcid2)
 	{
@@ -45,7 +49,7 @@ void verify_locname_lcid_match(const TCHAR *locname, LCID lcid)
 	// 
 
 	TCHAR locname2[LOCALE_NAME_MAX_LENGTH+1] = {};
-	LCIDToLocaleName(lcid, locname2, LOCALE_NAME_MAX_LENGTH, LOCALE_ALLOW_NEUTRAL_NAMES);
+	dlptr_LCIDToLocaleName(lcid, locname2, LOCALE_NAME_MAX_LENGTH, LOCALE_ALLOW_NEUTRAL_NAMES);
 	//
 	if(_tcscmp(locname, locname2)!=0)
 	{
@@ -82,11 +86,9 @@ void do_work()
 		my_tprintf(_T("GetSystemDefaultLocaleName() => %s\n"), locname);
 
 		verify_locname_lcid_match(locname, lcid);
-
-		LL2_print_ansicodepage_and_oemcodepage(lcid);
 	}
-	else
-		print_api_notavai(_T("GetSystemDefaultLocaleName"));
+
+	LL2_print_ansicodepage_and_oemcodepage(lcid);
 
 	langid = GetSystemDefaultUILanguage();
 	my_tprintf(_T("GetSystemDefaultUILanguage() => 0x%04X\n"), langid);
@@ -106,11 +108,9 @@ void do_work()
 		my_tprintf(_T("GetUserDefaultLocaleName()   => %s\n"), locname);
 
 		verify_locname_lcid_match(locname, lcid);
-
-		LL2_print_ansicodepage_and_oemcodepage(lcid);
 	}
-	else
-		print_api_notavai(_T("GetUserDefaultLocaleName"));
+
+	LL2_print_ansicodepage_and_oemcodepage(lcid);
 
 	langid = GetUserDefaultUILanguage();
 	my_tprintf(_T("GetUserDefaultUILanguage()   => 0x%04X\n"), langid);
