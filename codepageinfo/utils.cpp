@@ -12,6 +12,13 @@ int my_getch_noblock(unsigned char default_key)
 	if(_isatty(_fileno(stdout)))
 	{
 		int key = _getch();
+
+		if(key==3 || key==27) // Ctrl+C or ESC
+		{
+			my_tprintf(_T("User Quit.\n"));
+			exit(1);
+		}
+
 		return key;
 	}
 	else 
