@@ -90,3 +90,36 @@ const TCHAR *app_GetWindowsVersionStr3()
 	return s_verstr;
 }
 
+DEFINE_DLPTR_WINAPI("kernel32.dll", LCIDToLocaleName)
+
+const TCHAR *Desctext_from_LCID(LCID lcid, bool need_native_name)
+{
+	// need_native_name==false, means desc-text in English, so it's always printf-safe
+
+	static TCHAR szDesc[LOCALE_NAME_MAX_LENGTH*2] = {};
+
+	szDesc[0] = 0;
+
+	if(dlptr_LCIDToLocaleName)
+	{
+		TCHAR langtag[LOCALE_NAME_MAX_LENGTH+1] = {};
+		dlptr_LCIDToLocaleName(lcid, langtag, ARRAYSIZE(langtag), LOCALE_ALLOW_NEUTRAL_NAMES);
+		
+		_sntprintf_s(szDesc, ARRAYSIZE(szDesc), _T("[%s] "), langtag);
+	}
+
+	LCTYPE lcLang = need_native_name ? LOCALE_SLANGUAGE : LOCALE_SENGLISHLANGUAGENAME;
+	LCTYPE lcRegn = need_native_name ? LOCALE_SCOUNTRY : LOCALE_SENGLISHCOUNTRYNAME;
+
+	TCHAR sztmp[40] = {};
+
+	GetLocaleInfo(lcid, lcLang, sztmp, ARRAYSIZE(sztmp)-1);
+	_tcscat_s(szDesc, sztmp);
+
+	_tcscat_s(szDesc, _T(" @ "));
+
+	GetLocaleInfo(lcid, lcRegn, sztmp, ARRAYSIZE(sztmp)-1); 
+	_tcscat_s(szDesc, sztmp);
+
+	return szDesc;
+}

@@ -4,9 +4,8 @@ This should help user discriminate the abstract and ubiquitous word "locale".
 */
 
 #include "utils.h"
-#include "..\cinclude\dlptr_winapi.h"
 
-const TCHAR *g_szversion = _T("1.0.4");
+const TCHAR *g_szversion = _T("1.0.5");
 
 LCID g_set_thread_lcid = 0; // If not 0, will call SetThreadLocale() with this value.
 const TCHAR *g_set_crtlocale = NULL;
@@ -60,11 +59,17 @@ void verify_locname_lcid_match(const TCHAR *locname, LCID lcid)
 
 void LL2_print_ansicodepage_and_oemcodepage(LCID lcid)
 {
-	my_tprintf(_T("  > LOCALE_IDEFAULTANSICODEPAGE (ANSI codepage): %s\n"), 
+	my_tprintf(_T("  > LOCALE_IDEFAULTANSICODEPAGE  (ANSI codepage): %s\n"), 
 		get_ll2info(lcid, LOCALE_IDEFAULTANSICODEPAGE));
 
-	my_tprintf(_T("  > LOCALE_IDEFAULTCODEPAGE      (OEM codepage): %s\n"), 
+	my_tprintf(_T("  > LOCALE_IDEFAULTCODEPAGE       (OEM codepage): %s\n"), 
 		get_ll2info(lcid, LOCALE_IDEFAULTCODEPAGE));
+}
+
+void LL2_print_LCID_Desctext(LCID lcid)
+{
+	my_tprintf(_T("  : LCID English desc: %s\n"), Desctext_from_LCID(lcid, false));
+	my_tprintf(_T("  : LCID Native  desc: %s\n"), Desctext_from_LCID(lcid, true));
 }
 
 void do_work()
@@ -76,14 +81,15 @@ void do_work()
 	/// System-level ///
 
 	lcid = GetSystemDefaultLCID();
-	my_tprintf(_T("GetSystemDefaultLCID() => %s (LangID=%u, decimal)\n"), 
+	my_tprintf(_T("GetSystemDefaultLCID()  => %s (LangID=%u, decimal)\n"), 
 		StrLCID(lcid), LANGIDFROMLCID(lcid));
+	LL2_print_LCID_Desctext(langid);
 
 	if(dlptr_GetSystemDefaultLocaleName)
 	{
 		locname[0] = 0;
 		dlptr_GetSystemDefaultLocaleName(locname, LOCALE_NAME_MAX_LENGTH);
-		my_tprintf(_T("GetSystemDefaultLocaleName() => %s\n"), locname);
+		my_tprintf(_T("GetSystemDefaultLocaleName() =>  %s\n"), locname);
 
 		verify_locname_lcid_match(locname, lcid);
 	}
@@ -92,20 +98,22 @@ void do_work()
 
 	langid = GetSystemDefaultUILanguage();
 	my_tprintf(_T("GetSystemDefaultUILanguage() => 0x%04X\n"), langid);
+	LL2_print_LCID_Desctext(langid);
 
 	newline();
 
 	/// User-level ///
 
 	lcid = GetUserDefaultLCID();
-	my_tprintf(_T("GetUserDefaultLCID()   => %s (LangID=%u, decimal)\n"), 
+	my_tprintf(_T("GetUserDefaultLCID()    => %s (LangID=%u, decimal)\n"), 
 		StrLCID(lcid), LANGIDFROMLCID(lcid));
+	LL2_print_LCID_Desctext(langid);
 
 	if(dlptr_GetUserDefaultLocaleName)
 	{
 		locname[0] = 0;
 		dlptr_GetUserDefaultLocaleName(locname, LOCALE_NAME_MAX_LENGTH);
-		my_tprintf(_T("GetUserDefaultLocaleName()   => %s\n"), locname);
+		my_tprintf(_T("GetUserDefaultLocaleName()   =>  %s\n"), locname);
 
 		verify_locname_lcid_match(locname, lcid);
 	}
@@ -114,6 +122,7 @@ void do_work()
 
 	langid = GetUserDefaultUILanguage();
 	my_tprintf(_T("GetUserDefaultUILanguage()   => 0x%04X\n"), langid);
+	LL2_print_LCID_Desctext(langid);
 
 	newline();
 

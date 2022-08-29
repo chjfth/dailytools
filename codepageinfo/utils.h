@@ -9,6 +9,7 @@
 #include <io.h>
 #include <fcntl.h>
 #include <windows.h>
+#include "..\cinclude\dlptr_winapi.h"
 
 
 const TCHAR *app_GetFilenamePart(const TCHAR *pPath);
@@ -28,3 +29,4 @@ const TCHAR *StrLCID(LCID lcid);
 
 const TCHAR *app_GetWindowsVersionStr3();
 
+const TCHAR *Desctext_from_LCID(LCID lcid, bool need_native_name=false);
