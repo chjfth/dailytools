@@ -1,7 +1,16 @@
-﻿#include "utils.h"
+﻿/*
+This program shows various layers of locales on Windows system.
+This should help user discriminate the abstract and ubiquitous word "locale".
+*/
+
+#include "utils.h"
 #include "..\cinclude\dlptr_winapi.h"
 
 const TCHAR *g_szversion = _T("1.0.3");
+
+LCID g_set_thread_lcid = 0; // If not 0, will call SetThreadLocale() with this value.
+
+////////
 
 void print_api_notavai(const TCHAR *apiname)
 {
@@ -123,14 +132,70 @@ void do_work()
 
 }
 
+int apply_startup_user_params(TCHAR *argv[])
+{
+	const TCHAR szThreadLcid[]   = _T("threadlcid:");
+	const int   nzThreadLcid     = ARRAYSIZE(szThreadLcid)-1;
+	// -- example: to call SetThreadLocale(0x411); jp-JP , use:
+	//		threadlcid:0x0411
+	// or
+	//		threadlcid:1041
+
+	const TCHAR *psz_start_lcid = _T("");
+
+	int params = 0;
+	for(; *argv!=NULL; argv++, params++)
+	{
+		if(_tcsnicmp(*argv, szThreadLcid, nzThreadLcid)==0)
+		{
+			psz_start_lcid = (*argv)+nzThreadLcid;
+		}
+		else
+			break;
+	}
+
+	if(psz_start_lcid[0])
+	{
+		g_set_thread_lcid = _tcstoul(psz_start_lcid, NULL, 0);
+	}
+
+	return params;
+}
 
 
 int _tmain(int argc, TCHAR *argv[])
 {
-	_tsetlocale(LC_CTYPE, _T(""));
+	setlocale(LC_CTYPE, "");
 //	setlocale(LC_ALL, "cht_JPN.936"); // OK for VC2010 CRT, ="Chinese (Traditional)_Japan.936"
 
 	app_print_version(argv[0], g_szversion);
+
+	apply_startup_user_params(argv+1);
+
+	if(g_set_thread_lcid>0)
+	{
+		my_tprintf(_T("Startup: Call SetThreadLocale(0x%04X); \n"), g_set_thread_lcid);
+		BOOL succ = SetThreadLocale(g_set_thread_lcid);
+		if(succ)
+		{
+			LCID lcid2 = GetThreadLocale();
+			if(g_set_thread_lcid==lcid2)
+			{
+				my_tprintf(_T("Startup: Call setlocale(LC_CTYPE, \"\"); \n"));
+				setlocale(LC_CTYPE, "");
+			}
+			else
+			{
+				my_tprintf(_T("[Unexpect] GetThreadLocale() does NOT report the LCID wet just set!\n"));
+			}
+		}
+		else
+		{
+			my_tprintf(_T("Startup:      SetThreadLocale() fail. WinErr=%d\n"), GetLastError());
+		}
+
+		newline();
+	}
 
 	do_work();
 
