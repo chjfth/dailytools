@@ -25,7 +25,7 @@ BOOL CALLBACK EnumLocalesProcEx(LPWSTR lpLocaleString,  DWORD dwFlags, LPARAM lP
 
 	if(!lpLocaleString || !lpLocaleString[0])
 	{
-		my_tprintf(_T("[%d] Empty!!!\n"), count);
+		my_tprintf(_T("[callback #%d] Empty!!!\n"), callbacks);
 		((EnumInfo_t*)lParam)->empty ++ ;
 		return TRUE;
 	}
