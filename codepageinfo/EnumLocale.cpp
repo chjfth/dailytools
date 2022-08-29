@@ -1,5 +1,7 @@
 ﻿#include "utils.h"
 
+const TCHAR *g_szversion = _T("1.0.3");
+
 enum Filter_et
 {
 	Filter_None = 0,
@@ -137,6 +139,8 @@ int _tmain(int argc, TCHAR *argv[])
 	// If omit, select interactively.
 
 	_tsetlocale(LC_CTYPE, _T(""));
+
+	app_print_version(argv[0], g_szversion);
 
 	const TCHAR *pfn = app_GetFilenamePart(argv[0]);
 

@@ -4,6 +4,8 @@ The newer API EnumSystemLocalesEx() is supported only since Windows Vista.
 */
 #include "utils.h"
 
+const TCHAR *g_szversion = _T("1.0.0");
+
 struct EnumInfo_t
 {
 	int callbacks;
@@ -38,8 +40,15 @@ BOOL CALLBACK EnumLocalesProc(LPWSTR pszLcid)
 	GetLocaleInfo(lcid, LOCALE_IDEFAULTANSICODEPAGE, szACP, ARRAYSIZE(szACP));
 	GetLocaleInfo(lcid, LOCALE_IDEFAULTCODEPAGE, szOCP, ARRAYSIZE(szOCP));
 
-	my_tprintf(_T("[%d] %s ; %s @ %s ; ANSI/OEM [%s/%s]\n"), exi.count, 
-		StrLCID(lcid), szLang, szRegn, szACP, szOCP);
+	TCHAR szLangtag[20] = {}, sz_Langtag_[20] = {};
+	if( GetLocaleInfo(lcid, LOCALE_SNAME, szLangtag, ARRAYSIZE(szLangtag)) )
+	{
+		// `LOCALE_SNAME` is valid on Vista+, got "en-US", "zh-CN" etc.
+		_sntprintf_s(sz_Langtag_, ARRAYSIZE(sz_Langtag_), _T("(%s)"), szLangtag);
+	}
+
+	my_tprintf(_T("[%d] %s %s; %s @ %s ; ANSI/OEM [%s/%s]\n"), exi.count, 
+		StrLCID(lcid), sz_Langtag_, szLang, szRegn, szACP, szOCP);
 
 	return TRUE;
 }
@@ -67,9 +76,10 @@ int _tmain(int argc, TCHAR *argv[])
 {
 	// Param1: dwFlags passed to EnumSystemLocales().
 	// If omit, select interactively.
-	// 
 
 	_tsetlocale(LC_CTYPE, _T(""));
+
+	app_print_version(argv[0], g_szversion);
 
 	const TCHAR *pfn = app_GetFilenamePart(argv[0]);
 
