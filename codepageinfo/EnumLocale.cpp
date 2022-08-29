@@ -44,6 +44,10 @@ BOOL CALLBACK EnumLocalesProcEx(LPWSTR lpLocaleString,  DWORD dwFlags, LPARAM lP
 	GetLocaleInfoEx(lpLocaleString, LOCALE_SENGLISHLANGUAGENAME, szLang, ARRAYSIZE(szLang));
 	GetLocaleInfoEx(lpLocaleString, LOCALE_SENGLISHCOUNTRYNAME, szRegn, ARRAYSIZE(szRegn));
 
+	TCHAR szACP[10] = {}, szOCP[10] = {};
+	GetLocaleInfoEx(lpLocaleString, LOCALE_IDEFAULTANSICODEPAGE, szACP, ARRAYSIZE(szACP));
+	GetLocaleInfoEx(lpLocaleString, LOCALE_IDEFAULTCODEPAGE, szOCP, ARRAYSIZE(szOCP));
+
 	TCHAR exflags[80] = {};
 	if(dwFlags&LOCALE_REPLACEMENT)
 		_tcscat_s(exflags, _T("LOCALE_REPLACEMENT |"));
@@ -74,7 +78,10 @@ BOOL CALLBACK EnumLocalesProcEx(LPWSTR lpLocaleString,  DWORD dwFlags, LPARAM lP
 		count++;
 
 		my_tprintf(_T("[%d] %s ; %s @ %s ; LCID=%s"), count, lpLocaleString, szLang, szRegn, szLCID);
-		//
+		
+
+		my_tprintf(_T(" ; ANSI/OEM[%s/%s]"), szACP, szOCP);
+
 		if(exflags[0])
 		{
 			my_tprintf(_T(" (%s)"), exflags);

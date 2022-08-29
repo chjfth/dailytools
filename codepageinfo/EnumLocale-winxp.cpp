@@ -47,7 +47,7 @@ BOOL CALLBACK EnumLocalesProc(LPWSTR pszLcid)
 		_sntprintf_s(sz_Langtag_, ARRAYSIZE(sz_Langtag_), _T("(%s)"), szLangtag);
 	}
 
-	my_tprintf(_T("[%d] %s %s; %s @ %s ; ANSI/OEM [%s/%s]\n"), exi.count, 
+	my_tprintf(_T("[%d] %s %s; %s @ %s ; ANSI/OEM[%s/%s]\n"), exi.count, 
 		StrLCID(lcid), sz_Langtag_, szLang, szRegn, szACP, szOCP);
 
 	return TRUE;
