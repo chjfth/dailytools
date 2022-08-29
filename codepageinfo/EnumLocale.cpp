@@ -111,7 +111,7 @@ int AskUserForFlags()
 
 Filter_et AskForFilters()
 {
-	my_tprintf(_T("Select filter for LOCALE_WINDOWS\n"));
+	my_tprintf(_T("Select filter for LOCALE_WINDOWS:\n"));
 	my_tprintf(_T("[0] Show all\n"));
 	my_tprintf(_T("[1] Show only <lang>-<REGION> entries (LOCALE_SPECIFICDATA)\n"));
 	my_tprintf(_T("[2] Show only neutral entries (LOCALE_NEUTRALDATA)\n"));
@@ -137,6 +137,16 @@ int _tmain(int argc, TCHAR *argv[])
 	// If omit, select interactively.
 
 	_tsetlocale(LC_CTYPE, _T(""));
+
+	const TCHAR *pfn = app_GetFilenamePart(argv[0]);
+
+	if(argc==1)
+	{
+		my_tprintf(_T("Hint: You can pass two params for EnumSystemLocalesEx() flags, and filters,\n"));
+		my_tprintf(_T("    so that this program will not ask you interactively.\n"));
+		my_tprintf(_T("For example, to list LOCALE_WINDOWS with only <lang>-<REGION> entries:\n"));
+		my_tprintf(_T("    %s 1 1\n"), pfn);
+	}
 
 	EnumInfo_t exi = {};
 
