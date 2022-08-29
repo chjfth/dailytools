@@ -6,9 +6,10 @@ This should help user discriminate the abstract and ubiquitous word "locale".
 #include "utils.h"
 #include "..\cinclude\dlptr_winapi.h"
 
-const TCHAR *g_szversion = _T("1.0.3");
+const TCHAR *g_szversion = _T("1.0.4");
 
 LCID g_set_thread_lcid = 0; // If not 0, will call SetThreadLocale() with this value.
+const TCHAR *g_set_crtlocale = NULL;
 
 ////////
 
@@ -116,6 +117,14 @@ void do_work()
 
 	newline();
 
+	/// Thread locale /// 
+
+	lcid = GetThreadLocale();
+	my_tprintf(_T("GetThreadLocale()   => %s\n"), StrLCID(lcid));
+	LL2_print_ansicodepage_and_oemcodepage(lcid);
+
+	newline();
+
 	/// Show console-codepage ///
 
 	UINT orig_icp = GetConsoleCP();
@@ -141,22 +150,29 @@ int apply_startup_user_params(TCHAR *argv[])
 	// or
 	//		threadlcid:1041
 
-	const TCHAR *psz_start_lcid = _T("");
+	const TCHAR szCrtLocale[]   = _T("crtlocale:");
+	const int   nzCrtLocale     = ARRAYSIZE(szCrtLocale)-1;
+
+	const TCHAR *psz_threadlcid = NULL;
 
 	int params = 0;
 	for(; *argv!=NULL; argv++, params++)
 	{
 		if(_tcsnicmp(*argv, szThreadLcid, nzThreadLcid)==0)
 		{
-			psz_start_lcid = (*argv)+nzThreadLcid;
+			psz_threadlcid = (*argv)+nzThreadLcid;
+		}
+		else if(_tcsnicmp(*argv, szCrtLocale, nzCrtLocale)==0) 
+		{
+			g_set_crtlocale = (*argv)+nzCrtLocale;
 		}
 		else
 			break;
 	}
 
-	if(psz_start_lcid[0])
+	if(psz_threadlcid)
 	{
-		g_set_thread_lcid = _tcstoul(psz_start_lcid, NULL, 0);
+		g_set_thread_lcid = _tcstoul(psz_threadlcid, NULL, 0);
 	}
 
 	return params;
@@ -179,10 +195,11 @@ int _tmain(int argc, TCHAR *argv[])
 		if(succ)
 		{
 			LCID lcid2 = GetThreadLocale();
-			if(g_set_thread_lcid==lcid2)
+			if(g_set_thread_lcid==lcid2) // OK
 			{
-				my_tprintf(_T("Startup: Call setlocale(LC_CTYPE, \"\"); \n"));
-				setlocale(LC_CTYPE, "");
+				if(g_set_crtlocale==NULL)
+					g_set_crtlocale = _T(""); // so that setlocale is called later
+				
 			}
 			else
 			{
@@ -193,8 +210,13 @@ int _tmain(int argc, TCHAR *argv[])
 		{
 			my_tprintf(_T("Startup:      SetThreadLocale() fail. WinErr=%d\n"), GetLastError());
 		}
+	}
 
-		newline();
+	if(g_set_crtlocale)
+	{
+		my_tprintf(_T("Startup: Call setlocale(LC_CTYPE, \"%s\"); \n"), g_set_crtlocale);
+		const TCHAR *locret = _tsetlocale(LC_CTYPE, g_set_crtlocale);
+		my_tprintf(_T("  > %s\n"), locret);
 	}
 
 	do_work();
