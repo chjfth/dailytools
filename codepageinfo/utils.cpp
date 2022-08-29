@@ -7,7 +7,7 @@ const TCHAR *app_GetFilenamePart(const TCHAR *pPath)
 	return p ? p+1 : pPath;
 }
 
-int my_getch_noblock()
+int my_getch_noblock(unsigned char default_key)
 {
 	if(_isatty(_fileno(stdout)))
 	{
@@ -15,7 +15,7 @@ int my_getch_noblock()
 		return key;
 	}
 	else 
-		return '0';		
+		return default_key;		
 }
 
 void my_tprintf(const TCHAR *szfmt, ...)
@@ -42,6 +42,14 @@ void app_print_version(const TCHAR *argv0, const TCHAR *verstr)
 	my_tprintf(_T("\n"));
 
 }
+
+const TCHAR *StrLCID(LCID lcid)
+{
+	static TCHAR s_szLCID[20];
+	_sntprintf_s(s_szLCID, ARRAYSIZE(s_szLCID), _T("0x%04X.%04X"), lcid>>16, lcid&0xffff);
+	return s_szLCID;
+}
+
 
 const TCHAR *app_GetWindowsVersionStr3()
 {

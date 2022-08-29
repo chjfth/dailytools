@@ -3,13 +3,6 @@
 
 const TCHAR *g_szversion = _T("1.0.3");
 
-const TCHAR *StrLCID(LCID lcid)
-{
-	static TCHAR s_szLCID[20];
-	_sntprintf_s(s_szLCID, ARRAYSIZE(s_szLCID), _T("0x%04X.%04X"), lcid>>16, lcid&0xffff);
-	return s_szLCID;
-}
-
 void print_api_notavai(const TCHAR *apiname)
 {
 	my_tprintf(_T("WinAPI %s() not available on this OS.\n"), apiname);

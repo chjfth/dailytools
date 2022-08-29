@@ -15,7 +15,7 @@ const TCHAR *app_GetFilenamePart(const TCHAR *pPath);
 
 void app_print_version(const TCHAR *argv0, const TCHAR *verstr);
 
-int my_getch_noblock();
+int my_getch_noblock(unsigned char default_key='0');
 
 void my_tprintf(const TCHAR *szfmt, ...);
 
@@ -23,6 +23,8 @@ inline void newline()
 {
 	my_tprintf(_T("\n"));
 }
+
+const TCHAR *StrLCID(LCID lcid);
 
 const TCHAR *app_GetWindowsVersionStr3();
 
