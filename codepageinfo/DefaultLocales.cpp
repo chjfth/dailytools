@@ -208,31 +208,6 @@ TCHAR * join_msz_strings(const TCHAR *msz, int totchars, TCHAR outbuf[], int buf
 	return outbuf;
 }
 
-BOOL CALLBACK EnumUILanguagesProc(LPTSTR lpUILanguageString, LONG_PTR lParam)
-{
-	my_tprintf(_T("UIlang has: %s\n"), lpUILanguageString);
-
-	WCHAR mszLangchk[80];
-	_tcscpy_s(mszLangchk, lpUILanguageString);
-	mszLangchk[_tcslen(lpUILanguageString)+1] = '\0'; // need double NULL
-	WCHAR arFallback[80] = L"";
-	DWORD nFallback = 80;
-	DWORD LangAttr;
-	BOOL succ = GetUILanguageInfo(MUI_LANGUAGE_NAME, mszLangchk, 
-		arFallback, &nFallback, &LangAttr);
-
-	if(succ)
-	{
-		TCHAR concat[40] = {};
-		my_tprintf(_T("  Fallback: %s , Attr=0x%04X\n"), 
-			join_msz_strings(arFallback, nFallback, concat, ARRAYSIZE(concat)),
-			LangAttr
-			);
-	}
-
-	return true;
-}
-
 
 int _tmain(int argc, TCHAR *argv[])
 {
