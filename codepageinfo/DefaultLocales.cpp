@@ -234,43 +234,8 @@ BOOL CALLBACK EnumUILanguagesProc(LPTSTR lpUILanguageString, LONG_PTR lParam)
 }
 
 
-void test()
-{
-	BOOL succ = 0, succ2 = 0;
-	TCHAR outbuf[80]={}, outbuf2[80]={}, outbuf3[80]={};
-#if 0
-	TCHAR langtag[LOCALE_NAME_MAX_LENGTH]={};
-	GetUserDefaultLocaleName(langtag, ARRAYSIZE(langtag));
-	NLSVERSIONINFOEX nlsver = {sizeof(NLSVERSIONINFOEX)};
-	GetNLSVersionEx(COMPARE_STRING, langtag, &nlsver);
-
-	const TCHAR * langtag= L"uz-UZ";
-	succ = IsValidLocaleName(langtag); 
-	int ret = GetLocaleInfoEx(langtag, LOCALE_SSCRIPTS, outbuf, 80);
-#endif
-	ULONG langs = 0;
-	ULONG bufsize = 80, bufsize2 = 80;
- 	succ = GetUserPreferredUILanguages(MUI_LANGUAGE_NAME, &langs, outbuf, &bufsize);
-
-	succ2 = GetUILanguageFallbackList(outbuf2, 80, &bufsize2);
-
-	wprintf(L"%s\n", join_msz_strings(outbuf2, bufsize2, outbuf3, 80));
-
-	succ = EnumUILanguages(EnumUILanguagesProc, 
-		MUI_LANGUAGE_NAME, 
-		0);
-
-	const WCHAR *mszLangchk = L"de-CH\0";
-	WCHAR arFallback[80] = L"XYZ";
-	DWORD nFallback = 80;
-	DWORD LangAttr;
-	succ = GetUILanguageInfo(MUI_LANGUAGE_NAME, mszLangchk, 
-		arFallback, &nFallback, &LangAttr);
-}
-
 int _tmain(int argc, TCHAR *argv[])
 {
-test();
 	setlocale(LC_CTYPE, "");
 //	setlocale(LC_ALL, "cht_JPN.936"); // OK for VC2010 CRT, ="Chinese (Traditional)_Japan.936"
 
