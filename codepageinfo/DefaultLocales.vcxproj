@@ -93,7 +93,7 @@
       <ImportLibrary>$(OutDir)$(TargetName)--imp.lib</ImportLibrary>
       <GenerateMapFile>true</GenerateMapFile>
       <AdditionalLibraryDirectories>;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SetupAPI.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Muiload.lib;SetupAPI.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <!-- Better build.log file naming -->
     <BuildLog>

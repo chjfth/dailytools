@@ -4,6 +4,7 @@ This should help user discriminate the abstract and ubiquitous word "locale".
 */
 
 #include "utils.h"
+#include <muiload.h>
 
 const TCHAR *g_szversion = _T("1.0.5");
 
@@ -81,8 +82,9 @@ void do_work()
 	/// System-level ///
 
 	lcid = GetSystemDefaultLCID();
+	langid = LANGIDFROMLCID(lcid);
 	my_tprintf(_T("GetSystemDefaultLCID()  => %s (LangID=%u, decimal)\n"), 
-		StrLCID(lcid), LANGIDFROMLCID(lcid));
+		StrLCID(lcid), langid);
 	LL2_print_LCID_Desctext(langid);
 
 	if(dlptr_GetSystemDefaultLocaleName)
@@ -105,8 +107,9 @@ void do_work()
 	/// User-level ///
 
 	lcid = GetUserDefaultLCID();
+	langid = LANGIDFROMLCID(lcid);
 	my_tprintf(_T("GetUserDefaultLCID()    => %s (LangID=%u, decimal)\n"), 
-		StrLCID(lcid), LANGIDFROMLCID(lcid));
+		StrLCID(lcid), langid);
 	LL2_print_LCID_Desctext(langid);
 
 	if(dlptr_GetUserDefaultLocaleName)
@@ -187,9 +190,87 @@ int apply_startup_user_params(TCHAR *argv[])
 	return params;
 }
 
+TCHAR * join_msz_strings(const TCHAR *msz, int totchars, TCHAR outbuf[], int bufchars)
+{
+	outbuf[0] = 0;
+	for(; ;)
+	{
+		int onelen = _tcslen(msz);
+		if(*msz=='\0')
+			break;
+
+		_tcscat_s(outbuf, bufchars, msz);
+		_tcscat_s(outbuf, bufchars, _T(";"));
+
+		//my_tprintf(_T("  %s\n"), msz);
+		msz += onelen+1;
+	}
+	return outbuf;
+}
+
+BOOL CALLBACK EnumUILanguagesProc(LPTSTR lpUILanguageString, LONG_PTR lParam)
+{
+	my_tprintf(_T("UIlang has: %s\n"), lpUILanguageString);
+
+	WCHAR mszLangchk[80];
+	_tcscpy_s(mszLangchk, lpUILanguageString);
+	mszLangchk[_tcslen(lpUILanguageString)+1] = '\0'; // need double NULL
+	WCHAR arFallback[80] = L"";
+	DWORD nFallback = 80;
+	DWORD LangAttr;
+	BOOL succ = GetUILanguageInfo(MUI_LANGUAGE_NAME, mszLangchk, 
+		arFallback, &nFallback, &LangAttr);
+
+	if(succ)
+	{
+		TCHAR concat[40] = {};
+		my_tprintf(_T("  Fallback: %s , Attr=0x%04X\n"), 
+			join_msz_strings(arFallback, nFallback, concat, ARRAYSIZE(concat)),
+			LangAttr
+			);
+	}
+
+	return true;
+}
+
+
+void test()
+{
+	BOOL succ = 0, succ2 = 0;
+	TCHAR outbuf[80]={}, outbuf2[80]={}, outbuf3[80]={};
+#if 0
+	TCHAR langtag[LOCALE_NAME_MAX_LENGTH]={};
+	GetUserDefaultLocaleName(langtag, ARRAYSIZE(langtag));
+	NLSVERSIONINFOEX nlsver = {sizeof(NLSVERSIONINFOEX)};
+	GetNLSVersionEx(COMPARE_STRING, langtag, &nlsver);
+
+	const TCHAR * langtag= L"uz-UZ";
+	succ = IsValidLocaleName(langtag); 
+	int ret = GetLocaleInfoEx(langtag, LOCALE_SSCRIPTS, outbuf, 80);
+#endif
+	ULONG langs = 0;
+	ULONG bufsize = 80, bufsize2 = 80;
+ 	succ = GetUserPreferredUILanguages(MUI_LANGUAGE_NAME, &langs, outbuf, &bufsize);
+
+	succ2 = GetUILanguageFallbackList(outbuf2, 80, &bufsize2);
+
+	wprintf(L"%s\n", join_msz_strings(outbuf2, bufsize2, outbuf3, 80));
+
+	succ = EnumUILanguages(EnumUILanguagesProc, 
+		MUI_LANGUAGE_NAME, 
+		0);
+
+	const WCHAR *mszLangchk = L"de-CH\0";
+	WCHAR arFallback[80] = L"XYZ";
+	DWORD nFallback = 80;
+	DWORD LangAttr;
+	succ = GetUILanguageInfo(MUI_LANGUAGE_NAME, mszLangchk, 
+		arFallback, &nFallback, &LangAttr);
+}
 
 int _tmain(int argc, TCHAR *argv[])
 {
+test();
 	setlocale(LC_CTYPE, "");
 //	setlocale(LC_ALL, "cht_JPN.936"); // OK for VC2010 CRT, ="Chinese (Traditional)_Japan.936"
 
