@@ -1,5 +1,5 @@
 @REM This sample applies to all of 
-@	Team-Prebuild.bat, Team-Postbuild.bat, Personal-Prebuild.bat, Personal-Postbuild.bat
+@REM Team-Prebuild.bat, Team-Postbuild.bat, Personal-Prebuild.bat, Personal-Postbuild.bat
 
 @echo off
 setlocal EnableDelayedExpansion
