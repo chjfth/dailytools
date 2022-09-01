@@ -660,6 +660,10 @@ void print_stock_samples()
 	HANDLE fhIn = CreateFile_stdio(_T("CONIN$"));
 	HANDLE fhOut = CreateFile_stdio(_T("CONOUT$"));
 	HANDLE fhErr = CreateFile_stdio(_T("CONERR$"));
+
+	DWORD ftIn = GetFileType(hIn);   // If console,  return FILE_TYPE_CHAR(2)
+	DWORD ftOut = GetFileType(hOut); // If pipe, return FILE_TYPE_PIPE(3)
+	DWORD ftErr = GetFileType(hErr); // If diskfile, return FILE_TYPE_DISK(1)
 	// just test <<<
 
 	UINT icp1 = GetConsoleCP();
