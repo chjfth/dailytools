@@ -3,7 +3,7 @@ and at the same time, the BOM makes MSVC compiler happy. */
 
 #include "utils.h"
 
-const TCHAR *g_szversion = _T("1.2.2");
+const TCHAR *g_szversion = _T("1.2.3");
 
 int g_start_codepage = 0;
 
@@ -322,53 +322,6 @@ HANDLE CreateFile_stdio(const TCHAR *szfn)
 	return fh;
 }
 
-void print_winapi_locale_detail(const TCHAR lcstr[], bool print_sys_unique_infos=false)
-{
-	LCID lcid = LocaleNameToLCID(lcstr, 0);
-	if(lcid>0)
-	{
-		my_tprintf(_T("# LCID = 0x%04X.%04X\n"), (lcid>>16)&0xFFFF, lcid&0xFFFF);
-	}
-	else
-	{
-		my_tprintf(_T("# LocaleNameToLCID(%s); fail. WinErr=%d\n"), lcstr, GetLastError());
-	}
-
-	if(print_sys_unique_infos)
-	{
-		my_tprintf(_T("# Default ANSI codepage,   GetACP()=%u\n"), GetACP());
-		my_tprintf(_T("# Default OEM codepage, GetOEMACP()=%u\n"), GetOEMCP());
-	}
-}
-
-void print_winapi_locale_info()
-{
-	TCHAR lcsys[LOCALE_NAME_MAX_LENGTH+1] = {};
-	TCHAR lcusr[LOCALE_NAME_MAX_LENGTH+1] = {};
-
-	if(GetSystemDefaultLocaleName(lcsys, LOCALE_NAME_MAX_LENGTH)>0)	{
-		my_tprintf(_T("GetSystemDefaultLocaleName() returns: %s\n"), lcsys);
-		print_winapi_locale_detail(lcsys, true);
-	} else {
-		my_tprintf(_T("GetSystemDefaultLocaleName() error. WinErr=%d\n"), GetLastError());
-	}
-
-	if(GetUserDefaultLocaleName(lcusr, LOCALE_NAME_MAX_LENGTH)>0) {
-		my_tprintf(_T("GetUserDefaultLocaleName() returns: %s\n"), lcusr);
-		
-		// print detail if user's and system's not equal
-		if(_tcscmp(lcusr, lcsys)!=0) {
-			print_winapi_locale_detail(lcusr);
-		} else {
-			my_tprintf(_T("# -- user-locale same as system-locale\n"));
-		}
-	} else {
-		my_tprintf(_T("GetUserDefaultLocaleName() error. WinErr=%d\n"), GetLastError());
-	}
-
-}
-
-
 int apply_startup_user_params(TCHAR *argv[])
 {
 	// On input, argv should points to first param, not to the exe name/path.
@@ -423,7 +376,6 @@ int apply_startup_user_params(TCHAR *argv[])
 	const TCHAR *psz_fdmode = _T("");
 	const TCHAR *psz_chcpsleep = _T("");
 	bool need_debug = false;
-	bool print_winapi_loc = false;
 
 	int params = 0;
 	for(; *argv!=NULL; argv++, params++)
@@ -469,17 +421,8 @@ int apply_startup_user_params(TCHAR *argv[])
 				_getch();
 			}
 		}
-		else if(_tcsicmp(*argv, _T("printwinapiloc"))==0)
-		{
-			print_winapi_loc = true;
-		}
 		else
 			break;
-	}
-
-	if(print_winapi_loc)
-	{
-		print_winapi_locale_info();
 	}
 
 	if(psz_chcpsleep[0])
