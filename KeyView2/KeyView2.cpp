@@ -1,11 +1,11 @@
 /*--------------------------------------------------------
 KEYVIEW2.C -- Displays Keyboard and Character Messages
 (c) Charles Petzold, 1998
-[2015-12-18] Some updates by chj:
- * Show current CharsetID and font face name on title bar.
+[2015-12-18 ~] Some updates by chj:
+ * Show current CharsetID and font facename on title bar.
  * Add a Seq(sequence number) column for easier investigation.
- * Right click context menu to clear to copy screen content,
-   and the copied lines is default to 1000(larger than screen height).
+ * Right click context menu to clear or copy screen content.
+ * Buffered lined quantity can be configured, default 5000.
  * Show hex as well as decimal for VK code and scan code.
 --------------------------------------------------------*/
 #define WIN32_LEAN_AND_MEAN
@@ -411,7 +411,7 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// fall through to WM_DISPLAYCHANGE
 
 	case WM_DISPLAYCHANGE:
-
+	{
 		// Get maximum size of client area
 
 		cxClientMax = GetSystemMetrics (SM_CXMAXIMIZED) ;
@@ -456,6 +456,8 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		g_LinesToDraw = 0 ;
 		g_seq = 0;
 		// fall through
+	}
+
 	case WM_SIZE:
 		if (message == WM_SIZE)
 		{
