@@ -123,6 +123,11 @@ void do_work()
 
 	LL2_print_ansicodepage_and_oemcodepage(lcid);
 
+	/////////////////// TEST CODE:
+	TCHAR tmpbuf[80]={};
+	int tmpret = GetLocaleInfo(GetUserDefaultLCID(), LOCALE_SSHORTDATE, tmpbuf, 80);
+	////////////////////
+
 	langid = GetUserDefaultUILanguage();
 	my_tprintf(_T("GetUserDefaultUILanguage()   => 0x%04X\n"), langid);
 	LL2_print_LCID_Desctext(langid);

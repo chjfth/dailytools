@@ -1,0 +1,28 @@
+#include "iversion.h"
+
+1 VERSIONINFO
+FileVersion    THISLIB_VMAJOR, THISLIB_VMINOR, THISLIB_VBUILD, 0
+ProductVersion THISLIB_VMAJOR, THISLIB_VMINOR, THISLIB_VBUILD, 0
+{
+    BLOCK "StringFileInfo"
+    {
+        BLOCK "040904E4"
+        //language ID = U.S. English, char set = Windows, Multilingual
+        {
+            VALUE "CompanyName", "Public Domain"
+            VALUE "ProductName",     THISLIB_NAME
+            VALUE "FileDescription", THISLIB_NAME
+            VALUE "FileVersion",    THISLIB_VMAJORs "." THISLIB_VMINORs "." THISLIB_VBUILDs
+            VALUE "ProductVersion",    THISLIB_VMAJORs "." THISLIB_VMINORs "." THISLIB_VBUILDs
+            VALUE "LegalCopyright",    "Public domain"
+            VALUE "OriginalFilename" , THISLIB_NAME ".exe"
+            VALUE "InternalName", THISLIB_NAME ".exe"
+            VALUE "Comments","Presented by public domain"
+        }
+    }
+
+    BLOCK "VarFileInfo"
+    {
+        VALUE "Translation", 0x0409, 1252
+    }
+}
