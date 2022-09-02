@@ -83,7 +83,7 @@ easyGetClipboardText(int *ptextchars, HWND hwnd)
 		goto END;
 	}
 
-	text_bytes = GlobalSize(hmem);
+	text_bytes = (int)GlobalSize(hmem);
 
 	// Allocate returning user memory
 	pret = (TCHAR*)GlobalAlloc(GPTR, text_bytes);

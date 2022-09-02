@@ -43,13 +43,11 @@ TScalableArray<int> g_sa;
 const int bsTitlePrefix = 80;
 TCHAR szTitlePrefix[bsTitlePrefix];
 
-#define COUNT(ar) (sizeof(ar)/sizeof(ar[0]))
-
 const TCHAR szTop_s1[] = TEXT ("  Seq Message        VKcode,Keyname  Char     ");
 const TCHAR szTop_s2[] = TEXT ("Repeat Scancode Ext ALT Prev Tran") ;
 const TCHAR szUnd[] = TEXT ("  ___ _______        ______________  ____     ")
 	TEXT ("______ ________ ___ ___ ____ ____") ;
-const int g_chars_per_line = COUNT(szUnd)-1;
+const int g_chars_per_line = ARRAYSIZE(szUnd)-1;
 const int g_chars_per_line_rn = g_chars_per_line+2; // including trailing \r\n
 
 int g_max_store_lines = 5000;
@@ -170,7 +168,8 @@ int WINAPI _tWinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	}
 
 	delete []g_keydes_for_clipboard;
-	return msg.wParam ;
+	
+	return 0 ;
 }
 
 const TCHAR *GetCharsetName(BYTE charsetid)
@@ -198,7 +197,7 @@ const TCHAR *GetCharsetName(BYTE charsetid)
 	};
 	
 	int i;
-	for(i=0; i<COUNT(cs2names); i++)
+	for(i=0; i<ARRAYSIZE(cs2names); i++)
 	{
 		if(charsetid==cs2names[i].id)
 			return cs2names[i].name;
@@ -235,7 +234,7 @@ void GetKeyDes(const MSG &msg, TCHAR s1[], int s1size, TCHAR s2[], int s2size)
 	bool is_stroke_msg = !is_char_msg;
 	
 	TCHAR szKeyName[32] ;
-	GetKeyNameText (msg.lParam, szKeyName, COUNT(szKeyName)); // VK name
+	GetKeyNameText ((LONG)msg.lParam, szKeyName, ARRAYSIZE(szKeyName)); // VK name
 
 	// keydes section 1
 	if(is_stroke_msg)	
@@ -296,13 +295,13 @@ int Do_WM_COMMAND(HWND hwnd, WPARAM wParam, LPARAM lParam)
 	else if(idcmd==IDM_SET_BUFFER_LINES)
 	{
 		//TCHAR exename[200]={0};
-		//GetModuleFileName(NULL, exename, COUNT(exename)-1); 
+		//GetModuleFileName(NULL, exename, ARRAYSIZE(exename)-1); 
 			// This returns absolute path of the exe.
-		//GetProcessImageFileName(GetCurrentProcess(), exename, COUNT(exename)-1);
+		//GetProcessImageFileName(GetCurrentProcess(), exename, ARRAYSIZE(exename)-1);
 			// This returns something like "\Device\HarddiskVolume9\w\personal\chj\...\KeyView2A.exe"
 
 		TCHAR tbuf[200]={0};
-		StringCchPrintf(tbuf, COUNT(tbuf)-1
+		StringCchPrintf(tbuf, ARRAYSIZE(tbuf)-1
 			, 
 			TEXT("Current buffer lines is %d. It can be changed by using command line parameter (max %d).\n")
 			TEXT("For example:\n")
@@ -339,7 +338,7 @@ int Do_WM_COMMAND(HWND hwnd, WPARAM wParam, LPARAM lParam)
 		for(i=0; i<seq_lines; i++)
 		{
 			// hint: first MSG is at tail of pmsg[]
-			GetKeyDes(g_armsg[seq_lines-1-i], keydes_s1, COUNT(keydes_s1), keydes_s2, COUNT(keydes_s2));
+			GetKeyDes(g_armsg[seq_lines-1-i], keydes_s1, ARRAYSIZE(keydes_s1), keydes_s2, ARRAYSIZE(keydes_s2));
 			
 			StringCchPrintf(pfill, g_chars_per_line+1, TEXT("%s%s"), keydes_s1, keydes_s2);
 
@@ -395,7 +394,7 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		return 0 ;
 
 	case WM_INPUTLANGCHANGE:
-		dwCharSet = wParam ;
+		dwCharSet = (DWORD)wParam ;
 		// fall through
 	
 	case WM_CREATE:
@@ -424,10 +423,10 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		cxChar = tm.tmAveCharWidth ;
 		cyChar = tm.tmHeight ;
 
-		GetTextFace(hdc, COUNT(szFontface), szFontface);
+		GetTextFace(hdc, ARRAYSIZE(szFontface), szFontface);
 
 		GetKeyboardLayoutName(szKbLayoutName);
-		StringCchPrintf(szTitle, COUNT(szTitle), 
+		StringCchPrintf(szTitle, ARRAYSIZE(szTitle), 
 			TEXT("%s - Charset=%d(%s) Fontface=\"%s\" Keyboard[name=%s,HKL=%08X]"),
 			szTitlePrefix, 
 			tm.tmCharSet, GetCharsetName(tm.tmCharSet),
@@ -515,7 +514,7 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		for(i=0; i<min(g_LinesToDraw, cyClient/cyChar-1); i++) // -1 to exclude the head line
 		{
-			GetKeyDes(g_armsg[i], keydes_s1, COUNT(keydes_s1), keydes_s2, COUNT(keydes_s2));
+			GetKeyDes(g_armsg[i], keydes_s1, ARRAYSIZE(keydes_s1), keydes_s2, ARRAYSIZE(keydes_s2));
 			
 			// Chj: X position of keydes_s2 should be assigned explicitly, 
 			// because we do not know whether the "%c" in szfmt_char_msg[] is 
@@ -536,7 +535,7 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_INITMENUPOPUP:
 		hmenu_tmp = (HMENU)wParam;
-		pos = lParam;
+		pos = (int)lParam;
 		break;
 
 	case WM_DESTROY:
