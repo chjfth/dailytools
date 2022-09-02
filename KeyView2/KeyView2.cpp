@@ -236,10 +236,13 @@ void GetKeyDes(const MSG &msg, TCHAR s1[], int s1size, TCHAR s2[], int s2size)
 	TCHAR szKeyName[32] ;
 	GetKeyNameText ((LONG)msg.lParam, szKeyName, ARRAYSIZE(szKeyName)); // VK name
 
+	const int keyname_limit = 16;
+	int keyname_len = _tcslen(szKeyName);
+
 	// keydes section 1
 	if(is_stroke_msg)	
 	{
-		static const TCHAR szfmt_stroke_msg[] = TEXT("%5u %-13s %3d(%02Xh) %-16s%c");
+		static const TCHAR szfmt_stroke_msg[] = TEXT("%5u %-13s %3d(%02Xh) %-*.*s%c");
 		StringCchPrintfEx(s1, s1size, NULL, NULL, 
 			STRSAFE_FILL_BEHIND_NULL, // opt, can be 0
 			szfmt_stroke_msg,
@@ -247,17 +250,19 @@ void GetKeyDes(const MSG &msg, TCHAR s1[], int s1size, TCHAR s2[], int s2size)
 			keymsg_name,  // %-13s _Message_ (WM_KEYDOWN etc)
 			msg.wParam,   // %3d   _VKcode_ (VK code, decimal)
 			msg.wParam,   // %02X  _VKcode_ (VK code, hex)
-			szKeyName,    // %-16s (Keyname)
-			TEXT(' '));
+			keyname_limit, keyname_limit, szKeyName,    // %-*.*s (Keyname)
+			keyname_len<=keyname_limit ? TEXT(' ') : TEXT('?') // '?' to indicate text truncation
+			);
+		// Memo: French keyboard, the dead-char "ACCENT CIRCONFLEXE" (at right-side of P) is 18 chars long.
 	}
 	else
 	{
-		static const TCHAR szfmt_char_msg[] = TEXT("%5u %-13s                  0x%04X%1s%c ");
+		static const TCHAR szfmt_char_msg[] = TEXT("%5u %-13.13s                  0x%04X%1s%c ");
 		StringCchPrintfEx(s1, s1size, NULL, NULL, 
 			STRSAFE_FILL_BEHIND_NULL, // opt, can be 0
 			szfmt_char_msg, 
 			msg.time % (g_max_store_lines_max+1),     // %5u
-			keymsg_name,  // %-13s _Message_ (WM_CHAR etc)
+			keymsg_name,  // %-13.13s _Message_ (WM_CHAR etc)
 			msg.wParam,   // %04X  _Char_ (WM_CHAR character code, in 16-bit hex)
 			TEXT(" "),    // %1s
 			msg.wParam    // %c    _Char_'s printable form
