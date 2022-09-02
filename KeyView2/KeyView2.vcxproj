@@ -42,7 +42,8 @@
   <PropertyGroup Label="Configuration">
     <ProjectGuid>{20220903-0000-0000-0000-002555000001}</ProjectGuid>
     <ProjectName>KeyView2</ProjectName>
-     <TargetName>KeyView2</TargetName>
+     <TargetName Condition="!$(Configuration.Contains('ANSI'))">KeyView2U</TargetName>
+     <TargetName Condition=" $(Configuration.Contains('ANSI'))">KeyView2A</TargetName>
     <ConfigurationType>Application</ConfigurationType>
   </PropertyGroup>
   
@@ -172,13 +173,11 @@
   </ImportGroup>
 
   <!-- import VSPG start -->
-                                        <!-- 
   <PropertyGroup>
-    <VSPG_BootsDir_NoTBS>$(SolutionDir)_VSPG\boots</VSPG_BootsDir_NoTBS>
+    <VSPG_BootsDir_NoTBS>..\_VSPG\boots</VSPG_BootsDir_NoTBS>
   </PropertyGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(VSPG_BootsDir_NoTBS)\_VSPG.props" />
   </ImportGroup>
-                                        -->
   <!-- import VSPG end -->
 </Project>
