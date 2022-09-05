@@ -2,7 +2,7 @@
 KEYVIEW2.C -- Displays Keyboard and Character Messages
 (c) Charles Petzold, 1998
 [2015-12-18 ~] Some updates by chj:
- * Show current CharsetID and font facename on title bar.
+ * Show current Charset value and FontFace name on title bar.
  * Add a Seq(sequence number) column for easier investigation.
  * Right click context menu to clear or copy screen content.
  * Buffered lined quantity can be configured, default 5000.
