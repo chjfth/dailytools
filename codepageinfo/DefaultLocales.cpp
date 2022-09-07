@@ -6,7 +6,7 @@ This should help user discriminate the abstract and ubiquitous word "locale".
 #include "utils.h"
 #include <muiload.h>
 
-const TCHAR *g_szversion = _T("1.0.5");
+const TCHAR *g_szversion = _T("1.0.6");
 
 LCID g_set_thread_lcid = 0; // If not 0, will call SetThreadLocale() with this value.
 const TCHAR *g_set_crtlocale = NULL;
@@ -58,13 +58,51 @@ void verify_locname_lcid_match(const TCHAR *locname, LCID lcid)
 	}
 }
 
-void LL2_print_ansicodepage_and_oemcodepage(LCID lcid)
+void LL2_print_ansicodepage_and_oemcodepage(LCID lcid, bool verify_syscp=false)
 {
-	my_tprintf(_T("  > LOCALE_IDEFAULTANSICODEPAGE  (ANSI codepage): %s\n"), 
-		get_ll2info(lcid, LOCALE_IDEFAULTANSICODEPAGE));
+	const TCHAR *psz_ansi_codepage = get_ll2info(lcid, LOCALE_IDEFAULTANSICODEPAGE);
+	UINT acp = GetACP();
+	if(verify_syscp)
+	{
+		if(_ttoi(psz_ansi_codepage)==acp)
+		{
+			my_tprintf(_T("  > LOCALE_IDEFAULTANSICODEPAGE  (ANSI codepage): %s (=GetACP())\n"), 
+				psz_ansi_codepage);
+		}
+		else
+		{
+			my_tprintf(_T("  > LOCALE_IDEFAULTANSICODEPAGE  (ANSI codepage): %s !!!\n"), 
+				psz_ansi_codepage);
+			my_tprintf(_T("  > [PANIC!] This does NOT match GetACP()=%u !!!\n"), acp);
+		}
+	}
+	else
+	{
+		my_tprintf(_T("  > LOCALE_IDEFAULTANSICODEPAGE  (ANSI codepage): %s\n"), 
+			psz_ansi_codepage);
+	}
 
-	my_tprintf(_T("  > LOCALE_IDEFAULTCODEPAGE       (OEM codepage): %s\n"), 
-		get_ll2info(lcid, LOCALE_IDEFAULTCODEPAGE));
+	const TCHAR *psz_oem_codepage = get_ll2info(lcid, LOCALE_IDEFAULTCODEPAGE);
+	UINT oemcp = GetOEMCP();
+	if(verify_syscp)
+	{
+		if(_ttoi(psz_oem_codepage)==oemcp)
+		{
+			my_tprintf(_T("  > LOCALE_IDEFAULTCODEPAGE       (OEM codepage): %s (=GetOEMCP())\n"), 
+				psz_oem_codepage);
+		}
+		else
+		{
+			my_tprintf(_T("  > LOCALE_IDEFAULTCODEPAGE       (OEM codepage): %s !!!\n"), 
+				psz_oem_codepage);
+			my_tprintf(_T("  > [PANIC!] This does NOT match GetOEMCP()=%u !!!\n"), oemcp);
+		}		
+	}
+	else
+	{
+		my_tprintf(_T("  > LOCALE_IDEFAULTCODEPAGE       (OEM codepage): %s\n"), 
+			psz_oem_codepage);
+	}
 }
 
 void LL2_print_LCID_Desctext(LCID lcid)
@@ -96,7 +134,7 @@ void do_work()
 		verify_locname_lcid_match(locname, lcid);
 	}
 
-	LL2_print_ansicodepage_and_oemcodepage(lcid);
+	LL2_print_ansicodepage_and_oemcodepage(lcid, true);
 
 	langid = GetSystemDefaultUILanguage();
 	my_tprintf(_T("GetSystemDefaultUILanguage() => 0x%04X\n"), langid);
