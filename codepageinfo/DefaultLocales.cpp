@@ -6,7 +6,7 @@ This should help user discriminate the abstract and ubiquitous word "locale".
 #include "utils.h"
 #include <muiload.h>
 
-const TCHAR *g_szversion = _T("1.0.6");
+const TCHAR *g_szversion = _T("1.0.7");
 
 LCID g_set_thread_lcid = 0; // If not 0, will call SetThreadLocale() with this value.
 const TCHAR *g_set_crtlocale = NULL;
@@ -107,8 +107,9 @@ void LL2_print_ansicodepage_and_oemcodepage(LCID lcid, bool verify_syscp=false)
 
 void LL2_print_LCID_Desctext(LCID lcid)
 {
-	my_tprintf(_T("  : LCID English desc: %s\n"), Desctext_from_LCID(lcid, false));
-	my_tprintf(_T("  : LCID Native  desc: %s\n"), Desctext_from_LCID(lcid, true));
+	my_tprintf(_T("  : LCID English   desc: %s\n"), Desctext_from_LCID(lcid, DepictLang_English));
+	my_tprintf(_T("  : LCID Localized desc: %s\n"), Desctext_from_LCID(lcid, DepictLang_localized));
+	my_tprintf(_T("  : LCID Native    desc: %s\n"), Desctext_from_LCID(lcid, DepictLang_native));
 }
 
 void do_work()

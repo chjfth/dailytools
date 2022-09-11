@@ -99,7 +99,7 @@ const TCHAR *app_GetWindowsVersionStr3()
 
 DEFINE_DLPTR_WINAPI("kernel32.dll", LCIDToLocaleName)
 
-const TCHAR *Desctext_from_LCID(LCID lcid, bool need_native_name)
+const TCHAR *Desctext_from_LCID(LCID lcid, DepictLang_et dlang)
 {
 	// need_native_name==false, means desc-text in English, so it's always printf-safe
 
@@ -115,8 +115,12 @@ const TCHAR *Desctext_from_LCID(LCID lcid, bool need_native_name)
 		_sntprintf_s(szDesc, ARRAYSIZE(szDesc), _T("[%s] "), langtag);
 	}
 
-	LCTYPE lcLang = need_native_name ? LOCALE_SLANGUAGE : LOCALE_SENGLISHLANGUAGENAME;
-	LCTYPE lcRegn = need_native_name ? LOCALE_SCOUNTRY : LOCALE_SENGLISHCOUNTRYNAME;
+	LCTYPE lcLang = LOCALE_SENGLISHLANGUAGENAME;
+	LCTYPE lcRegn = LOCALE_SENGLISHCOUNTRYNAME;
+	if(dlang==DepictLang_localized)
+		lcLang = LOCALE_SLOCALIZEDLANGUAGENAME, lcRegn = LOCALE_SLOCALIZEDCOUNTRYNAME;
+	else if(dlang==DepictLang_native)
+		lcLang = LOCALE_SNATIVELANGNAME, lcRegn = LOCALE_SNATIVECOUNTRYNAME;
 
 	TCHAR sztmp[40] = {};
 

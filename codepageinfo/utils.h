@@ -29,4 +29,11 @@ const TCHAR *StrLCID(LCID lcid);
 
 const TCHAR *app_GetWindowsVersionStr3();
 
-const TCHAR *Desctext_from_LCID(LCID lcid, bool need_native_name=false);
+enum DepictLang_et
+{
+	DepictLang_English = 0,
+	DepictLang_localized = 1, // current system's UI language
+	DepictLang_native = 2, // the language current LCID argument is referring to
+};
+
+const TCHAR *Desctext_from_LCID(LCID lcid, DepictLang_et dlang=DepictLang_English);
