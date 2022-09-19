@@ -6,7 +6,7 @@ This should help user discriminate the abstract and ubiquitous word "locale".
 #include "utils.h"
 #include <muiload.h>
 
-const TCHAR *g_szversion = _T("1.0.7");
+const TCHAR *g_szversion = _T("1.0.8");
 
 LCID g_set_thread_lcid = 0; // If not 0, will call SetThreadLocale() with this value.
 const TCHAR *g_set_crtlocale = NULL;
@@ -118,7 +118,16 @@ void do_work()
 	TCHAR locname[LOCALE_NAME_MAX_LENGTH+1] = {};
 	LANGID langid = 0;
 		
-	/// System-level ///
+	/// Show console-codepage ///
+
+	UINT orig_icp = GetConsoleCP();
+	UINT orig_ocp = GetConsoleOutputCP();
+	my_tprintf(_T("Current GetConsoleCP()       = %d\n"), orig_icp);
+	my_tprintf(_T("Current GetConsoleOutputCP() = %d\n"), orig_ocp);
+
+	newline();
+	
+	/// WinAPI System-locale ///
 
 	lcid = GetSystemDefaultLCID();
 	langid = LANGIDFROMLCID(lcid);
@@ -143,7 +152,7 @@ void do_work()
 
 	newline();
 
-	/// User-level ///
+	/// WinAPI User-locale ///
 
 	lcid = GetUserDefaultLCID();
 	langid = LANGIDFROMLCID(lcid);
@@ -178,15 +187,6 @@ void do_work()
 	lcid = GetThreadLocale();
 	my_tprintf(_T("GetThreadLocale()   => %s\n"), StrLCID(lcid));
 	LL2_print_ansicodepage_and_oemcodepage(lcid);
-
-	newline();
-
-	/// Show console-codepage ///
-
-	UINT orig_icp = GetConsoleCP();
-	UINT orig_ocp = GetConsoleOutputCP();
-	my_tprintf(_T("Current GetConsoleCP()       = %d\n"), orig_icp);
-	my_tprintf(_T("Current GetConsoleOutputCP() = %d\n"), orig_ocp);
 
 	newline();
 
@@ -282,7 +282,7 @@ int _tmain(int argc, TCHAR *argv[])
 		}
 		else
 		{
-			my_tprintf(_T("Startup:      SetThreadLocale() fail. WinErr=%d\n"), GetLastError());
+			my_tprintf(_T("Startup:      SetThreadLocale() fail. [%s]\n"), app_WinErrStr());
 		}
 	}
 

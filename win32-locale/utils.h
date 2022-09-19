@@ -37,3 +37,5 @@ enum DepictLang_et
 };
 
 const TCHAR *Desctext_from_LCID(LCID lcid, DepictLang_et dlang=DepictLang_English);
+
+const TCHAR * app_WinErrStr(DWORD winerr=-1);

@@ -134,3 +134,35 @@ const TCHAR *Desctext_from_LCID(LCID lcid, DepictLang_et dlang)
 
 	return szDesc;
 }
+
+const TCHAR * app_WinErrStr(DWORD winerr)
+{
+	static TCHAR s_retbuf[400] = {};
+	TCHAR szWinErr[200] = {};
+
+	s_retbuf[0] = 0;
+	
+	if (winerr == (DWORD)-1)
+		winerr = GetLastError();
+
+	DWORD retchars = FormatMessage(
+		FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL, 
+		winerr,
+		MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), // LANGID
+		szWinErr, ARRAYSIZE(szWinErr),
+		NULL); 
+
+	if(retchars>0)
+	{
+		_sntprintf_s(s_retbuf, _TRUNCATE, _T("WinErr=%d, %s"), winerr, szWinErr);
+	}
+	else
+	{
+		_sntprintf_s(s_retbuf, _TRUNCATE, 
+			_T("WinErr=%d (FormatMessage does not known this error-code)"), 
+			winerr);
+	}
+	
+	return s_retbuf;
+}
