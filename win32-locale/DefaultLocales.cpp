@@ -6,12 +6,22 @@ This should help user discriminate the abstract and ubiquitous word "locale".
 #include "utils.h"
 #include <muiload.h>
 
-const TCHAR *g_szversion = _T("1.0.8");
+const TCHAR *g_szversion = _T("1.0.9");
 
 LCID g_set_thread_lcid = 0; // If not 0, will call SetThreadLocale() with this value.
 const TCHAR *g_set_crtlocale = NULL;
 
 ////////
+
+// Define this struct to reflect first few members of VC2019 CRT __crt_multibyte_data.
+// Lucky to see this definition here is compatible with VC2010.
+struct _digged_mbcinfo
+{
+	long refcount;
+	int mb_codepage;  // the so-called multibyte-codepage in a locale struct
+	int ismbcdoepage; // 1=DBCS codepage(GBK, Big5 etc), 0=SBCS codepage
+};
+
 
 void print_api_notavai(const TCHAR *apiname)
 {
@@ -112,6 +122,35 @@ void LL2_print_LCID_Desctext(LCID lcid)
 	my_tprintf(_T("  : LCID Native    desc: %s\n"), Desctext_from_LCID(lcid, DepictLang_native));
 }
 
+int detect_lc_codepage_offset()
+{
+	// MSVCRT does not provide an API to tell us what the .lc_codepage value is
+	// from a struct pointed to _locale_t, so we need to probe it ourselves.
+	// On VC2010, it is at 1-int, on VC2019, it is on 2-int.
+	
+	const int tcodepage = 1252;
+	char locstr[10] = {};
+	_snprintf_s(locstr, _TRUNCATE, ".%d", tcodepage);
+	
+	_locale_t lct = _create_locale(LC_CTYPE, locstr);
+	const int *plocinfo = (int*)lct->locinfo;
+
+	const int maxprobe = 10;
+	int i;
+	for(i=0; i<maxprobe; i++)
+	{
+		if (plocinfo[i] == tcodepage)
+			break;
+	}
+
+	_free_locale(lct);
+
+	if (i < maxprobe)
+		return i; // return value is `int` count
+	else
+		return -1;
+}
+
 void do_work()
 {
 	LCID lcid = 0; 
@@ -193,8 +232,24 @@ void do_work()
 	/// Check what CRT locale() tells us.
 
 	const TCHAR *crtlocstr = _tsetlocale(LC_ALL, NULL); // query current
-	my_tprintf(_T("setlocale(LC_ALL) query returns: \n  %s\n"), crtlocstr);
+	my_tprintf(_T("setlocale(LC_ALL, NULL) query returns: \n  %s\n"), crtlocstr);
 
+	_locale_t lcnow = _get_current_locale();
+
+	int lccoffs = detect_lc_codepage_offset();
+	if(lccoffs<0)
+	{
+		my_tprintf(_T("[Unexpect] detect_lc_codepage_offset() fail!\n"));
+	}
+	else
+	{
+		int lc_codepage = *((int*)(lcnow->locinfo) + lccoffs);
+		my_tprintf(_T("[probed] .lc_codepage = %d (offset %d-int)\n"), lc_codepage, lccoffs);
+	}
+	
+	const _digged_mbcinfo *p_mbcinfo = (_digged_mbcinfo*)(lcnow->mbcinfo);
+	my_tprintf(_T("[probed] .mb_codepage = %d\n"), 
+		p_mbcinfo->mb_codepage);
 }
 
 int apply_startup_user_params(TCHAR *argv[])
