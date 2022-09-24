@@ -6,7 +6,7 @@ This should help user discriminate the abstract and ubiquitous word "locale".
 #include "utils.h"
 #include <muiload.h>
 
-const TCHAR *g_szversion = _T("1.0.9");
+const TCHAR *g_szversion = _T("1.1.0");
 
 LCID g_set_thread_lcid = 0; // If not 0, will call SetThreadLocale() with this value.
 const TCHAR *g_set_crtlocale = NULL;
@@ -165,7 +165,13 @@ void do_work()
 	my_tprintf(_T("Current GetConsoleOutputCP() = %d\n"), orig_ocp);
 
 	newline();
+
+	/// GetSystemDefaultUILanguage() ///
 	
+	langid = GetSystemDefaultUILanguage();
+	my_tprintf(_T("GetSystemDefaultUILanguage() => 0x%04X\n"), langid);
+	LL2_print_LCID_Desctext(langid);
+
 	/// WinAPI System-locale ///
 
 	lcid = GetSystemDefaultLCID();
@@ -185,11 +191,13 @@ void do_work()
 
 	LL2_print_ansicodepage_and_oemcodepage(lcid, true);
 
-	langid = GetSystemDefaultUILanguage();
-	my_tprintf(_T("GetSystemDefaultUILanguage() => 0x%04X\n"), langid);
-	LL2_print_LCID_Desctext(langid);
-
 	newline();
+
+	/// GetUserDefaultUILanguage() ///
+
+	langid = GetUserDefaultUILanguage();
+	my_tprintf(_T("GetUserDefaultUILanguage()   => 0x%04X\n"), langid);
+	LL2_print_LCID_Desctext(langid);
 
 	/// WinAPI User-locale ///
 
@@ -210,15 +218,6 @@ void do_work()
 
 	LL2_print_ansicodepage_and_oemcodepage(lcid);
 
-	/////////////////// TEST CODE:
-	TCHAR tmpbuf[80]={};
-	int tmpret = GetLocaleInfo(GetUserDefaultLCID(), LOCALE_SSHORTDATE, tmpbuf, 80);
-	////////////////////
-
-	langid = GetUserDefaultUILanguage();
-	my_tprintf(_T("GetUserDefaultUILanguage()   => 0x%04X\n"), langid);
-	LL2_print_LCID_Desctext(langid);
-
 	newline();
 
 	/// Thread locale /// 
@@ -229,7 +228,7 @@ void do_work()
 
 	newline();
 
-	/// Check what CRT locale() tells us.
+	/// Check/Probe what CRT locale() tells us.
 
 	const TCHAR *crtlocstr = _tsetlocale(LC_ALL, NULL); // query current
 	my_tprintf(_T("setlocale(LC_ALL, NULL) query returns: \n  %s\n"), crtlocstr);
@@ -310,6 +309,9 @@ TCHAR * join_msz_strings(const TCHAR *msz, int totchars, TCHAR outbuf[], int buf
 
 int _tmain(int argc, TCHAR *argv[])
 {
+	setvbuf(stdout, NULL, _IONBF, 0);
+	_setmode(_fileno(stdout), _O_U8TEXT);
+	
 	setlocale(LC_CTYPE, "");
 //	setlocale(LC_ALL, "cht_JPN.936"); // OK for VC2010 CRT, ="Chinese (Traditional)_Japan.936"
 
