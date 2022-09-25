@@ -25,7 +25,7 @@ inline void newline()
 	my_tprintf(_T("\n"));
 }
 
-const TCHAR *StrLCID(LCID lcid);
+const TCHAR *HexstrLCID(LCID lcid);
 
 const TCHAR *app_GetWindowsVersionStr3();
 
@@ -36,6 +36,6 @@ enum DepictLang_et
 	DepictLang_native = 2, // the language current LCID argument is referring to
 };
 
-const TCHAR *Desctext_from_LCID(LCID lcid, DepictLang_et dlang=DepictLang_English);
+const TCHAR *Desctext_from_LANGID(LANGID lcid, DepictLang_et dlang=DepictLang_English);
 
 const TCHAR * app_WinErrStr(DWORD winerr=-1);

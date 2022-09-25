@@ -6,7 +6,7 @@ This should help user discriminate the abstract and ubiquitous word "locale".
 #include "utils.h"
 #include <muiload.h>
 
-const TCHAR *g_szversion = _T("1.1.0");
+const TCHAR *g_szversion = _T("1.1.1");
 
 LCID g_set_thread_lcid = 0; // If not 0, will call SetThreadLocale() with this value.
 const TCHAR *g_set_crtlocale = NULL;
@@ -54,7 +54,7 @@ void verify_locname_lcid_match(const TCHAR *locname, LCID lcid)
 	if(lcid!=lcid2)
 	{
 		my_tprintf(_T("  [unexpect] LocaleNameToLCID(\"%s\") returns %s (not match!)\n"), 
-			locname, StrLCID(lcid2));
+			locname, HexstrLCID(lcid2));
 	}
 	// 
 
@@ -115,11 +115,11 @@ void LL2_print_ansicodepage_and_oemcodepage(LCID lcid, bool verify_syscp=false)
 	}
 }
 
-void LL2_print_LCID_Desctext(LCID lcid)
+void LL2_print_LANGID_Desctext(LANGID langid)
 {
-	my_tprintf(_T("  : LCID English   desc: %s\n"), Desctext_from_LCID(lcid, DepictLang_English));
-	my_tprintf(_T("  : LCID Localized desc: %s\n"), Desctext_from_LCID(lcid, DepictLang_localized));
-	my_tprintf(_T("  : LCID Native    desc: %s\n"), Desctext_from_LCID(lcid, DepictLang_native));
+	my_tprintf(_T("  : LangID English   desc: %s\n"), Desctext_from_LANGID(langid, DepictLang_English));
+	my_tprintf(_T("  : LangID Localized desc: %s\n"), Desctext_from_LANGID(langid, DepictLang_localized));
+	my_tprintf(_T("  : LangID Native    desc: %s\n"), Desctext_from_LANGID(langid, DepictLang_native));
 }
 
 int detect_lc_codepage_offset()
@@ -170,15 +170,15 @@ void do_work()
 	
 	langid = GetSystemDefaultUILanguage();
 	my_tprintf(_T("GetSystemDefaultUILanguage() => 0x%04X\n"), langid);
-	LL2_print_LCID_Desctext(langid);
+	LL2_print_LANGID_Desctext(langid);
 
 	/// WinAPI System-locale ///
 
 	lcid = GetSystemDefaultLCID();
 	langid = LANGIDFROMLCID(lcid);
 	my_tprintf(_T("GetSystemDefaultLCID()  => %s (LangID=%u, decimal)\n"), 
-		StrLCID(lcid), langid);
-	LL2_print_LCID_Desctext(langid);
+		HexstrLCID(lcid), langid);
+	LL2_print_LANGID_Desctext(langid);
 
 	if(dlptr_GetSystemDefaultLocaleName)
 	{
@@ -197,15 +197,15 @@ void do_work()
 
 	langid = GetUserDefaultUILanguage();
 	my_tprintf(_T("GetUserDefaultUILanguage()   => 0x%04X\n"), langid);
-	LL2_print_LCID_Desctext(langid);
+	LL2_print_LANGID_Desctext(langid);
 
 	/// WinAPI User-locale ///
 
 	lcid = GetUserDefaultLCID();
 	langid = LANGIDFROMLCID(lcid);
 	my_tprintf(_T("GetUserDefaultLCID()    => %s (LangID=%u, decimal)\n"), 
-		StrLCID(lcid), langid);
-	LL2_print_LCID_Desctext(langid);
+		HexstrLCID(lcid), langid);
+	LL2_print_LANGID_Desctext(langid);
 
 	if(dlptr_GetUserDefaultLocaleName)
 	{
@@ -223,7 +223,8 @@ void do_work()
 	/// Thread locale /// 
 
 	lcid = GetThreadLocale();
-	my_tprintf(_T("GetThreadLocale()   => %s\n"), StrLCID(lcid));
+	my_tprintf(_T("GetThreadLocale() => %s\n"), HexstrLCID(lcid));
+	LL2_print_LANGID_Desctext(LANGIDFROMLCID(lcid));
 	LL2_print_ansicodepage_and_oemcodepage(lcid);
 
 	newline();

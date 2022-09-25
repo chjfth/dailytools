@@ -50,7 +50,7 @@ void app_print_version(const TCHAR *argv0, const TCHAR *verstr)
 
 }
 
-const TCHAR *StrLCID(LCID lcid)
+const TCHAR *HexstrLCID(LCID lcid)
 {
 	static TCHAR s_szLCID[20];
 	_sntprintf_s(s_szLCID, ARRAYSIZE(s_szLCID), _T("0x%04X.%04X"), lcid>>16, lcid&0xffff);
@@ -99,7 +99,7 @@ const TCHAR *app_GetWindowsVersionStr3()
 
 DEFINE_DLPTR_WINAPI("kernel32.dll", LCIDToLocaleName)
 
-const TCHAR *Desctext_from_LCID(LCID lcid, DepictLang_et dlang)
+const TCHAR *Desctext_from_LANGID(LANGID lcid, DepictLang_et dlang)
 {
 	// need_native_name==false, means desc-text in English, so it's always printf-safe
 
