@@ -6,10 +6,11 @@ This should help user discriminate the abstract and ubiquitous word "locale".
 #include "utils.h"
 #include <muiload.h>
 
-const TCHAR *g_szversion = _T("1.1.3");
+const TCHAR *g_szversion = _T("1.1.4");
 
 LCID g_set_thread_lcid = 0; // If not 0, will call SetThreadLocale() with this value.
 const TCHAR *g_set_crtlocale = NULL;
+int g_consolecp = 0;
 bool g_pause_on_quit = false;
 
 ////////
@@ -273,26 +274,28 @@ int apply_startup_user_params(TCHAR *argv[])
 	const TCHAR szCrtLocale[]   = _T("crtlocale:");
 	const int   nzCrtLocale     = ARRAYSIZE(szCrtLocale)-1;
 
-	const TCHAR *psz_threadlcid = NULL;
+	const TCHAR szConsoleCP[] = _T("consolecp:");
+	const int   nzConsoleCP   = ARRAYSIZE(szConsoleCP)-1;
 
 	int params = 0;
 	for(; *argv!=NULL; argv++, params++)
 	{
 		if(_tcsnicmp(*argv, szThreadLcid, nzThreadLcid)==0)
 		{
-			psz_threadlcid = (*argv)+nzThreadLcid;
+			const TCHAR *psz_threadlcid = (*argv)+nzThreadLcid;
+			g_set_thread_lcid = _tcstoul(psz_threadlcid, NULL, 0);
 		}
 		else if(_tcsnicmp(*argv, szCrtLocale, nzCrtLocale)==0) 
 		{
 			g_set_crtlocale = (*argv)+nzCrtLocale;
 		}
+		else if(_tcsnicmp(*argv, szConsoleCP, nzConsoleCP)==0)
+		{
+			const TCHAR *psz_consolecp = (*argv) + nzConsoleCP;
+			g_consolecp = _tcstoul(psz_consolecp, NULL, 0);
+		}
 		else
 			break;
-	}
-
-	if(psz_threadlcid)
-	{
-		g_set_thread_lcid = _tcstoul(psz_threadlcid, NULL, 0);
 	}
 
 	return params;
@@ -366,6 +369,18 @@ int _tmain(int argc, TCHAR *argv[])
 		my_tprintf(_T("Startup: Call setlocale(LC_CTYPE, \"%s\"); \n"), g_set_crtlocale);
 		const TCHAR *locret = _tsetlocale(LC_CTYPE, g_set_crtlocale);
 		my_tprintf(_T("  > %s\n"), locret);
+	}
+
+	if(g_consolecp)
+	{
+		my_tprintf(_T("Startup: Set console input/output codepage to %d\n"), g_consolecp);
+		BOOL succ1 = SetConsoleCP(g_consolecp);
+		if (!succ1)
+			my_tprintf(_T("SetConsoleCP() fail. %s\n"), app_WinErrStr());
+		
+		BOOL succ2 = SetConsoleOutputCP(g_consolecp);
+		if (!succ2)
+			my_tprintf(_T("SetConsoleOutputCP fail. %s\n"), app_WinErrStr());
 	}
 
 	do_work();
