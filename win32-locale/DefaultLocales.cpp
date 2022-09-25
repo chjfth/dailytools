@@ -6,10 +6,11 @@ This should help user discriminate the abstract and ubiquitous word "locale".
 #include "utils.h"
 #include <muiload.h>
 
-const TCHAR *g_szversion = _T("1.1.2");
+const TCHAR *g_szversion = _T("1.1.3");
 
 LCID g_set_thread_lcid = 0; // If not 0, will call SetThreadLocale() with this value.
 const TCHAR *g_set_crtlocale = NULL;
+bool g_pause_on_quit = false;
 
 ////////
 
@@ -320,11 +321,19 @@ int _tmain(int argc, TCHAR *argv[])
 {
 	setvbuf(stdout, NULL, _IONBF, 0);
 	_setmode(_fileno(stdout), _O_U8TEXT);
-	
+
 	setlocale(LC_CTYPE, "");
 //	setlocale(LC_ALL, "cht_JPN.936"); // OK for VC2010 CRT, ="Chinese (Traditional)_Japan.936"
 
 	app_print_version(argv[0], g_szversion);
+
+	// If filename contains "pause", we'll pause(wait for a key) at program end.
+	// 
+	const TCHAR *pfn = app_GetFilenamePart(argv[0]);
+	if (_tcsstr(pfn, _T("pause")) != NULL)
+	{
+		g_pause_on_quit = true;
+	}
 
 	apply_startup_user_params(argv+1);
 
@@ -361,5 +370,13 @@ int _tmain(int argc, TCHAR *argv[])
 
 	do_work();
 
+	if(g_pause_on_quit)
+	{
+		// If user double clicks this command-line exe from Explorer, then he may need this.
+		my_tprintf(_T("\n"));
+		my_tprintf(_T("==Press a key to end this program.==\n"));
+		_getch();
+	}
+	
 	return 0;
 }
