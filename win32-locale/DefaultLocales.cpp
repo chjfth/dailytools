@@ -6,7 +6,7 @@ This should help user discriminate the abstract and ubiquitous word "locale".
 #include "utils.h"
 #include <muiload.h>
 
-const TCHAR *g_szversion = _T("1.1.4");
+const TCHAR *g_szversion = _T("1.1.5");
 
 LCID g_set_thread_lcid = 0; // If not 0, will call SetThreadLocale() with this value.
 const TCHAR *g_set_crtlocale = NULL;
@@ -73,19 +73,26 @@ void verify_locname_lcid_match(const TCHAR *locname, LCID lcid)
 void LL2_print_ansicodepage_and_oemcodepage(LCID lcid, bool verify_syscp=false)
 {
 	const TCHAR *psz_ansi_codepage = get_ll2info(lcid, LOCALE_IDEFAULTANSICODEPAGE);
-	UINT acp = GetACP();
+	UINT true_acp = GetACP();
 	if(verify_syscp)
 	{
-		if(_ttoi(psz_ansi_codepage)==acp)
+		UINT locale_acp = _ttoi(psz_ansi_codepage);
+		if(true_acp==locale_acp)
 		{
 			my_tprintf(_T("  > LOCALE_IDEFAULTANSICODEPAGE  (ANSI codepage): %s (=GetACP())\n"), 
 				psz_ansi_codepage);
+		}
+		else if(true_acp==CP_UTF8)
+		{
+			my_tprintf(_T("  > LOCALE_IDEFAULTANSICODEPAGE  (ANSI codepage): %s\n"),
+				psz_ansi_codepage);
+			my_tprintf(_T("  > But, GetACP()=  65001, so UTF8ACP is enabled on this OS.\n"));
 		}
 		else
 		{
 			my_tprintf(_T("  > LOCALE_IDEFAULTANSICODEPAGE  (ANSI codepage): %s !!!\n"), 
 				psz_ansi_codepage);
-			my_tprintf(_T("  > [PANIC!] This does NOT match GetACP()=%u !!!\n"), acp);
+			my_tprintf(_T("  > [PANIC!] This does NOT match GetACP()=%u !!!\n"), true_acp);
 		}
 	}
 	else
@@ -95,19 +102,26 @@ void LL2_print_ansicodepage_and_oemcodepage(LCID lcid, bool verify_syscp=false)
 	}
 
 	const TCHAR *psz_oem_codepage = get_ll2info(lcid, LOCALE_IDEFAULTCODEPAGE);
-	UINT oemcp = GetOEMCP();
+	UINT true_oemcp = GetOEMCP();
 	if(verify_syscp)
 	{
-		if(_ttoi(psz_oem_codepage)==oemcp)
+		UINT locale_oemcp = _ttoi(psz_oem_codepage);
+		if(true_oemcp==locale_oemcp)
 		{
 			my_tprintf(_T("  > LOCALE_IDEFAULTCODEPAGE       (OEM codepage): %s (=GetOEMCP())\n"), 
 				psz_oem_codepage);
+		}
+		else if (true_oemcp==CP_UTF8)
+		{
+			my_tprintf(_T("  > LOCALE_IDEFAULTCODEPAGE       (OEM codepage): %s\n"),
+				psz_oem_codepage);
+			my_tprintf(_T("  > But, GetOEMCP()=65001, so UTF8ACP is enabled on this OS.\n"));
 		}
 		else
 		{
 			my_tprintf(_T("  > LOCALE_IDEFAULTCODEPAGE       (OEM codepage): %s !!!\n"), 
 				psz_oem_codepage);
-			my_tprintf(_T("  > [PANIC!] This does NOT match GetOEMCP()=%u !!!\n"), oemcp);
+			my_tprintf(_T("  > [PANIC!] This does NOT match GetOEMCP()=%u !!!\n"), true_oemcp);
 		}		
 	}
 	else
