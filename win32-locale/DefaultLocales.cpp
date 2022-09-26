@@ -360,7 +360,7 @@ TCHAR * join_msz_strings(const TCHAR *msz, int totchars, TCHAR outbuf[], int buf
 	outbuf[0] = 0;
 	for(; ;)
 	{
-		int onelen = _tcslen(msz);
+		int onelen = (int)_tcslen(msz);
 		if(*msz=='\0')
 			break;
 
@@ -401,7 +401,7 @@ int _tmain(int argc, TCHAR *argv[])
 			}
 			else
 			{
-				my_tprintf(_T("[Unexpect] GetThreadLocale() does NOT report the LCID wet just set!\n"));
+				my_tprintf(_T("[Unexpect] GetThreadLocale()=0x%04X, does NOT match the LCID wet just set!\n"), lcid2);
 				exit(1);
 			}
 		}
