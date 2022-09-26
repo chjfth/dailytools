@@ -6,10 +6,11 @@ This should help user discriminate the abstract and ubiquitous word "locale".
 #include "utils.h"
 #include <muiload.h>
 
-const TCHAR *g_szversion = _T("1.1.6");
+const TCHAR *g_szversion = _T("1.2.0");
 
 LCID g_set_thread_lcid = 0; // If not 0, will call SetThreadLocale() with this value.
-const TCHAR *g_set_crtlocale = NULL;
+const TCHAR *g_set_crtlocale = _T("");
+int g_crtmbcp = 0;  // for CRT _setmbcp();
 int g_consolecp = 0;
 bool g_pause_on_quit = false;
 
@@ -268,11 +269,11 @@ void do_work()
 	else
 	{
 		int lc_codepage = *((int*)(lcnow->locinfo) + lccoffs);
-		my_tprintf(_T("[probed] .lc_codepage = %d (offset %d-int)\n"), lc_codepage, lccoffs);
+		my_tprintf(_T("  [probed] .lc_codepage = %d (offset %d-int)\n"), lc_codepage, lccoffs);
 	}
 	
 	const _digged_mbcinfo *p_mbcinfo = (_digged_mbcinfo*)(lcnow->mbcinfo);
-	my_tprintf(_T("[probed] .mb_codepage = %d\n"), 
+	my_tprintf(_T("  [probed] .mb_codepage = %d\n"), 
 		p_mbcinfo->mb_codepage);
 }
 
@@ -282,13 +283,17 @@ void print_help()
 _T("Parameter help:\n")
 _T("  threadlcid:<lcid>      Call SetThreadLocale(lcid); on start.\n")
 _T("  crtlocale:<locstr>     Call setlocale(LC_ALL, locstr); on start.\n")
+_T("                         If <locstr> is '-', omit calling setlocale().\n")
+_T("  crtmbcp:<mbcp>         Call _setmbcp(mbcp); on start.\n")
 _T("  consolecp:<ccp>        Call SetConsoleCP(ccp); and SetConsoleOutputCP(ccp);.\n")
+_T("  \n")
 _T("\n")
 _T("Example:\n")
 _T("  DefaultLocales threadlcid:0x0804 crtlocale:zh-CN consolecp:936\n")
 _T("  DefaultLocales threadlcid:0x0404 crtlocale:zh-TW consolecp:950\n")
 _T("  DefaultLocales crtlocale:.65001 consolecp:65001\n")
 _T("  DefaultLocales crtlocale:japanese_Japan\n")
+_T("  DefaultLocales crtlocale:-\n")
 _T("\n")
 _T("To pause before program quit, rename exe to have word \"pause\".\n")
 ;
@@ -320,6 +325,9 @@ int apply_startup_user_params(TCHAR *argv[])
 	// or
 	//		threadlcid:1041
 
+	const TCHAR szCrtmbcp[] = _T("crtmbcp:");
+	const int   nzCrtmbcp = ARRAYSIZE(szCrtmbcp)-1;
+	
 	const TCHAR szCrtLocale[]   = _T("crtlocale:");
 	const int   nzCrtLocale     = ARRAYSIZE(szCrtLocale)-1;
 
@@ -343,6 +351,17 @@ int apply_startup_user_params(TCHAR *argv[])
 		else if(_tcsnicmp(*argv, szCrtLocale, nzCrtLocale)==0) 
 		{
 			g_set_crtlocale = (*argv)+nzCrtLocale;
+		}
+		else if(_tcsnicmp(*argv, szCrtmbcp, nzCrtmbcp)==0)
+		{
+			const TCHAR *psz_crtmbcp = (*argv) + nzCrtmbcp;
+			g_crtmbcp = _tcstoul(psz_crtmbcp, NULL, 0);
+
+			if(g_crtmbcp==0)
+			{
+				my_tprintf(_T("Invalid crtmbcp input value: %s\n"), psz_crtmbcp);
+				exit(1);
+			}
 		}
 		else if(_tcsnicmp(*argv, szConsoleCP, nzConsoleCP)==0)
 		{
@@ -391,8 +410,8 @@ int _tmain(int argc, TCHAR *argv[])
 	setvbuf(stdout, NULL, _IONBF, 0);
 	_setmode(_fileno(stdout), _O_U8TEXT);
 
-	setlocale(LC_ALL, "");
-//	setlocale(LC_ALL, "cht_JPN.936"); // OK for VC2010 CRT, ="Chinese (Traditional)_Japan.936"
+	//setlocale(LC_ALL, "cht_JPN.936");
+	// -- OK for VC2010 CRT, ="Chinese (Traditional)_Japan.936". Just memo, do not call it here.
 
 	app_print_version(argv[0], g_szversion);
 
@@ -406,10 +425,7 @@ int _tmain(int argc, TCHAR *argv[])
 		{
 			LCID lcid2 = GetThreadLocale();
 			if(g_set_thread_lcid==lcid2) // OK
-			{
-				if(g_set_crtlocale==NULL)
-					g_set_crtlocale = _T(""); // so that setlocale() is called later
-				
+			{	// do nothing
 			}
 			else
 			{
@@ -424,7 +440,13 @@ int _tmain(int argc, TCHAR *argv[])
 		}
 	}
 
-	if(g_set_crtlocale)
+	if(g_crtmbcp)
+	{
+		my_tprintf(_T("Startup: Call _setmbcp(%d); \n"), g_crtmbcp);
+		_setmbcp(g_crtmbcp);
+	}
+
+	if(g_set_crtlocale[0]!='-')
 	{
 		my_tprintf(_T("Startup: Call setlocale(LC_ALL, \"%s\"); \n"), g_set_crtlocale);
 		const TCHAR *locret = _tsetlocale(LC_ALL, g_set_crtlocale);
@@ -445,6 +467,10 @@ int _tmain(int argc, TCHAR *argv[])
 			exit(1);
 		}
 	}
+	else
+	{
+		my_tprintf(_T("Omit calling setlocale(), so \"C\" locale will be in effect.\n"));
+	}
 
 	if(g_consolecp)
 	{
@@ -463,6 +489,9 @@ int _tmain(int argc, TCHAR *argv[])
 
 	do_work();
 
+	extern void custom_test();
+	custom_test();
+	
 	if(g_pause_on_quit)
 	{
 		// If user double clicks this command-line exe from Explorer, then he may need this.

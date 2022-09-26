@@ -140,6 +140,7 @@
   <ItemGroup>
     <ClCompile Include="DefaultLocales.cpp" />
     <ClCompile Include="utils.cpp" />
+    <ClCompile Include="custom-test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="utils.h" />

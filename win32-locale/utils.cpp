@@ -166,3 +166,35 @@ const TCHAR * app_WinErrStr(DWORD winerr)
 	
 	return s_retbuf;
 }
+
+WCHAR *HexdumpW(const WCHAR *pszw, WCHAR *hexbuf, int bufchars)
+{
+	int wlen = (int)wcslen(pszw);
+	for (int i = 0; i < wlen; i++)
+	{
+		_snwprintf_s(hexbuf + i * 5, bufchars - i * 5, _TRUNCATE,
+			L"%04X ", (unsigned short)pszw[i]);
+	}
+
+	wlen = (int)wcslen(hexbuf);
+	if (wlen > 0 && hexbuf[wlen - 1] == L' ')
+		hexbuf[wlen - 1] = L'\0';
+
+	return hexbuf;
+}
+
+char *HexdumpA(const char *pbytes, int count, char *hexbuf, int bufchars)
+{
+	for (int i = 0; i < count; i++)
+	{
+		_snprintf_s(hexbuf + i * 3, bufchars - i * 3, _TRUNCATE,
+			"%02X ", (unsigned char)pbytes[i]);
+	}
+
+	int alen = (int)strlen(hexbuf);
+	if (alen > 0 && hexbuf[alen - 1] == ' ')
+		hexbuf[alen - 1] = L'\0';
+
+	return hexbuf;
+}
+

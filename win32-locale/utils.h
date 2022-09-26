@@ -8,9 +8,9 @@
 #include <conio.h>
 #include <io.h>
 #include <fcntl.h>
+#include <mbctype.h>  // _setmbcp()
 #include <windows.h>
 #include "..\cinclude\dlptr_winapi.h"
-
 
 const TCHAR *app_GetFilenamePart(const TCHAR *pPath);
 
@@ -39,3 +39,8 @@ enum DepictLang_et
 const TCHAR *Desctext_from_LANGID(LANGID lcid, DepictLang_et dlang=DepictLang_English);
 
 const TCHAR * app_WinErrStr(DWORD winerr=-1);
+
+WCHAR *HexdumpW(const WCHAR *pszw, WCHAR *hexbuf, int bufchars);
+
+char *HexdumpA(const char *pbytes, int count, char *hexbuf, int bufchars);
+
