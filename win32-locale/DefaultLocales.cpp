@@ -276,8 +276,43 @@ void do_work()
 		p_mbcinfo->mb_codepage);
 }
 
+void print_help()
+{
+	const TCHAR *helptext =
+_T("Parameter help:\n")
+_T("  threadlcid:<lcid>      Call SetThreadLocale(lcid); on start.\n")
+_T("  crtlocale:<locstr>     Call setlocale(LC_ALL, locstr); on start.\n")
+_T("  consolecp:<ccp>        Call SetConsoleCP(ccp); and SetConsoleOutputCP(ccp);.\n")
+_T("\n")
+_T("Example:\n")
+_T("  DefaultLocales threadlcid:0x0804 crtlocale:zh-CN consolecp:936\n")
+_T("  DefaultLocales threadlcid:0x0404 crtlocale:zh-TW consolecp:950\n")
+_T("  DefaultLocales crtlocale:.65001 consolecp:65001\n")
+_T("  DefaultLocales crtlocale:japanese_Japan\n")
+_T("\n")
+_T("To pause before program quit, rename exe to have word \"pause\".\n")
+;
+	my_tprintf(_T("%s"), helptext);
+}
+
 int apply_startup_user_params(TCHAR *argv[])
 {
+	// If filename contains "pause", we'll pause(wait for a key) at program end.
+	// 
+	const TCHAR *exename = app_GetFilenamePart(argv[0]);
+	if (_tcsstr(exename, _T("pause")) != NULL)
+	{
+		g_pause_on_quit = true;
+	}
+
+	argv++;
+
+	if(*argv && _tcscmp(*argv, _T("-?"))==0)
+	{
+		print_help();
+		exit(1);
+	}
+	
 	const TCHAR szThreadLcid[]   = _T("threadlcid:");
 	const int   nzThreadLcid     = ARRAYSIZE(szThreadLcid)-1;
 	// -- example: to call SetThreadLocale(0x411); jp-JP , use:
@@ -311,6 +346,8 @@ int apply_startup_user_params(TCHAR *argv[])
 		else
 		{
 			my_tprintf(_T("[ERROR] Unrecognized parameter: %s\n"), *argv);
+			my_tprintf(_T("\n"));
+			my_tprintf(_T("Run with `%s -?` to see valid parameters.\n"), exename);
 			exit(1);
 		}
 	}
@@ -347,15 +384,7 @@ int _tmain(int argc, TCHAR *argv[])
 
 	app_print_version(argv[0], g_szversion);
 
-	// If filename contains "pause", we'll pause(wait for a key) at program end.
-	// 
-	const TCHAR *pfn = app_GetFilenamePart(argv[0]);
-	if (_tcsstr(pfn, _T("pause")) != NULL)
-	{
-		g_pause_on_quit = true;
-	}
-
-	apply_startup_user_params(argv+1);
+	apply_startup_user_params(argv);
 
 	if(g_set_thread_lcid>0)
 	{
@@ -398,6 +427,8 @@ int _tmain(int argc, TCHAR *argv[])
 			{
 				my_tprintf(_T("  > Note: If _MSC_VER<1900 (before VC2015), \"zh-CN\" etc is not valid format.\n"));
 			}
+
+			exit(1);
 		}
 	}
 

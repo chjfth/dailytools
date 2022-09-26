@@ -30,7 +30,7 @@ void my_tprintf(const TCHAR *szfmt, ...)
 	va_list args;
 	va_start(args, szfmt);
 
-	TCHAR buf[200] = {};
+	TCHAR buf[800] = {};
 	_vsntprintf_s(buf, ARRAYSIZE(buf), szfmt, args);
 
 	va_end(args);
