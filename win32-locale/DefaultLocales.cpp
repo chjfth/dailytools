@@ -6,7 +6,7 @@ This should help user discriminate the abstract and ubiquitous word "locale".
 #include "utils.h"
 #include <muiload.h>
 
-const TCHAR *g_szversion = _T("1.1.5");
+const TCHAR *g_szversion = _T("1.1.6");
 
 LCID g_set_thread_lcid = 0; // If not 0, will call SetThreadLocale() with this value.
 const TCHAR *g_set_crtlocale = NULL;
@@ -309,7 +309,10 @@ int apply_startup_user_params(TCHAR *argv[])
 			g_consolecp = _tcstoul(psz_consolecp, NULL, 0);
 		}
 		else
-			break;
+		{
+			my_tprintf(_T("[ERROR] Unrecognized parameter: %s\n"), *argv);
+			exit(1);
+		}
 	}
 
 	return params;
@@ -339,7 +342,7 @@ int _tmain(int argc, TCHAR *argv[])
 	setvbuf(stdout, NULL, _IONBF, 0);
 	_setmode(_fileno(stdout), _O_U8TEXT);
 
-	setlocale(LC_CTYPE, "");
+	setlocale(LC_ALL, "");
 //	setlocale(LC_ALL, "cht_JPN.936"); // OK for VC2010 CRT, ="Chinese (Traditional)_Japan.936"
 
 	app_print_version(argv[0], g_szversion);
@@ -364,7 +367,7 @@ int _tmain(int argc, TCHAR *argv[])
 			if(g_set_thread_lcid==lcid2) // OK
 			{
 				if(g_set_crtlocale==NULL)
-					g_set_crtlocale = _T(""); // so that setlocale is called later
+					g_set_crtlocale = _T(""); // so that setlocale() is called later
 				
 			}
 			else
@@ -380,14 +383,27 @@ int _tmain(int argc, TCHAR *argv[])
 
 	if(g_set_crtlocale)
 	{
-		my_tprintf(_T("Startup: Call setlocale(LC_CTYPE, \"%s\"); \n"), g_set_crtlocale);
-		const TCHAR *locret = _tsetlocale(LC_CTYPE, g_set_crtlocale);
-		my_tprintf(_T("  > %s\n"), locret);
+		my_tprintf(_T("Startup: Call setlocale(LC_ALL, \"%s\"); \n"), g_set_crtlocale);
+		const TCHAR *locret = _tsetlocale(LC_ALL, g_set_crtlocale);
+
+		if (locret)
+		{
+			my_tprintf(_T("  > %s\n"), locret);
+		}
+		else
+		{
+			my_tprintf(_T("  > setlocale() error. Probably your locale string is invalid.\n"));
+
+			if (g_set_crtlocale[2] == '-')
+			{
+				my_tprintf(_T("  > Note: If _MSC_VER<1900 (before VC2015), \"zh-CN\" etc is not valid format.\n"));
+			}
+		}
 	}
 
 	if(g_consolecp)
 	{
-		my_tprintf(_T("Startup: Set console input/output codepage to %d\n"), g_consolecp);
+		my_tprintf(_T("Startup: Set console input/output codepage to %d.\n"), g_consolecp);
 		BOOL succ1 = SetConsoleCP(g_consolecp);
 		if (!succ1)
 			my_tprintf(_T("SetConsoleCP() fail. %s\n"), app_WinErrStr());
