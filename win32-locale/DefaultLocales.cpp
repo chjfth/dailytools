@@ -402,11 +402,13 @@ int _tmain(int argc, TCHAR *argv[])
 			else
 			{
 				my_tprintf(_T("[Unexpect] GetThreadLocale() does NOT report the LCID wet just set!\n"));
+				exit(1);
 			}
 		}
 		else
 		{
-			my_tprintf(_T("Startup:      SetThreadLocale() fail. [%s]\n"), app_WinErrStr());
+			my_tprintf(_T("Startup:      SetThreadLocale() fail. %s\n"), app_WinErrStr());
+			exit(1);
 		}
 	}
 
@@ -441,7 +443,10 @@ int _tmain(int argc, TCHAR *argv[])
 		
 		BOOL succ2 = SetConsoleOutputCP(g_consolecp);
 		if (!succ2)
-			my_tprintf(_T("SetConsoleOutputCP fail. %s\n"), app_WinErrStr());
+			my_tprintf(_T("SetConsoleOutputCP() fail. %s\n"), app_WinErrStr());
+
+		if (!succ1 || !succ2)
+			exit(1);
 	}
 
 	do_work();
