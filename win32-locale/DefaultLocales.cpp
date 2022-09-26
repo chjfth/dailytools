@@ -333,6 +333,12 @@ int apply_startup_user_params(TCHAR *argv[])
 		{
 			const TCHAR *psz_threadlcid = (*argv)+nzThreadLcid;
 			g_set_thread_lcid = _tcstoul(psz_threadlcid, NULL, 0);
+
+			if(g_set_thread_lcid==0)
+			{
+				my_tprintf(_T("Invalid threadlcid input value: %s\n"), psz_threadlcid);
+				exit(1);
+			}
 		}
 		else if(_tcsnicmp(*argv, szCrtLocale, nzCrtLocale)==0) 
 		{
@@ -342,6 +348,12 @@ int apply_startup_user_params(TCHAR *argv[])
 		{
 			const TCHAR *psz_consolecp = (*argv) + nzConsoleCP;
 			g_consolecp = _tcstoul(psz_consolecp, NULL, 0);
+
+			if(g_consolecp==0)
+			{
+				my_tprintf(_T("Invalid consolecp input value: %s\n"), psz_consolecp);
+				exit(1);
+			}
 		}
 		else
 		{
