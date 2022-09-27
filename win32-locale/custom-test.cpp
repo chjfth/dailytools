@@ -52,6 +52,12 @@ void verify_sample_codepages()
 void custom_test()
 {
 	// Execute extra experiment test here.
+	
+#ifdef CUSTOM_TEST_ON
 
-//	verify_sample_codepages();
+	// Define env-var `PERSONAL_CL_DEFINES=CUSTOM_TEST_ON` to enable this block.
+
+	verify_sample_codepages();
+	
+#endif
 }
