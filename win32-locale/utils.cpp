@@ -167,16 +167,18 @@ const TCHAR * app_WinErrStr(DWORD winerr)
 	return s_retbuf;
 }
 
-WCHAR *HexdumpW(const WCHAR *pszw, WCHAR *hexbuf, int bufchars)
+WCHAR *HexdumpW(const WCHAR *pszw, int count, WCHAR *hexbuf, int bufchars)
 {
-	int wlen = (int)wcslen(pszw);
-	for (int i = 0; i < wlen; i++)
+	if (count < 0)
+		count = wcslen(pszw);
+	
+	for (int i = 0; i < count; i++)
 	{
 		_snwprintf_s(hexbuf + i * 5, bufchars - i * 5, _TRUNCATE,
 			L"%04X ", (unsigned short)pszw[i]);
 	}
 
-	wlen = (int)wcslen(hexbuf);
+	int wlen = (int)wcslen(hexbuf);
 	if (wlen > 0 && hexbuf[wlen - 1] == L' ')
 		hexbuf[wlen - 1] = L'\0';
 
@@ -185,6 +187,9 @@ WCHAR *HexdumpW(const WCHAR *pszw, WCHAR *hexbuf, int bufchars)
 
 char *HexdumpA(const char *pbytes, int count, char *hexbuf, int bufchars)
 {
+	if (count < 0)
+		count = strlen(pbytes);
+	
 	for (int i = 0; i < count; i++)
 	{
 		_snprintf_s(hexbuf + i * 3, bufchars - i * 3, _TRUNCATE,

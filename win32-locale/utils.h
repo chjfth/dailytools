@@ -40,7 +40,7 @@ const TCHAR *Desctext_from_LANGID(LANGID lcid, DepictLang_et dlang=DepictLang_En
 
 const TCHAR * app_WinErrStr(DWORD winerr=-1);
 
-WCHAR *HexdumpW(const WCHAR *pszw, WCHAR *hexbuf, int bufchars);
+WCHAR *HexdumpW(const WCHAR *pszw, int count, WCHAR *hexbuf, int bufchars);
 
 char *HexdumpA(const char *pbytes, int count, char *hexbuf, int bufchars);
 

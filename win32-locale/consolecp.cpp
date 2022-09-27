@@ -47,13 +47,13 @@ void wprintf_Samples()
 		if(wlen==1)
 		{
 			wprintf(L"wprintf() one WCHAR [%s] => ", 
-				HexdumpW(pszw, hexbuf, ARRAYSIZE(hexbuf))
+				HexdumpW(pszw, wlen, hexbuf, ARRAYSIZE(hexbuf))
 				);
 		}
 		else
 		{
 			wprintf(L"wprintf() %d WCHARs [%s] => ", wlen,
-				HexdumpW(pszw, hexbuf, ARRAYSIZE(hexbuf))
+				HexdumpW(pszw, wlen, hexbuf, ARRAYSIZE(hexbuf))
 				);
 		}
 		
@@ -220,13 +220,14 @@ void WriteConsoleW_Samples(HANDLE hcOut)
 		if(wlen==1)
 		{
 			_snwprintf_s(wbuf, ARRAYSIZE(wbuf), 
-				L"Write one WCHAR [%s] => ", HexdumpW(pszw, hexbuf, ARRAYSIZE(hexbuf)));
+				L"Write one WCHAR [%s] => ", 
+				HexdumpW(pszw, wlen, hexbuf, ARRAYSIZE(hexbuf)));
 		}
 		else
 		{
-			_snwprintf_s(wbuf, ARRAYSIZE(wbuf), 
+			_snwprintf_s(wbuf, ARRAYSIZE(wbuf),
 				L"Write %d WCHARs [%s] => ", wlen,
-				HexdumpW(pszw, hexbuf, ARRAYSIZE(hexbuf)));
+				HexdumpW(pszw, wlen, hexbuf, ARRAYSIZE(hexbuf)));
 		}
 		myWriteConsoleW(hcOut, wbuf);
 

@@ -21,21 +21,21 @@ void verify_sample_codepages()
 	if(wcret>0)
 	{
 		my_tprintf(_T("MultiByteToWideChar(CP_ACP, ...): %s\n"), wcbuf);
-		my_tprintf(_T("    %s\n"), HexdumpW(wcbuf, hexdumpbuf, ARRAYSIZE(hexdumpbuf)));
+		my_tprintf(_T("    %s\n"), HexdumpW(wcbuf, -1, hexdumpbuf, ARRAYSIZE(hexdumpbuf)));
 	}
 	
 	wcret = MultiByteToWideChar(CP_OEMCP, 0, pansi, -1, wcbuf, ARRAYSIZE(wcbuf));
 	if (wcret > 0)
 	{
 		my_tprintf(_T("MultiByteToWideChar(CP_OEMCP, ...): %s\n"), wcbuf);
-		my_tprintf(_T("    %s\n"), HexdumpW(wcbuf, hexdumpbuf, ARRAYSIZE(hexdumpbuf)));
+		my_tprintf(_T("    %s\n"), HexdumpW(wcbuf, -1, hexdumpbuf, ARRAYSIZE(hexdumpbuf)));
 	}
 
 	wcret = MultiByteToWideChar(CP_THREAD_ACP, 0, pansi, -1, wcbuf, ARRAYSIZE(wcbuf));
 	if (wcret > 0)
 	{
 		my_tprintf(_T("MultiByteToWideChar(CP_THREAD_ACP, ...): %s\n"), wcbuf);
-		my_tprintf(_T("    %s\n"), HexdumpW(wcbuf, hexdumpbuf, ARRAYSIZE(hexdumpbuf)));
+		my_tprintf(_T("    %s\n"), HexdumpW(wcbuf, -1, hexdumpbuf, ARRAYSIZE(hexdumpbuf)));
 	}
 
 	errno_t err = 0;
@@ -44,7 +44,7 @@ void verify_sample_codepages()
 	if(!err)
 	{
 		my_tprintf(_T("mbstowcs_s(): %s\n"), wcbuf);
-		my_tprintf(_T("    %s\n"), HexdumpW(wcbuf, hexdumpbuf, ARRAYSIZE(hexdumpbuf)));
+		my_tprintf(_T("    %s\n"), HexdumpW(wcbuf, -1, hexdumpbuf, ARRAYSIZE(hexdumpbuf)));
 	}
 }
 
