@@ -3,7 +3,7 @@ and at the same time, the BOM makes MSVC compiler happy. */
 
 #include "utils.h"
 
-const TCHAR *g_szversion = _T("1.2.3");
+const TCHAR *g_szversion = _T("1.2.4");
 
 int g_start_codepage = 0;
 
@@ -392,7 +392,19 @@ int apply_startup_user_params(TCHAR *argv[])
 			}
 		}
 		else
-			break;
+		{
+			TCHAR hc = **argv; // head-char of next param
+			if((hc>='0' && hc<='9') || (hc>='a' && hc<='f') || (hc>='A' && hc<='F'))
+			{
+				// OK remaining are all user hex
+				break;
+			}
+			else
+			{
+				my_tprintf(_T("[ERROR] Unrecognized parameter: %s\n"), *argv);
+				exit(1);
+			}
+		}
 	}
 
 	if(psz_chcpsleep[0])
@@ -535,7 +547,7 @@ void print_user_dump(TCHAR *argv[])
 		int ncell = i;
 		my_tprintf(_T("Will dump %d WCHARs to \"screen\", hex below:\n"), ncell);
 
-		wprintf(L"%s\n", HexdumpW(wcbuf, hexbuf, ARRAYSIZE(hexbuf)));
+		wprintf(L"%s\n", HexdumpW(wcbuf, ncell, hexbuf, ARRAYSIZE(hexbuf)));
 		wprintf(L"\n");
 		fflush(stdout);
 
