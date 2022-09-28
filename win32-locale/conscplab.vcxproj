@@ -40,8 +40,8 @@
   <!-- User project properties -->
   <PropertyGroup Label="Globals">
     <ProjectGuid>{20220814-0000-0000-0000-140419000001}</ProjectGuid>
-    <ProjectName>consolecp</ProjectName>
-    <TargetName>consolecp</TargetName>
+    <ProjectName>conscplab</ProjectName>
+    <TargetName>conscplab</TargetName>
     <ConfigurationType>Application</ConfigurationType>
   </PropertyGroup>
   <!-- Debug or Release -->
@@ -131,7 +131,7 @@
     Source file list:
    -->
   <ItemGroup>
-    <ClCompile Include="consolecp.cpp" />
+    <ClCompile Include="conscplab.cpp" />
     <ClCompile Include="utils.cpp" />
   </ItemGroup>
   <ItemGroup>
