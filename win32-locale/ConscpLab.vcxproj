@@ -10,12 +10,12 @@
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Debug ANSI|Win32">
-      <Configuration>Debug ANSI</Configuration>
+    <ProjectConfiguration Include="vs2019 Debug|Win32">
+      <Configuration>vs2019 Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Release ANSI|Win32">
-      <Configuration>Release ANSI</Configuration>
+    <ProjectConfiguration Include="vs2019 Release|Win32">
+      <Configuration>vs2019 Release</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
     <!-- x64 -->
@@ -27,23 +27,29 @@
       <Configuration>Release</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Debug ANSI|x64">
-      <Configuration>Debug ANSI</Configuration>
+    <ProjectConfiguration Include="vs2019 Debug|x64">
+      <Configuration>vs2019 Debug</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Release ANSI|x64">
-      <Configuration>Release ANSI</Configuration>
+    <ProjectConfiguration Include="vs2019 Release|x64">
+      <Configuration>vs2019 Release</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+
   <!-- User project properties -->
+
   <PropertyGroup Label="Globals">
     <ProjectGuid>{20220814-0000-0000-0000-140419000001}</ProjectGuid>
     <ProjectName>ConscpLab</ProjectName>
-    <TargetName>ConscpLab</TargetName>
+    <TargetNameBase>ConscpLab</TargetNameBase>
+    <TargetName>$(TargetNameBase)-vs2010</TargetName>
     <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
+
   <!-- Debug or Release -->
   <PropertyGroup Condition="$(Configuration.StartsWith('Debug'))" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
@@ -51,26 +57,29 @@
   <PropertyGroup Condition="$(Configuration.StartsWith('Release'))" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
   </PropertyGroup>
-  <!-- Unicode or ANSI(MBCS) -->
-  <PropertyGroup Condition="!$(Configuration.Contains('ANSI'))" Label="Configuration">
-    <CharacterSet>Unicode</CharacterSet>
+
+  <!-- VC2010 or VC2019 -->
+  <PropertyGroup Condition=" $(Configuration.Contains('vs2019'))" Label="Configuration">
+    <PlatformToolset>v142</PlatformToolset>
+    <TargetName>$(TargetNameBase)-vs2019</TargetName>
   </PropertyGroup>
-  <PropertyGroup Condition=" $(Configuration.Contains('ANSI'))" Label="Configuration">
-    <CharacterSet>MultiByte</CharacterSet>
-  </PropertyGroup>
+  
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+
   <PropertyGroup Label="UserMacros" />
+  
   <!-- Better .obj/.exe/.pdb output folder structure -->
   <PropertyGroup>
     <LinkIncremental>false</LinkIncremental>
-    <IntDir>$(ProjectDir)obj-$(PlatformToolset)\$(Platform)\$(Configuration)\</IntDir>
+     <IntDir>$(ProjectDir)obj-$(PlatformToolset)\$(Platform)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)bin-$(PlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
+  
   <!-- 
   	Compiler/Linker Behavior Settings : shared 
   -->
@@ -127,6 +136,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
+  
   <!-- 
     Source file list:
    -->
@@ -137,10 +147,13 @@
   <ItemGroup>
     <ClInclude Include="utils.h" />
   </ItemGroup>
+  
   <!-- MSBuild system stock Cpp.targets -->
+  
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  
   <!-- import VSPG start -->
   <PropertyGroup>
     <VSPG_BootsDir_NoTBS>..\_VSPG\boots</VSPG_BootsDir_NoTBS>
@@ -149,4 +162,5 @@
     <Import Project="$(VSPG_BootsDir_NoTBS)\_VSPG.props" />
   </ImportGroup>
   <!-- import VSPG end -->
+
 </Project>
