@@ -292,6 +292,29 @@ HANDLE CreateFile_stdio(const TCHAR *szfn)
 	return fh;
 }
 
+static bool is_hextoken(const TCHAR *psz)
+{
+	// psz needs to be sth like "41", "0041", "96FB" etc
+	
+	int slen = (int)_tcslen(psz);
+	if (slen != 2 && slen != 4) 
+		return false;
+	
+	for(int i=0; i<slen; i++)
+	{
+		TCHAR hc = psz[i];
+		if ((hc>='0' && hc<='9') || (hc>='a' && hc<='f') || (hc>='A' && hc<='F'))
+		{
+			// OK
+		}
+		else
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
 int apply_startup_user_params(TCHAR *argv[])
 {
 	// On input, argv should points to first param, not to the exe name/path.
@@ -393,8 +416,7 @@ int apply_startup_user_params(TCHAR *argv[])
 		}
 		else
 		{
-			TCHAR hc = **argv; // head-char of next param
-			if((hc>='0' && hc<='9') || (hc>='a' && hc<='f') || (hc>='A' && hc<='F'))
+			if(is_hextoken(*argv))
 			{
 				// OK remaining are all user hex
 				break;
