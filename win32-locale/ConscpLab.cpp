@@ -3,7 +3,7 @@ and at the same time, the BOM makes MSVC compiler happy. */
 
 #include "utils.h"
 
-const TCHAR *g_szversion = _T("1.2.4");
+const TCHAR *g_szversion = _T("1.2.5");
 
 int g_start_codepage = 0;
 
@@ -453,6 +453,7 @@ int apply_startup_user_params(TCHAR *argv[])
 	else
 	{
 		my_tprintf(_T("> setlocale() fail, errno=%d.\n"), errno);
+		exit(1);
 	}
 
 	if(start_codepage>0)
