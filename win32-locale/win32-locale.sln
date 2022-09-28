@@ -1,8 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.32002.261
-MinimumVisualStudioVersion = 10.0.40219.1
+# Visual Studio 2010
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "consolecp", "consolecp.vcxproj", "{20220814-0000-0000-0000-140419000001}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "codepageinfo", "codepageinfo.vcxproj", "{25319E86-B84F-4BAD-A71D-BF64FC84E223}"
@@ -12,6 +10,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DefaultLocales", "DefaultLocales.vcxproj", "{4712B06C-48F9-463E-B770-3F48A61A915A}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EnumLocale-winxp", "EnumLocale-winxp.vcxproj", "{C12FAC82-5B98-4FB5-9DBF-F67E8CD76CE7}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "setlocale01", "setlocale01.vcxproj", "{20220927-0000-0000-0000-134646000001}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -105,6 +105,22 @@ Global
 		{C12FAC82-5B98-4FB5-9DBF-F67E8CD76CE7}.vs2019 Release|Win32.Build.0 = Release|Win32
 		{C12FAC82-5B98-4FB5-9DBF-F67E8CD76CE7}.vs2019 Release|x64.ActiveCfg = Release|x64
 		{C12FAC82-5B98-4FB5-9DBF-F67E8CD76CE7}.vs2019 Release|x64.Build.0 = Release|x64
+		{20220927-0000-0000-0000-134646000001}.Debug|Win32.ActiveCfg = Debug|Win32
+		{20220927-0000-0000-0000-134646000001}.Debug|Win32.Build.0 = Debug|Win32
+		{20220927-0000-0000-0000-134646000001}.Debug|x64.ActiveCfg = Debug|x64
+		{20220927-0000-0000-0000-134646000001}.Debug|x64.Build.0 = Debug|x64
+		{20220927-0000-0000-0000-134646000001}.Release|Win32.ActiveCfg = Release|Win32
+		{20220927-0000-0000-0000-134646000001}.Release|Win32.Build.0 = Release|Win32
+		{20220927-0000-0000-0000-134646000001}.Release|x64.ActiveCfg = Release|x64
+		{20220927-0000-0000-0000-134646000001}.Release|x64.Build.0 = Release|x64
+		{20220927-0000-0000-0000-134646000001}.vs2019 Debug|Win32.ActiveCfg = vs2019 Debug|Win32
+		{20220927-0000-0000-0000-134646000001}.vs2019 Debug|Win32.Build.0 = vs2019 Debug|Win32
+		{20220927-0000-0000-0000-134646000001}.vs2019 Debug|x64.ActiveCfg = vs2019 Debug|x64
+		{20220927-0000-0000-0000-134646000001}.vs2019 Debug|x64.Build.0 = vs2019 Debug|x64
+		{20220927-0000-0000-0000-134646000001}.vs2019 Release|Win32.ActiveCfg = vs2019 Release|Win32
+		{20220927-0000-0000-0000-134646000001}.vs2019 Release|Win32.Build.0 = vs2019 Release|Win32
+		{20220927-0000-0000-0000-134646000001}.vs2019 Release|x64.ActiveCfg = vs2019 Release|x64
+		{20220927-0000-0000-0000-134646000001}.vs2019 Release|x64.Build.0 = vs2019 Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
