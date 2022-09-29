@@ -714,6 +714,12 @@ int _tmain(int argc, TCHAR *argv[])
 	my_tprintf(_T("This Windows OS version: %s\n"), app_GetWindowsVersionStr3());
 	my_tprintf(_T("\n"));
 
+	if(_MSC_VER<1900)
+	{
+		my_tprintf(_T("[Warning] This program is compiled with a fairly old Visual C++ version\n"));
+		my_tprintf(_T("(before VC2015), so it does not support UTF8 locale/codepage.\n"));
+	}
+
 	TCHAR *orig_lcctype = _tsetlocale(LC_CTYPE, NULL);
 	_locale_t orig_locale = _get_current_locale();
 
