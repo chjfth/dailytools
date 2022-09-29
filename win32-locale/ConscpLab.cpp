@@ -3,7 +3,7 @@ and at the same time, the BOM makes MSVC compiler happy. */
 
 #include "utils.h"
 
-const TCHAR *g_szversion = _T("1.2.5");
+const TCHAR *g_szversion = _T("1.3.0");
 
 int g_start_codepage = 0;
 
@@ -315,75 +315,120 @@ static bool is_hextoken(const TCHAR *psz)
 	return true;
 }
 
+void print_help()
+{
+	const TCHAR* helptext =
+_T("  \n")
+_T("Usage:  \n")
+_T("  ConscpLab [OPTIONS] [hexdump...]\n")
+_T("  \n")
+_T("OPTIONS:\n")
+_T("  crtlocale:<crtloc>   On startup, call setlocale(LC_CTYPE, \"<crtloc>\");\n")
+_T("  consolecp:<codepg>   On startup, call call SetConsoleOutputCP(codepg); and\n")
+_T("                       SetConsoleCP(codepg);. Old conscp is restored on quit.\n")
+_T("  setmode:utf8         Call _setmode(_fileno(stdout), _O_U8TEXT);\n")
+_T("  setmode:utf16        Call _setmode(_fileno(stdout), _O_U16TEXT);\n")
+_T("  \n")
+_T("      * If above setmode is used, I call it TPMODE=utf in general. \n")
+_T("        In TPMODE=utf, MSVCRT allows wprintf only, printf asserts error.\n")
+_T("        The utf8 vs utf16: when redirect stdout to file, text encoding diffs.\n")
+_T("      * If no setmode is used, I call it TPMODE=ansi.\n")
+_T("        In TPMODE=ansi, MSVCRT allows printf and (limited) wprintf.\n")
+_T("  \n")
+_T("  debug:break          When seeing this, DebugBreak(); is called.\n")
+_T("  debug:pause          When seeing this, program pause for a keypress,\n")
+_T("                       so you have a chance to attach a debugger.\n")
+_T("  chcpsleep:pause      This will pause before changing console-codepage.\n")
+_T("  chcpsleep:<millisec> This will sleep for millisec before change conscp.\n")
+_T("  \n")
+_T("[hexdump...]\n")
+_T("  If empty, this program runs with stock sample text.\n")
+_T("  \n")
+_T("  When seeing a 2-digit-hex or 4-digit-hex option, all remaining parameters\n")
+_T("  are considered user hexdump data. each parameter is a TCHAR.\n")
+_T("  \n")
+_T("  * If first-seen is 2-digit-hex, then printf will dump those bytes.\n")
+_T("  * If first-seen is 4-digit-hex, then wprintf will dump those WCHARs.\n")
+_T("  \n")
+_T("Example:\n")
+_T("  ConscpLab crtlocale:zh-CN consolecp:936\n")
+_T("  ConscpLab crtlocale:.65001 consolecp:65001\n")
+_T("    // Note: 65001(UTF8 codepage value) needs Win10.1803+\n")
+_T("  ConscpLab 41 42 43\n")
+_T("    // printf(\"%s\", \"ABC\");\n")
+_T("  ConscpLab 0041 42 43\n")
+_T("    // wprintf(L\"%s\", L\"ABC\");\n")
+_T("  ConscpLab crtlocale:zh-CN consolecp:936 B5 E7 C4 D4\n")
+_T("    // Will printf two Chinese characters \"电脑\"\n")
+_T("  ConscpLab setmode:utf8 consolecp:936 7535 8111\n")
+_T("    // Will wprintf two Chinese characters \"电脑\"\n")
+_T("  ConscpLab crtlocale:.65001 consolecp:65001 F0 9F 8D 8E\n")
+_T("    // Will printf a red apple (U+1F34E). Need to run inside Win10Terminal.\n")
+_T("  \n")
+;
+	UINT oldcp = GetConsoleOutputCP();
+
+	// try to ensure '电脑' printf success.
+	_setmode(_fileno(stdout), _O_U8TEXT);
+	SetConsoleOutputCP(936);
+	
+	wprintf(L"%s", helptext);
+
+	SetConsoleOutputCP(oldcp); // restore old conscp
+}
+
 int apply_startup_user_params(TCHAR *argv[])
 {
-	// On input, argv should points to first param, not to the exe name/path.
-	// I recognize SIX instructions, can assign both in separate params:
-	//
-	// First,
-	// "locale:zh_CN.936" will call setlocale(LC_CTYPE, "zh_CN.936");
-	// "locale:.UTF-8" will call setlocale(LC_CTYPE, ".UTF-8"); // this is support since Win10.1803 with new UCRT.
-	// If no such instruction, setlocale(LC_CTYPE, ""); is called.
-	//
-	// Second,
-	// "codepage:936" will call SetConsoleOutputCP(936);
-	// "codepage:65001" will call SetConsoleOutputCP(65001);
-	// If no such instruction, SetConsoleOutputCP() is not called at startup.
-	//
-	// Third,
-	// "setmode:utf16" 
-	// "setmode:utf8"
-	// 
-	// "setmode:utf16" enables wprint()'s internal behavior of 
-	// passing WCHARs to WriteConsoleW() directly, not doing a stupid 
-	// Unicode -> ANSI -> Unicode round trip.
-	//
-	// Fourth:
-	// "nobuf" This sets stdout to be no-buffering.
-	//
-	// Fifth:
-	// "debug:break" On start, call DebugBreak() .
-	// "debug:pause" On start, call _getch() .
-	// -- These will give user a chance to attach a debugger at program start.
-	//
-	// Sixth:
-	// "chcpsleep:2000" If given, sleep 2000 millisec after calling SetConsoleOutputCP().
-	// "chcpsleep:pause" Will wait a key instead of sleep.
-	//
-	// More...
-	// 
+	const TCHAR *exename = app_GetFilenamePart(argv[0]);
+	argv++;
+	
+	const TCHAR szCRTLOCALE[] = _T("crtlocale:");
+	const int   nzCRTLOCALE = ARRAYSIZE(szCRTLOCALE) - 1;
+	const TCHAR szLOCALE[] = _T("locale:"); // old name
+	const int   nzLOCALE = ARRAYSIZE(szLOCALE) - 1; // old name
 
-	const TCHAR szLOCALE[]   = _T("locale:");
-	const int   nzLOCALE     = ARRAYSIZE(szLOCALE)-1;
-	const TCHAR szCODEPAGE[] = _T("codepage:");
-	const int   nzCODEPAGE   = ARRAYSIZE(szCODEPAGE)-1;
+	const TCHAR szCONSOLECP[] = _T("consolecp:");
+	const int   nzCONSOLECP = ARRAYSIZE(szCONSOLECP) - 1;
+	const TCHAR szCODEPAGE[] = _T("codepage:"); // old name
+	const int   nzCODEPAGE   = ARRAYSIZE(szCODEPAGE)-1; // old name
+	
 	const TCHAR szSETMODE[]  = _T("setmode:");
 	const int   nzSETMODE    = ARRAYSIZE(szSETMODE)-1;
+	
 	const TCHAR szDEBUG[]    = _T("debug:");
 	const int   nzDEBUG      = ARRAYSIZE(szDEBUG)-1;
+	
 	const TCHAR szCHCPSLEEP[]= _T("chcpsleep:");
 	const int   nzCHCPSLEEP  = ARRAYSIZE(szCHCPSLEEP)-1;
 
 	const TCHAR *psz_start_locale = _T("");
 	int start_codepage = 0;
-	const TCHAR *psz_fdmode = _T("");
+	const TCHAR *psz_tpmode = _T("");
 	const TCHAR *psz_chcpsleep = _T("");
 	bool need_debug = false;
 
 	int params = 0;
 	for(; *argv!=NULL; argv++, params++)
 	{
-		if(_tcsnicmp(*argv, szLOCALE, nzLOCALE)==0)
+		if(_tcsnicmp(*argv, szCRTLOCALE, nzCRTLOCALE)==0)
 		{
-			psz_start_locale = (*argv)+nzLOCALE;
+			psz_start_locale = (*argv)+nzCRTLOCALE;
 		}
-		else if(_tcsnicmp(*argv, szCODEPAGE, nzCODEPAGE)==0)
+		else if (_tcsnicmp(*argv, szLOCALE, nzLOCALE) == 0) // old name
+		{
+			psz_start_locale = (*argv) + nzLOCALE;
+		}
+		else if (_tcsnicmp(*argv, szCONSOLECP, nzCONSOLECP) == 0)
+		{
+			start_codepage = _ttoi((*argv) + nzCONSOLECP);
+		}
+		else if(_tcsnicmp(*argv, szCODEPAGE, nzCODEPAGE)==0) // old name
 		{
 			start_codepage = _ttoi((*argv)+nzCODEPAGE);
 		}
 		else if(_tcsnicmp(*argv, szSETMODE, nzSETMODE)==0)
 		{
-			psz_fdmode = (*argv)+nzSETMODE;
+			psz_tpmode = (*argv)+nzSETMODE;
 		}
 		else if(_tcsnicmp(*argv, szCHCPSLEEP, nzCHCPSLEEP)==0)
 		{
@@ -424,6 +469,7 @@ int apply_startup_user_params(TCHAR *argv[])
 			else
 			{
 				my_tprintf(_T("[ERROR] Unrecognized parameter: %s\n"), *argv);
+				my_tprintf(_T("Run with \"%s -?\" to show parameter help.\n"), exename);
 				exit(1);
 			}
 		}
@@ -464,18 +510,23 @@ int apply_startup_user_params(TCHAR *argv[])
 		mySetConsoleOutputCP2(start_codepage);
 	}
 
-	if(psz_fdmode[0])
+	if(psz_tpmode[0])
 	{
 		int newmode = 0;
 		const TCHAR *modedesc = NULL;
 
-		if(_tcsicmp(psz_fdmode, _T("utf16"))==0) {
+		if(_tcsicmp(psz_tpmode, _T("utf16"))==0) {
 			newmode = _O_U16TEXT;
 			modedesc = _T("_O_U16TEXT");
 		}
-		else if(_tcsicmp(psz_fdmode, _T("utf8"))==0) {
+		else if(_tcsicmp(psz_tpmode, _T("utf8"))==0) {
 			newmode = _O_U8TEXT;
 			modedesc = _T("_O_U8TEXT");
+		}
+		else
+		{
+			my_tprintf(_T("[ERROR] Unrecognized setmode parameter: %s\n"), psz_tpmode);
+			exit(1);
 		}
 
 		if(newmode!=0)
@@ -641,20 +692,16 @@ void print_stock_samples()
 	WriteAnsiBytes_Samples(hOut, false); // WriteFile
 }
 
-void temp_test()
-{
-#if 0
-	_setmode(_fileno(stdout), _O_U16TEXT);
-	printf("Crash the CRT!\n");
-#endif
-}
-
 int _tmain(int argc, TCHAR *argv[])
 {
 	const TCHAR *pfn = app_GetFilenamePart(argv[0]);
 	// -- For MSVC, argv[0] always contains the full pathname.
 
-	temp_test();
+	if(argc>1 && _tcscmp(_T("-?"), argv[1])==0)
+	{
+		print_help();
+		exit(0);
+	}
 
 	my_tprintf(_T("%s compiled at %s with _MSC_VER=%d (v%s)\n"), pfn, _T(__DATE__), _MSC_VER, g_szversion);
 	my_tprintf(_T("This Windows OS version: %s\n"), app_GetWindowsVersionStr3());
@@ -668,7 +715,7 @@ int _tmain(int argc, TCHAR *argv[])
 	my_tprintf(_T("Initial GetConsoleCP()       = %d\n"), orig_icp);
 	my_tprintf(_T("Initial GetConsoleOutputCP() = %d\n"), orig_ocp);
 
-	int params_done = apply_startup_user_params(argv+1);
+	int params_done = apply_startup_user_params(argv);
 	// -- deal with "locale:.950" and "codepage:950" params
 
 	my_tprintf(_T("\n"));

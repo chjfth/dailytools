@@ -51,10 +51,10 @@
   </PropertyGroup>
 
   <!-- Debug or Release -->
-  <PropertyGroup Condition="$(Configuration.StartsWith('Debug'))" Label="Configuration">
+  <PropertyGroup Condition="$(Configuration.Contains('Debug'))" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
   </PropertyGroup>
-  <PropertyGroup Condition="$(Configuration.StartsWith('Release'))" Label="Configuration">
+  <PropertyGroup Condition="$(Configuration.Contains('Release'))" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
   </PropertyGroup>
 
@@ -112,7 +112,7 @@
   <!-- 
   	Compiler Behavior Settings : Debug 
   -->
-  <ItemDefinitionGroup Condition="$(Configuration.StartsWith('Debug'))">
+  <ItemDefinitionGroup Condition="$(Configuration.Contains('Debug'))">
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;DBG=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -124,7 +124,7 @@
   <!-- 
   	Compiler Behavior Settings : Release 
   -->
-  <ItemDefinitionGroup Condition="$(Configuration.StartsWith('Release'))">
+  <ItemDefinitionGroup Condition="$(Configuration.Contains('Release'))">
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>

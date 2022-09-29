@@ -378,7 +378,7 @@ int apply_startup_user_params(TCHAR *argv[])
 		{
 			my_tprintf(_T("[ERROR] Unrecognized parameter: %s\n"), *argv);
 			my_tprintf(_T("\n"));
-			my_tprintf(_T("Run with `%s -?` to see valid parameters.\n"), exename);
+			my_tprintf(_T("Run with \"%s -?\" to see valid parameters.\n"), exename);
 			exit(1);
 		}
 	}
