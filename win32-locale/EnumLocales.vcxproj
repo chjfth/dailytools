@@ -10,12 +10,12 @@
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Debug ANSI|Win32">
-      <Configuration>Debug ANSI</Configuration>
+    <ProjectConfiguration Include="vs2019 Debug|Win32">
+      <Configuration>vs2019 Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Release ANSI|Win32">
-      <Configuration>Release ANSI</Configuration>
+    <ProjectConfiguration Include="vs2019 Release|Win32">
+      <Configuration>vs2019 Release</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
     <!-- x64 -->
@@ -27,37 +27,41 @@
       <Configuration>Release</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Debug ANSI|x64">
-      <Configuration>Debug ANSI</Configuration>
+    <ProjectConfiguration Include="vs2019 Debug|x64">
+      <Configuration>vs2019 Debug</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Release ANSI|x64">
-      <Configuration>Release ANSI</Configuration>
+    <ProjectConfiguration Include="vs2019 Release|x64">
+      <Configuration>vs2019 Release</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+
   <!-- User project properties -->
+
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F6DD1F2F-FE72-48AF-9F92-48C6B815961A}</ProjectGuid>
-    <ProjectName>EnumLocale</ProjectName>
-    <TargetName>EnumLocale</TargetName>
+    <ProjectName>EnumLocales</ProjectName>
+    <TargetName>EnumLocales</TargetName>
     <ConfigurationType>Application</ConfigurationType>
-  </PropertyGroup>
-  <!-- Debug or Release -->
-  <PropertyGroup Condition="$(Configuration.StartsWith('Debug'))" Label="Configuration">
-    <UseDebugLibraries>true</UseDebugLibraries>
-  </PropertyGroup>
-  <PropertyGroup Condition="$(Configuration.StartsWith('Release'))" Label="Configuration">
-    <UseDebugLibraries>false</UseDebugLibraries>
-  </PropertyGroup>
-  <!-- Unicode or ANSI(MBCS) -->
-  <PropertyGroup Condition="!$(Configuration.Contains('ANSI'))" Label="Configuration">
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
-  <PropertyGroup Condition=" $(Configuration.Contains('ANSI'))" Label="Configuration">
-    <CharacterSet>MultiByte</CharacterSet>
+
+  <!-- Debug or Release -->
+  <PropertyGroup Condition="$(Configuration.Contains('Debug'))" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
   </PropertyGroup>
+  <PropertyGroup Condition="$(Configuration.Contains('Release'))" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+
+  <!-- If vs2019, assign PlatformToolset=v142, otherwise, assume vs2010. -->
+  <PropertyGroup Condition="$(Configuration.Contains('vs2019'))" Label="Configuration">
+    <PlatformToolset>v142</PlatformToolset>
+    <TargetName>$(TargetName)-vs2019</TargetName>
+  </PropertyGroup>
+
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
@@ -65,12 +69,14 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+
   <!-- Better .obj/.exe/.pdb output folder structure -->
   <PropertyGroup>
     <LinkIncremental>false</LinkIncremental>
-    <IntDir>$(ProjectDir)obj-$(PlatformToolset)\$(Platform)\$(Configuration)\</IntDir>
+     <IntDir>$(ProjectDir)obj-$(PlatformToolset)\$(Platform)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)bin-$(PlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
+
   <!-- 
   	Compiler/Linker Behavior Settings : shared 
   -->
@@ -83,7 +89,7 @@
       <ProgramDataBaseFileName Condition="'$(TargetExt)'=='.lib' ">$(TargetPath).pdb</ProgramDataBaseFileName>
       <!-- EXE/DLL's .pdb is truly intermediate, so we put it in $(IntDir), with some fancy file-naming -->
       <ProgramDataBaseFileName Condition="'$(TargetExt)'!='.lib' ">$(IntDir)$(TargetName).$(PlatformToolset).pdb</ProgramDataBaseFileName>
-      <PreprocessorDefinitions>WIN32;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>;;$(PERSONAL_CL_DEFINES);WIN32;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>.;$(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -93,7 +99,7 @@
       <ImportLibrary>$(OutDir)$(TargetName)--imp.lib</ImportLibrary>
       <GenerateMapFile>true</GenerateMapFile>
       <AdditionalLibraryDirectories>;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SetupAPI.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Muiload.lib;SetupAPI.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <!-- Better build.log file naming -->
     <BuildLog>
@@ -103,7 +109,7 @@
   <!-- 
   	Compiler Behavior Settings : Debug 
   -->
-  <ItemDefinitionGroup Condition="$(Configuration.StartsWith('Debug'))">
+  <ItemDefinitionGroup Condition="$(Configuration.Contains('Debug'))">
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;DBG=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -115,7 +121,7 @@
   <!-- 
   	Compiler Behavior Settings : Release 
   -->
-  <ItemDefinitionGroup Condition="$(Configuration.StartsWith('Release'))">
+  <ItemDefinitionGroup Condition="$(Configuration.Contains('Release'))">
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -127,20 +133,23 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
+
   <!-- 
     Source file list:
    -->
   <ItemGroup>
-    <ClCompile Include="EnumLocale.cpp" />
+    <ClCompile Include="EnumLocales.cpp" />
     <ClCompile Include="utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="utils.h" />
   </ItemGroup>
+
   <!-- MSBuild system stock Cpp.targets -->
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  
   <!-- import VSPG start -->
   <PropertyGroup>
     <VSPG_BootsDir_NoTBS>..\_VSPG\boots</VSPG_BootsDir_NoTBS>
@@ -149,4 +158,5 @@
     <Import Project="$(VSPG_BootsDir_NoTBS)\_VSPG.props" />
   </ImportGroup>
   <!-- import VSPG end -->
+
 </Project>
