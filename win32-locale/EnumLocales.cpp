@@ -1,11 +1,11 @@
 ﻿#include "utils.h"
 
-const TCHAR *g_szversion = _T("1.0.3");
+const TCHAR *g_szversion = _T("1.0.4");
 
 enum Filter_et
 {
 	Filter_None = 0,
-	Filter_LangRegn = 1,    // need only <lang>-<REGION> locales
+	Filter_LangCountry = 1,    // need only <lang>-<Country> locales
 	Filter_Neutral = 2, // need only neutral locales
 };
 
@@ -40,9 +40,9 @@ BOOL CALLBACK EnumLocalesProcEx(LPWSTR lpLocaleString,  DWORD dwFlags, LPARAM lP
 			lpLocaleString, self);
 	}
 
-	TCHAR szLang[40] = {}, szRegn[40] = {};
+	TCHAR szLang[40] = {}, szCountry[40] = {};
 	GetLocaleInfoEx(lpLocaleString, LOCALE_SENGLISHLANGUAGENAME, szLang, ARRAYSIZE(szLang));
-	GetLocaleInfoEx(lpLocaleString, LOCALE_SENGLISHCOUNTRYNAME, szRegn, ARRAYSIZE(szRegn));
+	GetLocaleInfoEx(lpLocaleString, LOCALE_SENGLISHCOUNTRYNAME, szCountry, ARRAYSIZE(szCountry));
 
 	TCHAR szACP[10] = {}, szOCP[10] = {};
 	GetLocaleInfoEx(lpLocaleString, LOCALE_IDEFAULTANSICODEPAGE, szACP, ARRAYSIZE(szACP));
@@ -71,13 +71,13 @@ BOOL CALLBACK EnumLocalesProcEx(LPWSTR lpLocaleString,  DWORD dwFlags, LPARAM lP
 	const Filter_et &filter = ((EnumInfo_t*)lParam)->filter;
 
 	if(filter==Filter_None 
-		|| ((filter==Filter_LangRegn) && (dwFlags&LOCALE_SPECIFICDATA))
+		|| ((filter==Filter_LangCountry) && (dwFlags&LOCALE_SPECIFICDATA))
 		|| ((filter==Filter_Neutral) && (dwFlags&LOCALE_NEUTRALDATA)) 
 		)
 	{
 		count++;
 
-		my_tprintf(_T("[%d] %s ; %s @ %s ; LCID=%s"), count, lpLocaleString, szLang, szRegn, szLCID);
+		my_tprintf(_T("[%d] %s ; %s @ %s ; LCID=%s"), count, lpLocaleString, szLang, szCountry, szLCID);
 		
 
 		my_tprintf(_T(" ; ANSI/OEM[%s/%s]"), szACP, szOCP);
@@ -91,9 +91,9 @@ BOOL CALLBACK EnumLocalesProcEx(LPWSTR lpLocaleString,  DWORD dwFlags, LPARAM lP
 
 	// TEST "localized" names. Why still get English text?
 	GetLocaleInfoEx(lpLocaleString, LOCALE_SLOCALIZEDLANGUAGENAME, szLang, ARRAYSIZE(szLang));
-	GetLocaleInfoEx(lpLocaleString, LOCALE_SLOCALIZEDCOUNTRYNAME, szRegn, ARRAYSIZE(szRegn));
+	GetLocaleInfoEx(lpLocaleString, LOCALE_SLOCALIZEDCOUNTRYNAME, szCountry, ARRAYSIZE(szCountry));
 	TCHAR tbuf[100];
-	_sntprintf_s(tbuf, ARRAYSIZE(tbuf), _T("Local: %s @ %s\n"), szLang, szRegn);
+	_sntprintf_s(tbuf, ARRAYSIZE(tbuf), _T("Local: %s @ %s\n"), szLang, szCountry);
 	OutputDebugString(tbuf);
 
 	return TRUE;
@@ -122,7 +122,7 @@ Filter_et AskForFilters()
 {
 	my_tprintf(_T("Select filter for LOCALE_WINDOWS:\n"));
 	my_tprintf(_T("[0] Show all\n"));
-	my_tprintf(_T("[1] Show only <lang>-<REGION> entries (LOCALE_SPECIFICDATA)\n"));
+	my_tprintf(_T("[1] Show only <lang>-<Country> entries (LOCALE_SPECIFICDATA)\n"));
 	my_tprintf(_T("[2] Show only neutral entries (LOCALE_NEUTRALDATA)\n"));
 	my_tprintf(_T("Select: "));
 	int key = my_getch_noblock();
@@ -142,7 +142,7 @@ int _tmain(int argc, TCHAR *argv[])
 	// If omit, select interactively.
 	// 
 	// Param2: Filter the entries enumerated. User can choose display
-	// only <lang>-<REGION> locales, or *neutral* locales.
+	// only <lang>-<Country> locales, or *neutral* locales.
 	// If omit, select interactively.
 
 	_tsetlocale(LC_CTYPE, _T(""));
@@ -155,7 +155,7 @@ int _tmain(int argc, TCHAR *argv[])
 	{
 		my_tprintf(_T("Hint: You can pass two params for EnumSystemLocalesEx() flags, and filters,\n"));
 		my_tprintf(_T("    so that this program will not ask you interactively.\n"));
-		my_tprintf(_T("For example, to list LOCALE_WINDOWS with only <lang>-<REGION> entries:\n"));
+		my_tprintf(_T("For example, to list LOCALE_WINDOWS with only <lang>-<Country> entries:\n"));
 		my_tprintf(_T("    %s 1 1\n"), pfn);
 	}
 
