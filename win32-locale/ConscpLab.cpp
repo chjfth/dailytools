@@ -3,7 +3,7 @@ and at the same time, the BOM makes MSVC compiler happy. */
 
 #include "utils.h"
 
-const TCHAR *g_szversion = _T("1.3.0");
+const TCHAR *g_szversion = _T("1.3.1");
 
 int g_start_codepage = 0;
 
@@ -28,6 +28,30 @@ SampleStr_st ar_samps[] =
 
 	// 936=GBK, 950=Big5, 949=Korean, 65001=UTF-8
 };
+
+void printf_Samples()
+{
+	my_tprintf(_T("==== printf()\n"));
+
+	for(int i=0; i<ARRAYSIZE(ar_samps); i++)
+	{
+		const char* psza = ar_samps[i].psza;
+
+		if (!psza)
+			continue;
+
+		int alen = (int)strlen(psza);
+		char hexbuf[16];
+		printf("printf() chars [%s] => ",
+			HexdumpA(psza, alen, hexbuf, ARRAYSIZE(hexbuf))
+			);
+
+		printf("%s", psza);
+		printf("\n");
+	}
+
+	my_tprintf(_T("\n"));
+}
 
 void wprintf_Samples()
 {
@@ -675,6 +699,8 @@ void print_stock_samples()
 	UINT icp1 = GetConsoleCP();
 	UINT ocp1 = GetConsoleOutputCP();
 
+	printf_Samples();
+	
 	wprintf_Samples();
 	// -- Note: GetConsoleOutputCP() may have been changed inside wprintf_Samples().
 	//
@@ -685,7 +711,7 @@ void print_stock_samples()
 	//
 	if(icp2!=icp1)
 	{
-		my_tprintf(_T("[PANIC!!!] GetConsoleCP() value changed during wprint().\n"));
+		my_tprintf(_T("[PANIC!!!] GetConsoleCP() value changed during wprintf().\n"));
 	}
 	if(ocp2!=ocp1)
 	{
@@ -717,7 +743,7 @@ int _tmain(int argc, TCHAR *argv[])
 	if(_MSC_VER<1900)
 	{
 		my_tprintf(_T("[Warning] This program is compiled with a fairly old Visual C++ version\n"));
-		my_tprintf(_T("(before VC2015), so it does not support UTF8 locale/codepage.\n"));
+		my_tprintf(_T("(before VC2015), so it does not support \".UTF8\" in CRT-locale.\n"));
 	}
 
 	TCHAR *orig_lcctype = _tsetlocale(LC_CTYPE, NULL);
