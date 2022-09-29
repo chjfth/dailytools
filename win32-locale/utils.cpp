@@ -203,3 +203,10 @@ char *HexdumpA(const char *pbytes, int count, char *hexbuf, int bufchars)
 	return hexbuf;
 }
 
+bool ishexdigit(TCHAR c)
+{
+	if((c>='0' && c<='9') || (c>='a' && c<='f') || (c>='A' && c<='F'))
+		return true;
+	else
+		return false;
+}

@@ -44,3 +44,4 @@ WCHAR *HexdumpW(const WCHAR *pszw, int count, WCHAR *hexbuf, int bufchars);
 
 char *HexdumpA(const char *pbytes, int count, char *hexbuf, int bufchars);
 
+bool ishexdigit(TCHAR c);

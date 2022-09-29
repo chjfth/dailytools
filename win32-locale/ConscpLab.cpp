@@ -302,12 +302,7 @@ static bool is_hextoken(const TCHAR *psz)
 	
 	for(int i=0; i<slen; i++)
 	{
-		TCHAR hc = psz[i];
-		if ((hc>='0' && hc<='9') || (hc>='a' && hc<='f') || (hc>='A' && hc<='F'))
-		{
-			// OK
-		}
-		else
+		if (!ishexdigit(psz[i]))
 		{
 			return false;
 		}
@@ -550,7 +545,7 @@ void print_user_dump(TCHAR *argv[])
 	//	0041 41 7535 42 42
 	//	0043 43 D83C DF4E 44 44
 	//
-	// each param corresponds to one byte or one WCHAR that will feed to output.
+	// Each param corresponds to one byte or one WCHAR that will feed to output.
 	// * If first param is two-chars(like 41), then all params are considered byte stream,
 	//   and will feed to printf() and WriteFile().
 	// * If first param is four-chars(like 0041), then all params are considered WCHAR stream,
@@ -572,6 +567,12 @@ void print_user_dump(TCHAR *argv[])
 			if(argv[i]==NULL)
 				break;
 
+			if(!is_hextoken(argv[i]))
+			{
+				my_tprintf(_T("[ERROR] The parameter \"%s\" is not a valid hex-token.\n"), argv[i]);
+				exit(1);
+			}
+			
 			ansibuf[i] = (unsigned char)_tcstoul(argv[i], NULL, 16);
 		}
 
@@ -614,6 +615,12 @@ void print_user_dump(TCHAR *argv[])
 		{
 			if(argv[i]==NULL)
 				break;
+
+			if (!is_hextoken(argv[i]))
+			{
+				my_tprintf(_T("[ERROR] The parameter \"%s\" is not a valid hex-token.\n"), argv[i]);
+				exit(1);
+			}
 
 			wcbuf[i] = (WCHAR)_tcstoul(argv[i], NULL, 16);
 		}
