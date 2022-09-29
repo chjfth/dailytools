@@ -11,7 +11,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EnumLocales", "EnumLocales.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DefaultLocales", "DefaultLocales.vcxproj", "{4712B06C-48F9-463E-B770-3F48A61A915A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EnumLocale-winxp", "EnumLocale-winxp.vcxproj", "{C12FAC82-5B98-4FB5-9DBF-F67E8CD76CE7}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EnumLocales-winxp", "EnumLocales-winxp.vcxproj", "{C12FAC82-5B98-4FB5-9DBF-F67E8CD76CE7}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "setlocale01", "setlocale01.vcxproj", "{20220927-0000-0000-0000-134646000001}"
 EndProject

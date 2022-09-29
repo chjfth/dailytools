@@ -40,8 +40,8 @@
   <!-- User project properties -->
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C12FAC82-5B98-4FB5-9DBF-F67E8CD76CE7}</ProjectGuid>
-    <ProjectName>EnumLocale-winxp</ProjectName>
-    <TargetName>EnumLocale-winxp</TargetName>
+    <ProjectName>EnumLocales-winxp</ProjectName>
+    <TargetName>EnumLocales-winxp</TargetName>
     <ConfigurationType>Application</ConfigurationType>
   </PropertyGroup>
   <!-- Debug or Release -->
@@ -131,7 +131,7 @@
     Source file list:
    -->
   <ItemGroup>
-    <ClCompile Include="EnumLocale-winxp.cpp" />
+    <ClCompile Include="EnumLocales-winxp.cpp" />
     <ClCompile Include="utils.cpp" />
   </ItemGroup>
   <ItemGroup>
