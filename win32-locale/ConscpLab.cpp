@@ -3,7 +3,7 @@ and at the same time, the BOM makes MSVC compiler happy. */
 
 #include "utils.h"
 
-const TCHAR *g_szversion = _T("1.4.0");
+const TCHAR *g_szversion = _T("1.4.1");
 
 int g_start_codepage = 0;
 
@@ -48,7 +48,14 @@ void printf_Samples()
 			);
 
 		printf("%s", psza);
-		printf("\n");
+
+		// MEMO: We need to print an extra space-char before '\n'.
+		// Without this space, a preceding malformed DBCS lead-byte
+		// may swallow this '\n' and ruin the new line.
+		// What's more, with VC2010 & VC2019 CRT, when the system-ANSI-codepage
+		// is 932,936,949 or 950 and when the '\n' is swallowed, the cursor moves
+		// to start of line, then next printf will overwrite previous line text.
+		printf(" \n");
 	}
 
 	my_tprintf(_T("\n"));
@@ -363,6 +370,7 @@ _T("  chcpsleep:pause      This will pause before changing console-codepage.\n")
 _T("  chcpsleep:<millisec> This will sleep for millisec before change conscp.\n")
 _T("  chcpsleep:nochcp     This will not call SetConsoleOutputCP().\n")
 _T("                       Note: chcpsleep is only used for stock samples.\n")
+_T("  nobuf                Turn off CRT buffering, setvbuf(stdout, NULL, _IONBF);\n")
 _T("  \n")
 _T("[hexdump...]\n")
 _T("  If empty, this program runs with stock sample text.\n")
