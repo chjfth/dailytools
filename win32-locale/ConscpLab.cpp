@@ -74,6 +74,12 @@ void wprintf_Samples()
 		if(!pszw)
 			continue;
 
+		// Note: I do not call mySetConsoleOutputCP2() here, bcz changing 
+		// consolecp is not enough to display the Unicode characters correctly.
+		// CRT-locale .lc_codepage should change accordingly as well.
+		// So, I'll leave this to print_user_dump(). User should pass correct
+		// crtlocale: and consolecp: parameters to see them printf() successfully.
+		
 		int wlen = (int)wcslen(pszw);
 		WCHAR hexbuf[16];
 		if(wlen==1)
