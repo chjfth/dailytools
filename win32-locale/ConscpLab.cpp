@@ -3,12 +3,13 @@ and at the same time, the BOM makes MSVC compiler happy. */
 
 #include "utils.h"
 
-const TCHAR *g_szversion = _T("1.3.1");
+const TCHAR *g_szversion = _T("1.4.0");
 
 int g_start_codepage = 0;
 
-int g_chcp_sleep_msec = 0;
+int g_chcp_sleep_msec = 100; // the default value
 #define CHCP_DO_PAUSE (-1)
+#define CHCP_NO_CHCP (-2)
 
 struct SampleStr_st
 {
@@ -93,6 +94,7 @@ void sleep_before_change_console_codepage(UINT icp, UINT ocp)
 	// Do a sleep, to make human user aware that switching console-output-codepage 
 	// may cause already displayed text glyph to be temporarily ruined.
 	// That is, the whole CMD window is redrawn with a different font.
+	// 
 	if(g_chcp_sleep_msec>0) 
 	{
 		Sleep(g_chcp_sleep_msec);
@@ -102,16 +104,16 @@ void sleep_before_change_console_codepage(UINT icp, UINT ocp)
 		my_tprintf(_T("<<Will change console-codepage to(%u,%u). Press a key to continue.>>\n"), icp, ocp);
 		_getch();
 	}
-	else
-	{
-		// Still make a small sleep, so that new user can get aware of the visual change.
-		Sleep(100);
-	}
 }
 
-BOOL mySetConsoleOutputCP2(UINT codepage, bool respect_sleep=true)
+BOOL mySetConsoleOutputCP2(UINT codepage, bool is_print_sample=false)
 {
-	if(respect_sleep)
+	if(is_print_sample && g_chcp_sleep_msec==CHCP_NO_CHCP)
+	{
+		return TRUE;
+	}
+	
+	if(is_print_sample)
 	{
 		sleep_before_change_console_codepage(codepage, codepage);
 	}
@@ -277,7 +279,7 @@ void WriteAnsiBytes_Samples(HANDLE hcOut, bool is_console)
 		int codepage = ar_samps[i].codepage;
 		const char *psza = ar_samps[i].psza;
 
-		if(!mySetConsoleOutputCP2(codepage)) {
+		if(!mySetConsoleOutputCP2(codepage, true)) {
 			my_tprintf(_T("Will see erroneous glyph: "));
 		}
 
@@ -299,7 +301,7 @@ void WriteAnsiBytes_Samples(HANDLE hcOut, bool is_console)
 		myWriteAnsiBytes(hcOut, is_console, "\n");
 	}
 
-	mySetConsoleOutputCP2(orig_codepage);
+	mySetConsoleOutputCP2(orig_codepage, true);
 	my_tprintf(_T("\n"));
 }
 
@@ -359,6 +361,8 @@ _T("  debug:pause          When seeing this, program pause for a keypress,\n")
 _T("                       so you have a chance to attach a debugger.\n")
 _T("  chcpsleep:pause      This will pause before changing console-codepage.\n")
 _T("  chcpsleep:<millisec> This will sleep for millisec before change conscp.\n")
+_T("  chcpsleep:nochcp     This will not call SetConsoleOutputCP().\n")
+_T("                       Note: chcpsleep is only used for stock samples.\n")
 _T("  \n")
 _T("[hexdump...]\n")
 _T("  If empty, this program runs with stock sample text.\n")
@@ -496,16 +500,22 @@ int apply_startup_user_params(TCHAR *argv[])
 
 	if(psz_chcpsleep[0])
 	{
-		g_chcp_sleep_msec = _ttoi(psz_chcpsleep);
-		if(g_chcp_sleep_msec>0)
+		if (_tcsicmp(psz_chcpsleep, _T("pause")) == 0)
 		{
-			my_tprintf(_T("Startup: Will sleep %d millisec after each SetConsoleOutputCP().\n"), g_chcp_sleep_msec);
-		}
-
-		if(g_chcp_sleep_msec==0 && _tcsicmp(psz_chcpsleep, _T("pause"))==0)
-		{
-			my_tprintf(_T("Startup: Will pause after each SetConsoleOutputCP().\n"));
 			g_chcp_sleep_msec = CHCP_DO_PAUSE;
+		}
+		else if (_tcsicmp(psz_chcpsleep, _T("nochcp")) == 0)
+		{
+			g_chcp_sleep_msec = CHCP_NO_CHCP;
+		}
+		else if(_istdigit(psz_chcpsleep[0]))
+		{
+			g_chcp_sleep_msec = _tcstoul(psz_chcpsleep, NULL, 0);
+		}
+		else
+		{
+			my_tprintf(_T("[ERROR] Wrong input value for chcpsleep parameter.\n"));
+			exit(1);
 		}
 	}
 
@@ -761,11 +771,18 @@ int _tmain(int argc, TCHAR *argv[])
 
 	if(*(argv+1+params_done) == NULL)
 	{
+		if (g_chcp_sleep_msec == CHCP_DO_PAUSE)
+			my_tprintf(_T("[Stock samples] Will pause before each SetConsoleOutputCP().\n"));
+		else if (g_chcp_sleep_msec == CHCP_NO_CHCP)
+			my_tprintf(_T("[Stock samples] Will not call SetConsoleOutputCP().\n"));
+		else if (g_chcp_sleep_msec>0)
+			my_tprintf(_T("[Stock samples] Will sleep %d millisec before each SetConsoleOutputCP().\n"), g_chcp_sleep_msec);
+
 		print_stock_samples();
 	}
 	else
 	{
-		// User-dump
+		// Dump user given char-stream or WCHAR-stream.
 		print_user_dump(argv+1+params_done);
 	}
 
