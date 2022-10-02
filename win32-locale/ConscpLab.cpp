@@ -536,7 +536,9 @@ int apply_startup_user_params(TCHAR *argv[])
 		g_start_codepage = start_codepage;
 
 		my_tprintf(_T("Startup: Set Console-codepage to %d\n"), start_codepage);
-		mySetConsoleOutputCP2(start_codepage);
+		BOOL succ = mySetConsoleOutputCP2(start_codepage);
+		if (!succ)
+			exit(1);
 	}
 
 	if(psz_tpmode[0])
