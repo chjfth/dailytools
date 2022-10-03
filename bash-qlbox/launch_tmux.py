@@ -303,12 +303,21 @@ def main():
 		else:
 			need_user_input = True
 	
+		first_prompt = True
+		
 		while need_user_input: # user-input cycle
 		
 			if nsess==1:
-				choice_prompt2 = "Answer 'A' to create a new session, or '1' to attach to the existing one:"
+				if first_prompt:
+					choice_prompt2 = "Answer 'A' to create a new session, or '1' to attach to the existing one:"
+				else:
+					choice_prompt2 = "'A'-create new, '1'-attach, '0'-not using tmux this time:"
 			else:
-				choice_prompt2 = "Answer 'A' to create a new session, or pick an existing one(0,%d...%d):"%(1, nsess)
+				if first_prompt:
+					choice_prompt2 = "Answer 'A' to create a new session, or pick an existing one(1...%d):"%(nsess)
+				else:
+					choice_prompt2 = "'A'-create new, '1...%d'-attach, '0'-not using tmux this time:"%(nsess)
+			
 			sys.stderr.write(choice_prompt2)
 		
 			try:
@@ -331,10 +340,12 @@ def main():
 				# Choose the first detached one automatically.
 				shcmd = shcmd_attach_a_session(first_detached_sess.sessname)
 				break
+			
+			first_prompt = False
 	
-	sys.stderr.write("\n...... tmux working ......\n\n")
+	if shcmd:
+		sys.stderr.write("\n...... tmux working ......\n\n")
 	
-#	sys.stderr.write( 'shcmd='+shcmd + '\n' ) # debug
 	print(shcmd)
 		# The caller(bash script) will capture this output and execute it as command.
 	
