@@ -102,7 +102,7 @@ class CSessinfo:
 		line_format = r'(.+?): ([0-9]+) windows \(created (.+?)\)(.*)'
 		r = re.match(line_format, display_line)
 		if not r:
-			raise TmuxErr("'tmux ls' session info line does not match regex '%s'"%(line_format))
+			raise TmuxErr("[Easytmux ERROR] 'tmux ls' session info line does not match regex '%s'"%(line_format))
 		
 		self.sessname = r.group(1)
 		
@@ -152,16 +152,21 @@ panes: 3 windows (created Sun Apr  8 12:10:19 2012) [100x35] (attached)
 				As a workaround, I add stdin=subprocess.PIPE, so the 'real' stdin is not affected by 'tmux ls'
 		"""
 	except OSError as errinfo:
-		print("Cannot execute '%s' command. Perhaps tmux is not installed on the server."%(cmd_tmuxls))
-		exit(4)
+		raise TmuxErr("[Easytmux ERROR] Cannot execute '%s' command. Perhaps tmux is not installed on the server."%(cmd_tmuxls))
 	except subprocess.CalledProcessError as cpe: # Strange: cannot capture this exception from subprocess.CalledProcessError from subprocess_check_output.
 		# Typical error:
+		#
 		#	server not found: Connection refused 
-		# that means no tmux session exists yet.
+		#
+		#	[tmux 3.0a] ERR:1
+		#	no server running on /tmp/tmux-1000/default
+		#
+		# That means no tmux session exists yet(a fresh system with no user login yet), which is considered a typical case by Easytmux.
+		
 		return []
+
 		#print "Error: '%s' execution fail, exit code is %d. Output is:\n%s"%(cmd_tmuxls, cpe.returncode , cpe.output)
 		#exit(6)
-	
 	
 	sess_infos = []
 	output_str = Output if is_python2 else Output.decode('utf8')
@@ -238,7 +243,7 @@ banner_second_session = """=====================================================
 
 template_session_choice = """
 ==============================================================================
- You have existing sessions on this server:
+[Easytmux] You have existing sessions on this server:
 %s
 ==============================================================================
 """
@@ -341,6 +346,7 @@ if __name__ == '__main__':
     	ret = main()
     	exit(ret)
     except TmuxErr as e:
+    	sys.stderr.write("\n")
     	sys.stderr.write(e.errmsg+"\n")
     	time.sleep(2)
     
