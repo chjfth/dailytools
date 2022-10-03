@@ -60,6 +60,13 @@ is_python2 = sys.version_info.major==2
 #g_is_interactive = False
 g_tmuxconf_filepath = ''
 
+class TmuxErr(Exception):
+	def __init__(self, errmsg):
+		self.errmsg = errmsg
+	def __str__(self):
+		return self.errmsg
+	
+
 def subprocess_check_output(*popenargs, **kwargs):
 	# This is from Python 2.7 subprocess.py, so that Python 2.6 can use it too.
     if 'stdout' in kwargs:
@@ -78,7 +85,7 @@ def subprocess_check_output(*popenargs, **kwargs):
 
 
 class CSessinfo:
-	# one screen session info
+	# info of one tmux session
 	
 	Attached = 1
 	Detached = 0
@@ -92,10 +99,10 @@ class CSessinfo:
 		
 		Note: detached lines are not marked with "(detached)".
 		"""
-		line_format = r'(.+?): ([0-9]+) windows \(created (.+?)\)[^\(\)]+((?:\(attached\))?)'
-		r = re.search(line_format, display_line)
+		line_format = r'(.+?): ([0-9]+) windows \(created (.+?)\)(.*)'
+		r = re.match(line_format, display_line)
 		if not r:
-			raise "Session info line does not match regex '%s'"%(line_format)
+			raise TmuxErr("'tmux ls' session info line does not match regex '%s'"%(line_format))
 		
 		self.sessname = r.group(1)
 		
@@ -104,10 +111,11 @@ class CSessinfo:
 		except:
 			self.windows = 0
 		if self.windows == 0:
-			raise "Unexpect: 'windows' number missing from the session line info."
+			raise TmuxErr("Unexpect: 'windows' number missing from the session line info.")
 		
 		self.ctime = time.strptime(r.group(3))
-		self.status = self.Attached if r.group(4)=='(attached)' else self.Detached
+		
+		self.status = self.Attached if r.group(4).find('(attached)')>=0 else self.Detached
 	
 
 def get_all_sessions():
@@ -159,11 +167,8 @@ panes: 3 windows (created Sun Apr  8 12:10:19 2012) [100x35] (attached)
 	output_str = Output if is_python2 else Output.decode('utf8')
 	lines = str(output_str).strip().split('\n')
 	for line in lines:
-		try:
-			sess_info = CSessinfo(line)
-			sess_infos.append(sess_info)
-		except:
-			pass
+		sess_info = CSessinfo(line)
+		sess_infos.append(sess_info)
 
 	return sess_infos
 
@@ -331,6 +336,13 @@ def main():
 	return 0 # success
 
 if __name__ == '__main__':
-    ret = main()
-    exit(ret)
+    
+    try:
+    	ret = main()
+    	exit(ret)
+    except TmuxErr as e:
+    	sys.stderr.write(e.errmsg+"\n")
+    	time.sleep(2)
+    
+    exit(4)
 
