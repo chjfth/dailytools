@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include <mbctype.h>  // _setmbcp()
 #include <windows.h>
+#include <assert.h>
 #include "..\cinclude\dlptr_winapi.h"
 
 const TCHAR *app_GetFilenamePart(const TCHAR *pPath);
