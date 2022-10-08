@@ -60,6 +60,13 @@ is_python2 = sys.version_info.major==2
 #g_is_interactive = False
 g_tmuxconf_filepath = ''
 
+class TmuxErr(Exception):
+	def __init__(self, errmsg):
+		self.errmsg = errmsg
+	def __str__(self):
+		return self.errmsg
+	
+
 def subprocess_check_output(*popenargs, **kwargs):
 	# This is from Python 2.7 subprocess.py, so that Python 2.6 can use it too.
     if 'stdout' in kwargs:
@@ -78,7 +85,7 @@ def subprocess_check_output(*popenargs, **kwargs):
 
 
 class CSessinfo:
-	# one screen session info
+	# info of one tmux session
 	
 	Attached = 1
 	Detached = 0
@@ -92,10 +99,10 @@ class CSessinfo:
 		
 		Note: detached lines are not marked with "(detached)".
 		"""
-		line_format = r'(.+?): ([0-9]+) windows \(created (.+?)\)[^\(\)]+((?:\(attached\))?)'
-		r = re.search(line_format, display_line)
+		line_format = r'(.+?): ([0-9]+) windows \(created (.+?)\)(.*)'
+		r = re.match(line_format, display_line)
 		if not r:
-			raise "Session info line does not match regex '%s'"%(line_format)
+			raise TmuxErr("[Easytmux ERROR] 'tmux ls' session info line does not match regex '%s'"%(line_format))
 		
 		self.sessname = r.group(1)
 		
@@ -104,10 +111,11 @@ class CSessinfo:
 		except:
 			self.windows = 0
 		if self.windows == 0:
-			raise "Unexpect: 'windows' number missing from the session line info."
+			raise TmuxErr("Unexpect: 'windows' number missing from the session line info.")
 		
 		self.ctime = time.strptime(r.group(3))
-		self.status = self.Attached if r.group(4)=='(attached)' else self.Detached
+		
+		self.status = self.Attached if r.group(4).find('(attached)')>=0 else self.Detached
 	
 
 def get_all_sessions():
@@ -144,26 +152,28 @@ panes: 3 windows (created Sun Apr  8 12:10:19 2012) [100x35] (attached)
 				As a workaround, I add stdin=subprocess.PIPE, so the 'real' stdin is not affected by 'tmux ls'
 		"""
 	except OSError as errinfo:
-		print("Cannot execute '%s' command. Perhaps tmux is not installed on the server."%(cmd_tmuxls))
-		exit(4)
+		raise TmuxErr("[Easytmux ERROR] Cannot execute '%s' command. Perhaps tmux is not installed on the server."%(cmd_tmuxls))
 	except subprocess.CalledProcessError as cpe: # Strange: cannot capture this exception from subprocess.CalledProcessError from subprocess_check_output.
 		# Typical error:
+		#
 		#	server not found: Connection refused 
-		# that means no tmux session exists yet.
+		#
+		#	[tmux 3.0a] ERR:1
+		#	no server running on /tmp/tmux-1000/default
+		#
+		# That means no tmux session exists yet(a fresh system with no user login yet), which is considered a typical case by Easytmux.
+		
 		return []
+
 		#print "Error: '%s' execution fail, exit code is %d. Output is:\n%s"%(cmd_tmuxls, cpe.returncode , cpe.output)
 		#exit(6)
-	
 	
 	sess_infos = []
 	output_str = Output if is_python2 else Output.decode('utf8')
 	lines = str(output_str).strip().split('\n')
 	for line in lines:
-		try:
-			sess_info = CSessinfo(line)
-			sess_infos.append(sess_info)
-		except:
-			pass
+		sess_info = CSessinfo(line)
+		sess_infos.append(sess_info)
 
 	return sess_infos
 
@@ -233,7 +243,7 @@ banner_second_session = """=====================================================
 
 template_session_choice = """
 ==============================================================================
- You have existing sessions on this server:
+[Easytmux] You have existing sessions on this server:
 %s
 ==============================================================================
 """
@@ -293,12 +303,21 @@ def main():
 		else:
 			need_user_input = True
 	
+		first_prompt = True
+		
 		while need_user_input: # user-input cycle
 		
 			if nsess==1:
-				choice_prompt2 = "Answer 'A' to create a new session, or '1' to attach to the existing one:"
+				if first_prompt:
+					choice_prompt2 = "Answer 'A' to create a new session, or '1' to attach to the existing one:"
+				else:
+					choice_prompt2 = "'A'-create new, '1'-attach, '0'-not using tmux this time:"
 			else:
-				choice_prompt2 = "Answer 'A' to create a new session, or pick an existing one(0,%d...%d):"%(1, nsess)
+				if first_prompt:
+					choice_prompt2 = "Answer 'A' to create a new session, or pick an existing one(1...%d):"%(nsess)
+				else:
+					choice_prompt2 = "'A'-create new, '1...%d'-attach, '0'-not using tmux this time:"%(nsess)
+			
 			sys.stderr.write(choice_prompt2)
 		
 			try:
@@ -321,16 +340,26 @@ def main():
 				# Choose the first detached one automatically.
 				shcmd = shcmd_attach_a_session(first_detached_sess.sessname)
 				break
+			
+			first_prompt = False
 	
-	sys.stderr.write("\n...... tmux working ......\n\n")
+	if shcmd:
+		sys.stderr.write("\n...... tmux working ......\n\n")
 	
-#	sys.stderr.write( 'shcmd='+shcmd + '\n' ) # debug
 	print(shcmd)
 		# The caller(bash script) will capture this output and execute it as command.
 	
 	return 0 # success
 
 if __name__ == '__main__':
-    ret = main()
-    exit(ret)
+    
+    try:
+    	ret = main()
+    	exit(ret)
+    except TmuxErr as e:
+    	sys.stderr.write("\n")
+    	sys.stderr.write(e.errmsg+"\n")
+    	time.sleep(2)
+    
+    exit(4)
 
