@@ -23,7 +23,7 @@ BOOL CALLBACK EnumLocalesProcEx(LPWSTR lpLocaleString, DWORD dwFlags, LPARAM lPa
 
 	if(!lpLocaleString || !lpLocaleString[0])
 	{
-		my_tprintf(_T("[callback #%d] Empty!!!\n"), callbacks);
+		my_tprintf(_T("[[callback #%d]] Empty!!!\n"), callbacks);
 		((EnumInfo_t*)lParam)->empty ++ ;
 		return TRUE;
 	}
@@ -74,7 +74,9 @@ BOOL CALLBACK EnumLocalesProcEx(LPWSTR lpLocaleString, DWORD dwFlags, LPARAM lPa
 	}
 
 	TCHAR szLCID[20] = {};
-	LCID lcid = LocaleNameToLCID(lpLocaleString, LOCALE_ALLOW_NEUTRAL_NAMES); // LOCALE_ALLOW_NEUTRAL_NAMES effective since Win7
+	LCID lcid = LocaleNameToLCID(lpLocaleString, LOCALE_ALLOW_NEUTRAL_NAMES); 
+	// -- LOCALE_ALLOW_NEUTRAL_NAMES effective since Win7
+	
 	_sntprintf_s(szLCID, ARRAYSIZE(szLCID), _T("0x%04X.%04X"), lcid>>16, lcid&0xFFFF);
 
 	count++;

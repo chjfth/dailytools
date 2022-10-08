@@ -4,7 +4,7 @@ The newer API EnumSystemLocalesEx() is supported only since Windows Vista.
 */
 #include "utils.h"
 
-const TCHAR *g_szversion = _T("1.0.0");
+const TCHAR *g_szversion = _T("1.0.1");
 
 struct EnumInfo_t
 {
@@ -23,7 +23,7 @@ BOOL CALLBACK EnumLocalesProc(LPWSTR pszLcid)
 
 	if(!pszLcid || !pszLcid[0])
 	{
-		my_tprintf(_T("[callback #%d] Empty!!!\n"), exi.callbacks);
+		my_tprintf(_T("[[callback #%d]] Empty!!!\n"), exi.callbacks);
 		exi.empty ++ ;
 		return TRUE;
 	}
@@ -105,8 +105,10 @@ int _tmain(int argc, TCHAR *argv[])
 		if(exi.count==0)
 			my_tprintf(_T("None.\n"));
 		
-		if(exi.empty>0)
-			my_tprintf(_T("Callbacks:%d , Shown:%d, and %d empty-string given by EnumSystemLocalesEx().\n"), 
+		if (exi.empty == 0)
+			my_tprintf(_T("Callbacks:%d\n"), exi.callbacks);
+		else
+			my_tprintf(_T("Callbacks:%d , Shown:%d, and %d empty-string given by EnumSystemLocales().\n"), 
 				exi.callbacks, exi.count, exi.empty);
 	}
 	else
