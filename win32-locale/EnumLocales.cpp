@@ -1,12 +1,13 @@
 ﻿#include "utils.h"
 
-const TCHAR *g_szversion = _T("1.0.4");
+const TCHAR *g_szversion = _T("1.0.5");
 
 enum Filter_et
 {
 	Filter_None = 0,
-	Filter_LangCountry = 1,    // need only <lang>-<Country> locales
-	Filter_Neutral = 2, // need only neutral locales
+	Filter_LangCountry = 1,  // need only <lang>-<Country> locales
+	Filter_Neutral = 2,      // need only neutral locales
+	Filter_LangOnly = 2,     // I think it synomym of "neutral"(=no specific country)
 };
 
 struct EnumInfo_t
@@ -102,7 +103,7 @@ BOOL CALLBACK EnumLocalesProcEx(LPWSTR lpLocaleString,  DWORD dwFlags, LPARAM lP
 int AskUserForFlags()
 {
 	my_tprintf(_T("Select what to enumerate:\n"));
-	my_tprintf(_T("[0] LOCALE_ALL\n"));
+	my_tprintf(_T("[0] LOCALE_ALL (all of 1,2,4)\n"));
 	my_tprintf(_T("[1] LOCALE_WINDOWS\n"));
 	my_tprintf(_T("[2] LOCALE_SUPPLEMENTAL\n"));
 	my_tprintf(_T("[4] LOCALE_ALTERNATE_SORTS\n"));
@@ -123,7 +124,7 @@ Filter_et AskForFilters()
 	my_tprintf(_T("Select filter for LOCALE_WINDOWS:\n"));
 	my_tprintf(_T("[0] Show all\n"));
 	my_tprintf(_T("[1] Show only <lang>-<Country> entries (LOCALE_SPECIFICDATA)\n"));
-	my_tprintf(_T("[2] Show only neutral entries (LOCALE_NEUTRALDATA)\n"));
+	my_tprintf(_T("[2] Show only <lang> entries (LOCALE_NEUTRALDATA)\n"));
 	my_tprintf(_T("Select: "));
 	int key = my_getch_noblock();
 	int num = key - '0';
