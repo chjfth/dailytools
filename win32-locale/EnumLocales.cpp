@@ -1,29 +1,25 @@
 ﻿#include "utils.h"
 
-const TCHAR *g_szversion = _T("1.0.4");
-
-enum Filter_et
-{
-	Filter_None = 0,
-	Filter_LangCountry = 1,    // need only <lang>-<Country> locales
-	Filter_Neutral = 2, // need only neutral locales
-};
+const TCHAR *g_szversion = _T("1.1.0");
 
 struct EnumInfo_t
 {
 	int callbacks;
 	int count;
 	int empty;
-	Filter_et filter;
+
+	DWORD calling_dwFlag;
+	DepictLang_et uselang;
 };
 
-
-BOOL CALLBACK EnumLocalesProcEx(LPWSTR lpLocaleString,  DWORD dwFlags, LPARAM lParam)
+BOOL CALLBACK EnumLocalesProcEx(LPWSTR lpLocaleString, DWORD dwFlags, LPARAM lParam)
 {
 	int &callbacks = ((EnumInfo_t*)lParam)->callbacks;
 	callbacks++;
 
 	int &count = ((EnumInfo_t*)lParam)->count;
+	int calling_dwFlag = ((EnumInfo_t*)lParam)->calling_dwFlag;
+	DepictLang_et uselang = ((EnumInfo_t*)lParam)->uselang;
 
 	if(!lpLocaleString || !lpLocaleString[0])
 	{
@@ -31,6 +27,8 @@ BOOL CALLBACK EnumLocalesProcEx(LPWSTR lpLocaleString,  DWORD dwFlags, LPARAM lP
 		((EnumInfo_t*)lParam)->empty ++ ;
 		return TRUE;
 	}
+
+	// Some API behavior verification >>>
 
 	TCHAR self[LOCALE_NAME_MAX_LENGTH+1] = {};
 	GetLocaleInfoEx(lpLocaleString, LOCALE_SNAME, self, ARRAYSIZE(self));
@@ -40,9 +38,25 @@ BOOL CALLBACK EnumLocalesProcEx(LPWSTR lpLocaleString,  DWORD dwFlags, LPARAM lP
 			lpLocaleString, self);
 	}
 
+	if (calling_dwFlag == LOCALE_WINDOWS)
+		assert( dwFlags & (LOCALE_NEUTRALDATA|LOCALE_SPECIFICDATA) );
+	else if (calling_dwFlag == LOCALE_NEUTRALDATA)
+		assert(dwFlags & LOCALE_NEUTRALDATA);
+	else if (calling_dwFlag == LOCALE_SPECIFICDATA)
+		assert(dwFlags & LOCALE_SPECIFICDATA);
+
+	// Some API behavior verification <<<
+
+	LCTYPE lcLang = LOCALE_SENGLISHLANGUAGENAME;
+	LCTYPE lcCountry = LOCALE_SENGLISHCOUNTRYNAME;
+	if (uselang == DepictLang_localized)
+		lcLang = LOCALE_SLOCALIZEDLANGUAGENAME, lcCountry = LOCALE_SLOCALIZEDCOUNTRYNAME;
+	else if (uselang == DepictLang_native)
+		lcLang = LOCALE_SNATIVELANGNAME, lcCountry = LOCALE_SNATIVECOUNTRYNAME;
+
 	TCHAR szLang[40] = {}, szCountry[40] = {};
-	GetLocaleInfoEx(lpLocaleString, LOCALE_SENGLISHLANGUAGENAME, szLang, ARRAYSIZE(szLang));
-	GetLocaleInfoEx(lpLocaleString, LOCALE_SENGLISHCOUNTRYNAME, szCountry, ARRAYSIZE(szCountry));
+	GetLocaleInfoEx(lpLocaleString, lcLang, szLang, ARRAYSIZE(szLang));
+	GetLocaleInfoEx(lpLocaleString, lcCountry, szCountry, ARRAYSIZE(szCountry));
 
 	TCHAR szACP[10] = {}, szOCP[10] = {};
 	GetLocaleInfoEx(lpLocaleString, LOCALE_IDEFAULTANSICODEPAGE, szACP, ARRAYSIZE(szACP));
@@ -51,79 +65,87 @@ BOOL CALLBACK EnumLocalesProcEx(LPWSTR lpLocaleString,  DWORD dwFlags, LPARAM lP
 	TCHAR exflags[80] = {};
 	if(dwFlags&LOCALE_REPLACEMENT)
 		_tcscat_s(exflags, _T("LOCALE_REPLACEMENT |"));
-	if(dwFlags&LOCALE_NEUTRALDATA)
-		_tcscat_s(exflags, _T("LOCALE_NEUTRALDATA |"));
-	if(dwFlags&LOCALE_SPECIFICDATA)
-		_tcscat_s(exflags, _T("LOCALE_SPECIFICDATA |"));
+
+	int slen = (int)_tcslen(exflags);
+	if (slen >= 2)
+	{
+		if (exflags[slen - 1] == _T('|'))
+			exflags[slen - 2] = _T('\0');
+	}
 
 	TCHAR szLCID[20] = {};
 	LCID lcid = LocaleNameToLCID(lpLocaleString, LOCALE_ALLOW_NEUTRAL_NAMES); // LOCALE_ALLOW_NEUTRAL_NAMES effective since Win7
 	_sntprintf_s(szLCID, ARRAYSIZE(szLCID), _T("0x%04X.%04X"), lcid>>16, lcid&0xFFFF);
 
-	int slen = (int)_tcslen(exflags);
+	count++;
 
-	if(slen>=2)
+	my_tprintf(_T("[%d] %s ; %s @ %s ; LCID=%s"), count, lpLocaleString, szLang, szCountry, szLCID);
+	
+
+	my_tprintf(_T(" ; ANSI/OEM[%s/%s]"), szACP, szOCP);
+
+	if(exflags[0])
 	{
-		if(exflags[slen-1]==_T('|'))
-			exflags[slen-2] = _T('\0');
+		my_tprintf(_T(" (%s)"), exflags);
 	}
-
-	const Filter_et &filter = ((EnumInfo_t*)lParam)->filter;
-
-	if(filter==Filter_None 
-		|| ((filter==Filter_LangCountry) && (dwFlags&LOCALE_SPECIFICDATA))
-		|| ((filter==Filter_Neutral) && (dwFlags&LOCALE_NEUTRALDATA)) 
-		)
-	{
-		count++;
-
-		my_tprintf(_T("[%d] %s ; %s @ %s ; LCID=%s"), count, lpLocaleString, szLang, szCountry, szLCID);
-		
-
-		my_tprintf(_T(" ; ANSI/OEM[%s/%s]"), szACP, szOCP);
-
-		if(exflags[0])
-		{
-			my_tprintf(_T(" (%s)"), exflags);
-		}
-		my_tprintf(_T("\n"));
-	}
-
-	// TEST "localized" names. Why still get English text?
-	GetLocaleInfoEx(lpLocaleString, LOCALE_SLOCALIZEDLANGUAGENAME, szLang, ARRAYSIZE(szLang));
-	GetLocaleInfoEx(lpLocaleString, LOCALE_SLOCALIZEDCOUNTRYNAME, szCountry, ARRAYSIZE(szCountry));
-	TCHAR tbuf[100];
-	_sntprintf_s(tbuf, ARRAYSIZE(tbuf), _T("Local: %s @ %s\n"), szLang, szCountry);
-	OutputDebugString(tbuf);
+	my_tprintf(_T("\n"));
 
 	return TRUE;
 }
 
 int AskUserForFlags()
 {
+	const TCHAR* pszFlag = NULL;
+	
 	my_tprintf(_T("Select what to enumerate:\n"));
-	my_tprintf(_T("[0] LOCALE_ALL\n"));
-	my_tprintf(_T("[1] LOCALE_WINDOWS\n"));
+	my_tprintf(_T("[0] LOCALE_ALL (all of 4,A,B)\n"));
+	my_tprintf(_T("[1] LOCALE_WINDOWS (all of A,B)\n"));
 	my_tprintf(_T("[2] LOCALE_SUPPLEMENTAL\n"));
 	my_tprintf(_T("[4] LOCALE_ALTERNATE_SORTS\n"));
+	my_tprintf(_T("[A] LOCALE_NEUTRALDATA\n"));
+	my_tprintf(_T("[B] LOCALE_SPECIFICDATA\n"));
 	my_tprintf(_T("Select: "));
 	int key = my_getch_noblock();
-	int num = key - '0';
-	if(num>=0 && num<=7)
-		; // valid input
-	else
-		num = 0;
 
-	my_tprintf(_T("%d\n"), num);
-	return num;
+	int dwFlag = -1; // -1 : invalid selection
+	if (key >= '0' && key <= '7')
+	{
+		dwFlag = key - '0';
+		if (dwFlag == 0)
+			pszFlag = _T("LOCAL_ALL");
+		else if (dwFlag == 1)
+			pszFlag = _T("LOCALE_WINDOWS");
+		else if (dwFlag == 2)
+			pszFlag = _T("LOCALE_SUPPLIMENTAL");
+		else if (dwFlag == 4)
+			pszFlag = _T("LOCAL_ALTERNATE_SORTS");
+	}
+	else if (key == 'a' || key == 'A')
+	{
+		dwFlag = LOCALE_NEUTRALDATA;
+		pszFlag = _T("LOCALE_NEUTRALDATA");
+	}
+	else if (key == 'b' || key == 'B')
+	{
+		dwFlag = LOCALE_SPECIFICDATA;
+		pszFlag = _T("LOCALE_SPECIFICDATA");
+	}
+	else
+	{
+		my_tprintf(_T("Invalid selection!\n"));
+		return -1;
+	}
+
+	my_tprintf(_T("[%c] %s\n"), key, pszFlag);
+	return dwFlag;
 }
 
-Filter_et AskForFilters()
+DepictLang_et AskForDepictLang()
 {
-	my_tprintf(_T("Select filter for LOCALE_WINDOWS:\n"));
-	my_tprintf(_T("[0] Show all\n"));
-	my_tprintf(_T("[1] Show only <lang>-<Country> entries (LOCALE_SPECIFICDATA)\n"));
-	my_tprintf(_T("[2] Show only neutral entries (LOCALE_NEUTRALDATA)\n"));
+	my_tprintf(_T("Select DepictLang to show the locale-names:\n"));
+	my_tprintf(_T("[0] Use English.\n"));
+	my_tprintf(_T("[1] Use your Windows UI language.\n"));
+	my_tprintf(_T("[2] Use context, the language that current locale entry is referring to.\n"));
 	my_tprintf(_T("Select: "));
 	int key = my_getch_noblock();
 	int num = key - '0';
@@ -133,19 +155,13 @@ Filter_et AskForFilters()
 		num = 0;
 
 	my_tprintf(_T("%d\n"), num);
-	return (Filter_et)num;
+	return (DepictLang_et)num;
 }
 
 int _tmain(int argc, TCHAR *argv[])
 {
-	// Param1: dwFlags passed to EnumSystemLocalesEx().
-	// If omit, select interactively.
-	// 
-	// Param2: Filter the entries enumerated. User can choose display
-	// only <lang>-<Country> locales, or *neutral* locales.
-	// If omit, select interactively.
-
 	_tsetlocale(LC_CTYPE, _T(""));
+	_setmode(_fileno(stdout), _O_U8TEXT); // ensure WCHARs are passed to Console
 
 	app_print_version(argv[0], g_szversion);
 
@@ -161,29 +177,32 @@ int _tmain(int argc, TCHAR *argv[])
 
 	EnumInfo_t exi = {};
 
-	int flags = 0;
-	if(argc<=1 || (flags=_ttoi(argv[1]))<0)
+	DWORD dwFlag = 0; // Only ONE-bit of flag is meaningful for each call of EnumSystemLocalesEx().
+	if(argc<=1 || (dwFlag=_ttoi(argv[1]))<0)
 	{
-		flags = AskUserForFlags();
-	}
-
-	if(flags & LOCALE_WINDOWS)
-	{
-		// We only apply filter to LOCALE_WINDOWS, bcz, for LOCALE_ALTERNATE_SORTS,
-		// neither LOCALE_SPECIFICDATA or LOCALE_NEUTRALDATA is seen from the callback.
-		if(argc<=2 || (exi.filter=(Filter_et)_ttoi(argv[2]))<0)
+		dwFlag = AskUserForFlags();
+		if(dwFlag==-1)
 		{
-			exi.filter = AskForFilters();
+			exit(1);
 		}
 	}
 
-	BOOL succ = EnumSystemLocalesEx(EnumLocalesProcEx, flags, (LPARAM)&exi, 0);
+	exi.calling_dwFlag = dwFlag;
+	
+	if (argc <= 2)
+		exi.uselang = AskForDepictLang();
+	else
+		exi.uselang = (DepictLang_et)_ttoi(argv[2]);
+
+	BOOL succ = EnumSystemLocalesEx(EnumLocalesProcEx, dwFlag, (LPARAM)&exi, 0);
 	if(succ)
 	{
 		if(exi.count==0)
 			my_tprintf(_T("None.\n"));
 		
-		if(exi.empty>0)
+		if (exi.empty == 0)
+			my_tprintf(_T("Callbacks:%d\n"), exi.callbacks);
+		else
 			my_tprintf(_T("Callbacks:%d , Shown:%d, and %d empty-string given by EnumSystemLocalesEx().\n"), 
 				exi.callbacks, exi.count, exi.empty);
 	}
