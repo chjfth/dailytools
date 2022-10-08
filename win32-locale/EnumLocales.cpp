@@ -93,20 +93,10 @@ BOOL CALLBACK EnumLocalesProcEx(LPWSTR lpLocaleString, DWORD dwFlags, LPARAM lPa
 	return TRUE;
 }
 
-int AskUserForFlags()
+static DWORD kbkey_to_dwFlag(int key, const TCHAR **ppSzFlag)
 {
 	const TCHAR* pszFlag = NULL;
 	
-	my_tprintf(_T("Select what to enumerate:\n"));
-	my_tprintf(_T("[0] LOCALE_ALL (all of 4,A,B)\n"));
-	my_tprintf(_T("[1] LOCALE_WINDOWS (all of A,B)\n"));
-	my_tprintf(_T("[2] LOCALE_SUPPLEMENTAL\n"));
-	my_tprintf(_T("[4] LOCALE_ALTERNATE_SORTS\n"));
-	my_tprintf(_T("[A] LOCALE_NEUTRALDATA\n"));
-	my_tprintf(_T("[B] LOCALE_SPECIFICDATA\n"));
-	my_tprintf(_T("Select: "));
-	int key = my_getch_noblock();
-
 	int dwFlag = -1; // -1 : invalid selection
 	if (key >= '0' && key <= '7')
 	{
@@ -132,10 +122,35 @@ int AskUserForFlags()
 	}
 	else
 	{
-		my_tprintf(_T("Invalid selection!\n"));
 		return -1;
 	}
 
+	*ppSzFlag = pszFlag;
+	return dwFlag;
+}
+
+DWORD AskUserForFlags()
+{
+	
+	my_tprintf(_T("Select what to enumerate:\n"));
+	my_tprintf(_T("[0] LOCALE_ALL (all of 4,A,B)\n"));
+	my_tprintf(_T("[1] LOCALE_WINDOWS (all of A,B)\n"));
+	my_tprintf(_T("[2] LOCALE_SUPPLEMENTAL\n"));
+	my_tprintf(_T("[4] LOCALE_ALTERNATE_SORTS\n"));
+	my_tprintf(_T("[A] LOCALE_NEUTRALDATA\n"));
+	my_tprintf(_T("[B] LOCALE_SPECIFICDATA\n"));
+	my_tprintf(_T("Select: "));
+	int key = my_getch_noblock();
+
+	const TCHAR* pszFlag = NULL;
+	DWORD dwFlag = kbkey_to_dwFlag(key, &pszFlag);
+
+	if(dwFlag==-1)
+	{
+		my_tprintf(_T("Invalid selection!\n"));
+		return -1;
+	}
+	
 	my_tprintf(_T("[%c] %s\n"), key, pszFlag);
 	return dwFlag;
 }
@@ -178,13 +193,23 @@ int _tmain(int argc, TCHAR *argv[])
 	EnumInfo_t exi = {};
 
 	DWORD dwFlag = 0; // Only ONE-bit of flag is meaningful for each call of EnumSystemLocalesEx().
-	if(argc<=1 || (dwFlag=_ttoi(argv[1]))<0)
+	if(argc<=1)
 	{
 		dwFlag = AskUserForFlags();
 		if(dwFlag==-1)
+			exit(1);
+	}
+	else
+	{
+		const TCHAR* pszFlag = NULL;
+		dwFlag = kbkey_to_dwFlag(argv[1][0], &pszFlag);
+		if (dwFlag == -1)
 		{
+			my_tprintf(_T("[ERROR] Invalid first parameter for dwFlag.\n"));
 			exit(1);
 		}
+
+		my_tprintf(_T("Calling EnumSystemLocalesEx() with dwFlags=%s\n"), pszFlag);
 	}
 
 	exi.calling_dwFlag = dwFlag;
