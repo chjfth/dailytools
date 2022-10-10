@@ -35,7 +35,9 @@ public:
 	// Anco: Anchor coefficient, this value should be a percent value 0~100, 
 	// 0 means left-most or top-most, 100 means right-most or bottom most.
 	bool AnchorControl(int x1Anco, int y1Anco, int x2Anco, int y2Anco, int nCtrlID);
+	
 	bool AnchorControls(int x1Anco, int y1Anco, int x2Anco, int y2Anco, ...);
+	// -- ... is a series of control-id, ending by a value of -1.
 
 public:
 	static bool PropSheetProc(HWND hwndPrsht, UINT uMsg, LPARAM lParam);
