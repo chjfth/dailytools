@@ -80,6 +80,8 @@ void Dlg_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 {
 	DlgPrivate_st *prdata = (DlgPrivate_st*)GetWindowLongPtr(hwnd, DWLP_USER);
 
+	HWND hwndOwner = NULL;
+
 	switch (id) 
 	{{
 	case IDOK:
@@ -97,7 +99,7 @@ void Dlg_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 				{100, 100, 100, 100, IDC_BTNB, L"Button B ↓"},
 				{0,0,0,0,0}
 			};
-			DialogBoxParam(g_hinstExe, MAKEINTRESOURCE(IDD_DEMO1), hwnd, DlgJUL_Proc, (LPARAM)ctlparams);
+			DialogBoxParam(g_hinstExe, MAKEINTRESOURCE(IDD_DEMO1), hwndOwner, DlgJUL_Proc, (LPARAM)ctlparams);
 			break;
 		}
 
@@ -110,7 +112,7 @@ void Dlg_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 				{100, 100, 100, 100, IDC_BTNB, L"Button B ↓"},
 				{0,0,0,0,0}
 			};
-			DialogBoxParam(g_hinstExe, MAKEINTRESOURCE(IDD_DEMO1), hwnd, DlgJUL_Proc, (LPARAM)ctlparams);
+			DialogBoxParam(g_hinstExe, MAKEINTRESOURCE(IDD_DEMO1), hwndOwner, DlgJUL_Proc, (LPARAM)ctlparams);
 			break;
 		}
 		
@@ -123,7 +125,7 @@ void Dlg_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 				{100, 50, 100, 50, IDC_BTNB, L"Button B ↑"},
 				{0,0,0,0,0}
 			};
-			DialogBoxParam(g_hinstExe, MAKEINTRESOURCE(IDD_DEMO1), hwnd, DlgJUL_Proc, (LPARAM)ctlparams);
+			DialogBoxParam(g_hinstExe, MAKEINTRESOURCE(IDD_DEMO1), hwndOwner, DlgJUL_Proc, (LPARAM)ctlparams);
 			break;
 		}
 		
@@ -136,7 +138,7 @@ void Dlg_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 				{70, 50, 100, 50, IDC_BTNB, L"↔30%"},
 				{0,0,0,0,0}
 			};
-			DialogBoxParam(g_hinstExe, MAKEINTRESOURCE(IDD_DEMO1), hwnd, DlgJUL_Proc, (LPARAM)ctlparams);
+			DialogBoxParam(g_hinstExe, MAKEINTRESOURCE(IDD_DEMO1), hwndOwner, DlgJUL_Proc, (LPARAM)ctlparams);
 			break;
 		}
 
@@ -149,7 +151,7 @@ void Dlg_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 				{70, 50, 100, 100, IDC_BTNB, L"↔30%  ↕50%"},
 				{0,0,0,0,0}
 			};
-			DialogBoxParam(g_hinstExe, MAKEINTRESOURCE(IDD_DEMO1), hwnd, DlgJUL_Proc, (LPARAM)ctlparams);
+			DialogBoxParam(g_hinstExe, MAKEINTRESOURCE(IDD_DEMO1), hwndOwner, DlgJUL_Proc, (LPARAM)ctlparams);
 			break;
 		}
 	}}
