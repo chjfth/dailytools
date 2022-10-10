@@ -33,24 +33,30 @@ struct DemoParam_st
 	const TCHAR *title; // window/dlgbox title
 };
 
+void MyDlg_EnableJULayout(HWND hdlg, const DemoParam_st *dp)
+{
+	SetWindowText(hdlg, dp->title);
+
+	JULayout *jul = JULayout::EnableJULayout(hdlg);
+
+	for(int i=0; i<dp->nctlparam; i++)
+	{
+		const CtlParam_st &cp = dp->ar_cltparams[i];
+		jul->AnchorControl(cp.x1anco, cp.y1anco, cp.x2anco, cp.y2anco, cp.ctlID);
+		SetDlgItemText(hdlg, cp.ctlID, cp.text);
+	}
+}
+
 BOOL DlgJUL_OnInitDialog(HWND hwnd, HWND hwndFocus, LPARAM lParam) 
 {
 	DlgPrivate_st *prdata = new DlgPrivate_st;
 	SetWindowLongPtr(hwnd, DWLP_USER, (LONG_PTR)prdata);
 	// -- This shows that JULayout does not occupy your DWLP_USER space.
 
+	// Before returning from WM_INITDIALOG, add code to enable JULayout for this dlgbox.
+	//
 	DemoParam_st *dp = (DemoParam_st*)lParam;
-
-	SetWindowText(hwnd, dp->title);
-
-	JULayout *jul = JULayout::EnableJULayout(hwnd);
-
-	for(int i=0; i<dp->nctlparam; i++)
-	{
-		const CtlParam_st &cp = dp->ar_cltparams[i];
-		jul->AnchorControl(cp.x1anco, cp.y1anco, cp.x2anco, cp.y2anco, cp.ctlID);
-		SetDlgItemText(hwnd, cp.ctlID, cp.text);
-	}
+	MyDlg_EnableJULayout(hwnd, dp);
 
 	return FALSE; // no default focus (but why still see focus on Button A?)
 }
