@@ -26,18 +26,30 @@ struct CtlParam_st // for one control
 	const WCHAR *text;
 };
 
+struct DemoParam_st
+{
+	int nctlparam;      // number of control-params in ar_ctlparams
+	const CtlParam_st *ar_cltparams;
+	const TCHAR *title; // window/dlgbox title
+};
+
 BOOL DlgJUL_OnInitDialog(HWND hwnd, HWND hwndFocus, LPARAM lParam) 
 {
 	DlgPrivate_st *prdata = new DlgPrivate_st;
 	SetWindowLongPtr(hwnd, DWLP_USER, (LONG_PTR)prdata);
+	// -- This shows that JULayout does not occupy your DWLP_USER space.
+
+	DemoParam_st *dp = (DemoParam_st*)lParam;
+
+	SetWindowText(hwnd, dp->title);
 
 	JULayout *jul = JULayout::EnableJULayout(hwnd);
 
-	CtlParam_st *cp = (CtlParam_st*)lParam;
-	for(; cp->ctlID; cp++)
+	for(int i=0; i<dp->nctlparam; i++)
 	{
-		jul->AnchorControl(cp->x1anco, cp->y1anco, cp->x2anco, cp->y2anco, cp->ctlID);
-		SetDlgItemText(hwnd, cp->ctlID, cp->text);
+		const CtlParam_st &cp = dp->ar_cltparams[i];
+		jul->AnchorControl(cp.x1anco, cp.y1anco, cp.x2anco, cp.y2anco, cp.ctlID);
+		SetDlgItemText(hwnd, cp.ctlID, cp.text);
 	}
 
 	return FALSE; // no default focus (but why still see focus on Button A?)
@@ -81,6 +93,10 @@ void Dlg_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 	DlgPrivate_st *prdata = (DlgPrivate_st*)GetWindowLongPtr(hwnd, DWLP_USER);
 
 	HWND hwndOwner = NULL;
+	
+	TCHAR title[80] = {};
+	_sntprintf_s(title, _TRUNCATE, _T("JULayout Demo #%d"), id-IDC_DEMO1+1);
+
 
 	switch (id) 
 	{{
@@ -97,9 +113,9 @@ void Dlg_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 				{0, 0, 100, 100, IDC_EDIT1},
 				{100, 0, 100, 0, IDC_BTNA, L"Button A ↑"},
 				{100, 100, 100, 100, IDC_BTNB, L"Button B ↓"},
-				{0,0,0,0,0}
 			};
-			DialogBoxParam(g_hinstExe, MAKEINTRESOURCE(IDD_DEMO1), hwndOwner, DlgJUL_Proc, (LPARAM)ctlparams);
+			DemoParam_st dp = { ARRAYSIZE(ctlparams), ctlparams, title };
+			DialogBoxParam(g_hinstExe, MAKEINTRESOURCE(IDD_JULBOX), hwndOwner, DlgJUL_Proc, (LPARAM)&dp);
 			break;
 		}
 
@@ -110,9 +126,9 @@ void Dlg_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 				{0, 0, 100, 100, IDC_EDIT1},
 				{100, 100, 100, 100, IDC_BTNA, L"Button A ↓"},
 				{100, 100, 100, 100, IDC_BTNB, L"Button B ↓"},
-				{0,0,0,0,0}
 			};
-			DialogBoxParam(g_hinstExe, MAKEINTRESOURCE(IDD_DEMO1), hwndOwner, DlgJUL_Proc, (LPARAM)ctlparams);
+			DemoParam_st dp = { ARRAYSIZE(ctlparams), ctlparams, title };
+			DialogBoxParam(g_hinstExe, MAKEINTRESOURCE(IDD_JULBOX), hwndOwner, DlgJUL_Proc, (LPARAM)&dp);
 			break;
 		}
 		
@@ -123,9 +139,9 @@ void Dlg_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 				{0, 0, 100, 100, IDC_EDIT1},
 				{100, 50, 100, 50, IDC_BTNA, L"Button A ↓"},
 				{100, 50, 100, 50, IDC_BTNB, L"Button B ↑"},
-				{0,0,0,0,0}
 			};
-			DialogBoxParam(g_hinstExe, MAKEINTRESOURCE(IDD_DEMO1), hwndOwner, DlgJUL_Proc, (LPARAM)ctlparams);
+			DemoParam_st dp = { ARRAYSIZE(ctlparams), ctlparams, title };
+			DialogBoxParam(g_hinstExe, MAKEINTRESOURCE(IDD_JULBOX), hwndOwner, DlgJUL_Proc, (LPARAM)&dp);
 			break;
 		}
 		
@@ -136,9 +152,9 @@ void Dlg_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 				{0, 0, 70, 100, IDC_EDIT1},
 				{70, 50, 100, 50, IDC_BTNA, L"↔30%"},
 				{70, 50, 100, 50, IDC_BTNB, L"↔30%"},
-				{0,0,0,0,0}
 			};
-			DialogBoxParam(g_hinstExe, MAKEINTRESOURCE(IDD_DEMO1), hwndOwner, DlgJUL_Proc, (LPARAM)ctlparams);
+			DemoParam_st dp = { ARRAYSIZE(ctlparams), ctlparams, title };
+			DialogBoxParam(g_hinstExe, MAKEINTRESOURCE(IDD_JULBOX), hwndOwner, DlgJUL_Proc, (LPARAM)&dp);
 			break;
 		}
 
@@ -149,9 +165,9 @@ void Dlg_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 				{0, 0, 70, 100, IDC_EDIT1},
 				{70, 0,  100, 50,  IDC_BTNA, L"↔30%  ↕50%"},
 				{70, 50, 100, 100, IDC_BTNB, L"↔30%  ↕50%"},
-				{0,0,0,0,0}
 			};
-			DialogBoxParam(g_hinstExe, MAKEINTRESOURCE(IDD_DEMO1), hwndOwner, DlgJUL_Proc, (LPARAM)ctlparams);
+			DemoParam_st dp = { ARRAYSIZE(ctlparams), ctlparams, title };
+			DialogBoxParam(g_hinstExe, MAKEINTRESOURCE(IDD_JULBOX), hwndOwner, DlgJUL_Proc, (LPARAM)&dp);
 			break;
 		}
 	}}
