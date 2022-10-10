@@ -151,10 +151,12 @@
   <ItemGroup>
     <ClInclude Include="CmnHdr-Jeffrey.h" />
     <ClInclude Include="JULayout2.h" />
+    <ClInclude Include="demobox.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="winmain.cpp" />
+    <ClCompile Include="demobox.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="winmain.rc" />

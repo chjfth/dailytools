@@ -5,6 +5,8 @@
 
 #include "CmnHdr-Jeffrey.h"
 
+#include "demobox.h"
+
 #define JULAYOUT_IMPL
 #include "JULayout2.h"
 
@@ -12,12 +14,6 @@
 
 HINSTANCE g_hinstExe;
 
-///////////////////////////////////////////////////////////////////////////////
-
-struct DlgPrivate_st
-{
-	// Anything you like here.
-};
 
 struct CtlParam_st // for one control
 {
@@ -33,8 +29,10 @@ struct DemoParam_st
 	const TCHAR *title; // window/dlgbox title
 };
 
-void MyDlg_EnableJULayout(HWND hdlg, const DemoParam_st *dp)
+void DemoBox_EnableJULayout(HWND hdlg, void *lParam_WM_INITDIALOG)
 {
+	const DemoParam_st *dp = (DemoParam_st *)lParam_WM_INITDIALOG;
+
 	SetWindowText(hdlg, dp->title);
 
 	JULayout *jul = JULayout::EnableJULayout(hdlg);
@@ -47,68 +45,17 @@ void MyDlg_EnableJULayout(HWND hdlg, const DemoParam_st *dp)
 	}
 }
 
-BOOL DlgJUL_OnInitDialog(HWND hwnd, HWND hwndFocus, LPARAM lParam) 
-{
-	DlgPrivate_st *prdata = new DlgPrivate_st;
-	SetWindowLongPtr(hwnd, DWLP_USER, (LONG_PTR)prdata);
-	// -- This shows that JULayout does not occupy your DWLP_USER space.
-
-	// Before returning from WM_INITDIALOG, add code to enable JULayout for this dlgbox.
-	//
-	DemoParam_st *dp = (DemoParam_st*)lParam;
-	MyDlg_EnableJULayout(hwnd, dp);
-
-	return FALSE; // no default focus (but why still see focus on Button A?)
-}
-
-void DlgJUL_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify) 
-{
-	DlgPrivate_st *prdata = (DlgPrivate_st*)GetWindowLongPtr(hwnd, DWLP_USER);
-	(void)prdata;
-
-	switch (id) 
-	{{
-	case IDOK:
-	case IDCANCEL:
-		EndDialog(hwnd, id);
-		break;
-
-	case IDC_BTNA:
-		SetDlgItemText(hwnd, IDC_EDIT1, L"You clicked Button A.");
-		break;
-	case IDC_BTNB:
-		SetDlgItemText(hwnd, IDC_EDIT1, L"You clicked Button B.");
-		break;
-	}}
-}
-
-INT_PTR WINAPI DlgJUL_Proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
-{
- 	switch (uMsg) 
- 	{
- 		chHANDLE_DLGMSG(hwnd, WM_INITDIALOG,    DlgJUL_OnInitDialog);
- 		chHANDLE_DLGMSG(hwnd, WM_COMMAND,       DlgJUL_OnCommand);
- 	}
-	return(FALSE);
-}
-
-///////
-
 void Dlg_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify) 
 {
-	DlgPrivate_st *prdata = (DlgPrivate_st*)GetWindowLongPtr(hwnd, DWLP_USER);
-
 	HWND hwndOwner = NULL;
 	
 	TCHAR title[80] = {};
 	_sntprintf_s(title, _TRUNCATE, _T("JULayout Demo #%d"), id-IDC_DEMO1+1);
 
-
 	switch (id) 
 	{{
 	case IDOK:
 	case IDCANCEL:
-		delete prdata;
 		EndDialog(hwnd, id);
 		break;
 	
@@ -121,7 +68,7 @@ void Dlg_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 				{100, 100, 100, 100, IDC_BTNB, L"Button B ↓"},
 			};
 			DemoParam_st dp = { ARRAYSIZE(ctlparams), ctlparams, title };
-			DialogBoxParam(g_hinstExe, MAKEINTRESOURCE(IDD_JULBOX), hwndOwner, DlgJUL_Proc, (LPARAM)&dp);
+			DialogBoxParam(g_hinstExe, MAKEINTRESOURCE(IDD_DEMOBOX), hwndOwner, DemoBox_DlgProc, (LPARAM)&dp);
 			break;
 		}
 
@@ -134,7 +81,7 @@ void Dlg_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 				{100, 100, 100, 100, IDC_BTNB, L"Button B ↓"},
 			};
 			DemoParam_st dp = { ARRAYSIZE(ctlparams), ctlparams, title };
-			DialogBoxParam(g_hinstExe, MAKEINTRESOURCE(IDD_JULBOX), hwndOwner, DlgJUL_Proc, (LPARAM)&dp);
+			DialogBoxParam(g_hinstExe, MAKEINTRESOURCE(IDD_DEMOBOX), hwndOwner, DemoBox_DlgProc, (LPARAM)&dp);
 			break;
 		}
 		
@@ -147,7 +94,7 @@ void Dlg_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 				{100, 50, 100, 50, IDC_BTNB, L"Button B ↑"},
 			};
 			DemoParam_st dp = { ARRAYSIZE(ctlparams), ctlparams, title };
-			DialogBoxParam(g_hinstExe, MAKEINTRESOURCE(IDD_JULBOX), hwndOwner, DlgJUL_Proc, (LPARAM)&dp);
+			DialogBoxParam(g_hinstExe, MAKEINTRESOURCE(IDD_DEMOBOX), hwndOwner, DemoBox_DlgProc, (LPARAM)&dp);
 			break;
 		}
 		
@@ -160,7 +107,7 @@ void Dlg_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 				{70, 50, 100, 50, IDC_BTNB, L"↔30%"},
 			};
 			DemoParam_st dp = { ARRAYSIZE(ctlparams), ctlparams, title };
-			DialogBoxParam(g_hinstExe, MAKEINTRESOURCE(IDD_JULBOX), hwndOwner, DlgJUL_Proc, (LPARAM)&dp);
+			DialogBoxParam(g_hinstExe, MAKEINTRESOURCE(IDD_DEMOBOX), hwndOwner, DemoBox_DlgProc, (LPARAM)&dp);
 			break;
 		}
 
@@ -173,7 +120,7 @@ void Dlg_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 				{70, 50, 100, 100, IDC_BTNB, L"↔30%  ↕50%"},
 			};
 			DemoParam_st dp = { ARRAYSIZE(ctlparams), ctlparams, title };
-			DialogBoxParam(g_hinstExe, MAKEINTRESOURCE(IDD_JULBOX), hwndOwner, DlgJUL_Proc, (LPARAM)&dp);
+			DialogBoxParam(g_hinstExe, MAKEINTRESOURCE(IDD_DEMOBOX), hwndOwner, DemoBox_DlgProc, (LPARAM)&dp);
 			break;
 		}
 	}}
@@ -204,4 +151,3 @@ int WINAPI _tWinMain(HINSTANCE hinstExe, HINSTANCE, PTSTR pszCmdLine, int)
 	DialogBoxParam(hinstExe, MAKEINTRESOURCE(IDD_WINMAIN), NULL, Dlg_Proc, (LPARAM)mystr);
 	return(0);
 }
-
