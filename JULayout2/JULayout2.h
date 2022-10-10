@@ -4,11 +4,11 @@ Notices: Copyright (c) 2000 Jeffrey Richter
 Purpose: This class manages child window positioning and sizing when a parent 
          window is resized.
          See Appendix B.
-[2017-06-18] Updated by Chj, renamed to JULayout.
+[2021-10-04] Lots of improvements by Chj, renamed to JULayout2.h .
 ******************************************************************************/
 
-#ifndef __JULayout_h_
-#define __JULayout_h_
+#ifndef __JULayout2_h_
+#define __JULayout2_h_
 
 ///////////////////////////////////////////////////////////////////////////////
 
