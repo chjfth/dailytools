@@ -6,6 +6,13 @@ set batdir=%batdir:~0,-1%
 set _vspgINDENTS=%_vspgINDENTS%.
 call :Echos START from %batdir%
 
+REM !!!!!!!!!!! 2022-10-13 !!!!!!!!!!!!!
+REM Using this bat is discouraged, bcz PackDoubleQuotes and UnpackDoubleQuotes operation
+REM are TOO verbose and mind bending. 
+REM Instead, use CopyFilePatternsToDirs.bat to achieve the same functionality.
+REM Verified: VSPU-CopyOrClean.bat works well with CopyFilePatternsToDirs.bat .
+
+
 : This is a function :
 
 :AgileCopyOrDelete

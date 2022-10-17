@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <Import Project="$(MSBuildThisFileDirectory)..\VSPG.user.props" Condition="exists('$(MSBuildThisFileDirectory)..\VSPG.user.props')" />
+  <Import Project="$(MSBuildThisFileDirectory)..\VSPG.Team.props" Condition="exists('$(MSBuildThisFileDirectory)..\VSPG.Team.props')" />
+  <Import Project="$(MSBuildThisFileDirectory)..\VSPG.Personal.props" Condition="exists('$(MSBuildThisFileDirectory)..\VSPG.Personal.props')" />
+
+  <Import Project="$(MSBuildProjectDirectory)\VSPG.Team.props" Condition="exists('$(MSBuildProjectDirectory)\VSPG.Team.props')" />
+  <Import Project="$(MSBuildProjectDirectory)\VSPG.Personal.props" Condition="exists('$(MSBuildProjectDirectory)\VSPG.Personal.props')" />
 
   <!-- Define some variables to use later. -->
 
@@ -26,6 +30,8 @@
       set "TargetExt=$(TargetExt)"
       set "IntDir=$(IntDir.TrimEnd('\'))"
       set "IntrmDir=$(IntDir.TrimEnd('\'))"
+      $(ExportEnvvarsForVSPG_Team)
+      $(ExportEnvvarsForVSPG_Personal)
     </ExportEnvvarsForVSPG>
 
   </PropertyGroup>
@@ -48,7 +54,7 @@
     	/>
   </Target>
 
-  <!-- A "Clean" Target that helps delete extra copied files by PostBuild-CopyOutput4.bat -->
+  <!-- A "Clean" Target that will invoke VSPU-CopyOrClean.bat to delete "output" files.  -->
 
   <Target Name="VSPG_Clean" AfterTargets="Clean">
     <Exec Command='$(ExportEnvvarsForVSPG) call "$(VSPG_BootsDir_NoTBS)\VSPG-Boots.bat" VSPG-CleanProject.bat'
@@ -60,6 +66,8 @@
   <!-- ====================================================================== -->
   <!-- A MSBuild Target to diagnose variables.                                -->
   <!--   msbuild xxx.vcxproj /p:showvars="TargetName;TargetPath"              -->
+  <!-- Or,                                                                    -->
+  <!--   assign <showvars> in VSPG.Teams.props or VSPG.Personal.props .       -->
   <!-- ====================================================================== -->
 
   <ItemGroup>

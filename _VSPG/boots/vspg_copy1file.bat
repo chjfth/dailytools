@@ -26,10 +26,23 @@ REM       bcz, this .bat need to know the exact filepath so to check its timesta
 set srcfile=%~1
 set dstfile=%~2
 
+if not exist "%srcfile%" (
+	call :Echos [ERROR] File not exist: "%srcfile%"
+	exit /b 4
+)
+
 call "%batdir%\GetParentDir.bat" dstdir "%dstfile%"
 if not exist "%dstdir%" (
-	mkdir "%dstdir%"
+	call :EchoAndExec mkdir "%dstdir%"
 	if errorlevel 1 exit /b 4
+)
+
+for %%A in ("%srcfile%") do set filesize=%%~zA
+
+if "%filesize%" LEQ "64000" (
+	REM [2022-10-12] Currently, IsFiletimeSame.bat is quite time consuming, human eye aware.
+	REM So for small file less-than or equal to 64000 bytes, we copy it blindly.
+	goto :SKIPPED_CHECK_SAME_TIME
 )
 
 call "%batdir%\IsFiletimeSame.bat" "%srcfile%" "%dstfile%"
@@ -40,6 +53,8 @@ if not errorlevel 1 (
 	)
 	exit /b 0
 )
+
+:SKIPPED_CHECK_SAME_TIME
 
 call copy "%srcfile%" "%dstfile%"
 

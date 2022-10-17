@@ -96,6 +96,7 @@ exit /b 444
   copy /b "%~1"+,, "%~1" >NUL 2>&1
 exit /b %ERRORLEVEL%
 
+
 :GetParentDir
   REM Example
   REM
@@ -109,3 +110,13 @@ exit /b %ERRORLEVEL%
   for %%g in ("%~2") do set parentdir=%%~dpg
   endlocal & ( set "%~1=%parentdir:~0,-1%" )
 exit /b 0
+
+
+:SleepSeconds
+  REM Here, we use ping.exe to simluate delay.
+  REM Don't use `timeout /t 3` etc, bcz timeout will refuse to work from VSIDE called .bat,
+  REM Run `timeout /t 3 < some-exist-file.txt` and you can see the fail.
+  call :Echos Sleep %~1 seconds...
+  ping 127.0.0.1 -n %~1 -w 1000 > nul
+  ping 127.0.0.1 -n 2 -w 1000 > nul
+exit /b

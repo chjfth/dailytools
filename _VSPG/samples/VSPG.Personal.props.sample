@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+
+    <!-- List variable names(MSBuild Property names) here, so that their values is dumped
+       for debugging purpose.
+    -->
+    <showvars>
+	  TargetName;TargetPath;ProjectGuid
+    </showvars>
+    
+    <!-- Use .bat statement `set` to export arbitrary MSBuild properties to VSPG .bat files.
+    -->
+    <ExportEnvvarsForVSPG_Team>
+      set "TeamName=Wanderer"
+      set "ConfigurationType=$(ConfigurationType)"
+      set "ProjectGuid=$(ProjectGuid)"
+    </ExportEnvvarsForVSPG_Team>
+    
+  </PropertyGroup>
+
+</Project>

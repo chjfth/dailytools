@@ -19,13 +19,6 @@ if defined vspg_DO_SHOW_VERBOSE (
 	call :EchoVar TargetName
 )
 
-REM Try to call PreBuild-SubWCRev1.bat etc from one of five predefined directories,
-REM whichever is encountered first. But if none found, just do nothing.
-REM If you need this PreBuild-SubWCRev1.bat to run, just copy and tune it from
-REM PreBuild-SubWCRev1.bat.sample .
-
-rem call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 PreBuild-SubWCRev1.bat %SubbatSearchDirsNarrowToWide%
-rem if errorlevel 1 exit /b 4
 
 REM ==== Call Team-Prebuild.bat if exist. ====
 call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 Team-PreBuild.bat "" %SubbatSearchDirsNarrowToWide%

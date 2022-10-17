@@ -44,7 +44,8 @@ set SubbatSearchDirsWideToNarrow=^
   "%SolutionDir%"^
   "%ProjectDir_upup%"^
   "%ProjectDir_up%"^
-  "%ProjectDir%"
+  "%ProjectDir%"^
+  "%ProjectDir%\_VSPG"^
 
 REM ======== Loading User Env-vars ======== 
 
@@ -52,6 +53,7 @@ REM This is a greedy search, bcz user may want to accumulate env-vars from outer
 REM But if user does not like some env-var from outer env, he can override it(or clear it) 
 REM from inner env explicitly.
 REM In one word, the search order is from wide to narrow.
+REM Gist of wide-to-narrow is Greedy: All directories in the list is search and all matched files are called.
 
 call "%bootsdir%\SearchAndExecSubbat.bat" Greedy1 VSPU-StartEnv.bat "" %SubbatSearchDirsWideToNarrow% 
 if errorlevel 1 exit /b 4
@@ -59,12 +61,19 @@ if errorlevel 1 exit /b 4
 REM ==== Prepare directory search list for other .bat-s.
 
 REM From VSPU-StartEnv.bat, user can append new search dirs in vspg_USER_BAT_SEARCH_DIRS, so that they will be searched.
+REM Gist of narrow-to-wide is non-Greedy: Once a file is matched, VSPG stops the search. If user wants to 
+REM resume the search(to get accumulating effect), user bat should manually call those wider bats.
 
-set SubbatSearchDirsNarrowToWide=%vspg_USER_BAT_SEARCH_DIRS% "%ProjectDir%" "%SolutionDir%" "%VSPG_StartDir%"
+set SubbatSearchDirsNarrowToWide=^
+  %vspg_USER_BAT_SEARCH_DIRS%^
+  "%ProjectDir%\_VSPG"^
+  "%ProjectDir%"^
+  "%SolutionDir%"^
+  "%VSPG_StartDir%"
 
 
 
-REM ======== call VSPG-Prebuild8.bat or VSPG-Postbuild8.bat ======== 
+REM ======== call VSPG-Prebuild.bat or VSPG-Postbuild.bat ======== 
 REM ====== which one to call is determined by SubworkBatfile =======
 
 call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 "%SubworkBatfile%" "" "%bootsdir%"
@@ -72,6 +81,7 @@ if errorlevel 1 exit /b 4
 
 
 exit /b 0
+
 
 
 REM =============================

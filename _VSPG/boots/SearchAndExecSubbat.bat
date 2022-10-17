@@ -1,7 +1,7 @@
 REM This bat is a function.
 
 REM setlocal EnableDelayedExpansion // Don't do this now, do it later! The Subbat may need to export arbitrary env-vars to outer env.
-REM Chj memo: It seems I will inevitably leaks some vars to the environment, _vspg_SubbatParams etc.
+REM Chj memo: It seems I will inevitably leak some vars to the environment, _vspg_SubbatParams etc.
 
 set _tmp_batfilenam=%~n0%~x0
 set _tmp_batdir=%~dp0
@@ -28,11 +28,15 @@ REM Params remain: Each param is a directory to search for subbat.
   
   shift
   set _vspg_SubbatParams=%~1
-  REM    %1 example:
+  REM    %1 example(use dqpack feature to assign multiple nested-params for _vspg_SubbatFilenam):
   REM
   REM    """D:\chj\AAA BBB\Chap03"" ""D:\chj\AAA BBB\Chap03\HelloWinD"" ""Debug"" "x64" ""D:\chj\AAA BBB\Chap03\x64\Debug"" ""HelloWin.exe"" ""HelloWin"" ""x64\Debug"""
   REM
-  REM    Special Note: All directory subparam above must NOT end with a backslash, otherwise, [Shortcut1] will not work.
+  REM    Special Note: A nested-param above must NOT end with a backslash, otherwise, [Shortcut1] will not work.
+  REM
+  REM [2022-10-15] Nested-params are once used by VSPG framework to pass a lot of directory params ($(ProjectDir) etc) from VSIDE, 
+  REM but someday ago, those directory params are passed via env-var, so the "pass nested-params" feature has been left unused.
+  REM Anyway, I think it may be a useful feature in the future, so keep it here.
   
   set _vspg_SearchedDirs=
   REM -- Each searched dir will be appended to the var, with minor decoration, like this:

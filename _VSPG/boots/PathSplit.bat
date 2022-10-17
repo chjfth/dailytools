@@ -6,7 +6,7 @@ REM Output dname=c:\program files\d2
 REM Output fname=d3.txt
   
   setlocal
-  REM set local ensures setting `path` does not overwrite caller env's PATH.
+  REM setlocal ensures setting `path` does not overwrite caller env's PATH.
   set path=%~1
   For %%A in ("%path%") do (
     set Folder=%%~dpA
