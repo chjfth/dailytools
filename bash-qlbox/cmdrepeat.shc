@@ -1,0 +1,21 @@
+#!/bin/bash
+
+if [ -z "$*" ]; then
+	echo "Need parameters as command line to execute."
+	exit 4
+fi
+
+while true; do
+	"$@"
+	
+	echo
+	echo "### Sub-program exitcode=$?"
+	echo
+	
+	echo "### Rerun in 3 seconds... (Ctrl+C to quit.)"
+	sleep 1
+	echo "### Rerun in 2 seconds..."
+	sleep 1
+	echo "### Rerun in 1 seconds..."
+	sleep 1
+done
