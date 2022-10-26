@@ -35,6 +35,8 @@ enum DepictLang_et
 	DepictLang_English = 0,
 	DepictLang_localized = 1, // current system's UI language
 	DepictLang_native = 2, // the language current LCID argument is referring to
+
+	DepictLang_SimuIntlcpl = 3, // produce the same list as intl.cpl user-locales list
 };
 
 const TCHAR *Desctext_from_LANGID(LANGID lcid, DepictLang_et dlang=DepictLang_English);
@@ -46,3 +48,6 @@ WCHAR *HexdumpW(const WCHAR *pszw, int count, WCHAR *hexbuf, int bufchars);
 char *HexdumpA(const char *pbytes, int count, char *hexbuf, int bufchars);
 
 bool ishexdigit(TCHAR c);
+
+int qsort_CompareString(void* context, const void* item1, const void* item2);
+

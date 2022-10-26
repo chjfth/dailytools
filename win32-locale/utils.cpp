@@ -210,3 +210,13 @@ bool ishexdigit(TCHAR c)
 	else
 		return false;
 }
+
+int qsort_CompareString(void* context, const void* item1, const void* item2)
+{
+	const TCHAR* text1 = *(const TCHAR**)item1;
+	const TCHAR* text2 = *(const TCHAR**)item2;
+
+	int cmpret = CompareString(LOCALE_USER_DEFAULT, 0, text1, wcslen(text1), text2, wcslen(text2));
+	return cmpret - 2;
+}
+

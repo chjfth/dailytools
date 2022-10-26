@@ -1,6 +1,6 @@
 ﻿#include "utils.h"
 
-const TCHAR *g_szversion = _T("1.1.1");
+const TCHAR *g_szversion = _T("1.2.0");
 
 struct EnumInfo_t
 {
@@ -12,6 +12,14 @@ struct EnumInfo_t
 	DepictLang_et uselang;
 };
 
+bool is_localstring_empty(LPCWSTR lcstr)
+{
+	if (!lcstr || !lcstr[0])
+		return true;
+	else
+		return false;
+}
+
 BOOL CALLBACK EnumLocalesProcEx(LPWSTR lpLocaleString, DWORD dwFlags, LPARAM lParam)
 {
 	int &callbacks = ((EnumInfo_t*)lParam)->callbacks;
@@ -21,7 +29,7 @@ BOOL CALLBACK EnumLocalesProcEx(LPWSTR lpLocaleString, DWORD dwFlags, LPARAM lPa
 	int calling_dwFlag = ((EnumInfo_t*)lParam)->calling_dwFlag;
 	DepictLang_et uselang = ((EnumInfo_t*)lParam)->uselang;
 
-	if(!lpLocaleString || !lpLocaleString[0])
+	if(is_localstring_empty(lpLocaleString))
 	{
 		my_tprintf(_T("[[callback #%d]] Empty!!!\n"), callbacks);
 		((EnumInfo_t*)lParam)->empty ++ ;
@@ -95,6 +103,68 @@ BOOL CALLBACK EnumLocalesProcEx(LPWSTR lpLocaleString, DWORD dwFlags, LPARAM lPa
 	return TRUE;
 }
 
+BOOL CALLBACK EnumLocalesProc_Count(LPWSTR lpLocaleString, DWORD dwFlags, LPARAM lParam)
+{
+	int& Count = *(int*)lParam;
+
+	if (!is_localstring_empty(lpLocaleString))
+		Count++;
+
+	return TRUE;
+}
+
+struct LocalePlate_st
+{
+	const TCHAR* lcstr;   // locale-name "en-US" etc
+	const TCHAR* dispstr; // LOCALE_SLOCALIZEDDISPLAYNAME string
+};
+
+struct Collect_st
+{
+	LocalePlate_st* arPlate;
+	int Count;
+	int idx;
+};
+
+BOOL CALLBACK EnumLocalesProc_Collect(LPWSTR lpLocaleString, DWORD dwFlags, LPARAM lParam)
+{
+	Collect_st& collect = *(Collect_st*)lParam;
+
+	if (is_localstring_empty(lpLocaleString))
+		return TRUE;
+
+	if(collect.idx < collect.Count)
+	{
+		int slen = _tcslen(lpLocaleString);
+		TCHAR* lcstr = new TCHAR[slen+1];
+		_tcscpy_s(lcstr, slen+1, lpLocaleString);
+
+		TCHAR szLcnameDisplay[80] = {};
+		GetLocaleInfoEx(lpLocaleString, LOCALE_SLOCALIZEDDISPLAYNAME, szLcnameDisplay, ARRAYSIZE(szLcnameDisplay));
+		slen = _tcslen(szLcnameDisplay);
+
+		TCHAR* dispstr = new TCHAR[slen + 1];
+		_tcscpy_s(dispstr, slen + 1, szLcnameDisplay);
+		
+		collect.arPlate[collect.idx].lcstr = lcstr;
+		collect.arPlate[collect.idx].dispstr = dispstr;
+		collect.idx++;
+	}
+	return TRUE;
+}
+
+int LocalePlate_Compare(void* context, const void* item1, const void* item2)
+{
+	LocalePlate_st* p1 = (LocalePlate_st*)item1;
+	LocalePlate_st* p2 = (LocalePlate_st*)item2;
+
+	int cmpret = CompareString(LOCALE_USER_DEFAULT, 0, 
+		p1->dispstr, wcslen(p1->dispstr), 
+		p2->dispstr, wcslen(p2->dispstr));
+	return cmpret - 2;
+}
+
+
 static DWORD kbkey_to_dwFlag(int key, const TCHAR **ppSzFlag)
 {
 	const TCHAR* pszFlag = NULL;
@@ -159,14 +229,15 @@ DWORD AskUserForFlags()
 
 DepictLang_et AskForDepictLang()
 {
-	my_tprintf(_T("Select DepictLang to show the locale-names:\n"));
+	my_tprintf(_T("Select in which language to show the locale-names:\n"));
 	my_tprintf(_T("[0] Use English.\n"));
 	my_tprintf(_T("[1] Use your Windows UI language.\n"));
 	my_tprintf(_T("[2] Use context, the language that current locale entry is referring to.\n"));
+	my_tprintf(_T("[3] Simulate that of Control Panel. (LOCALE_SLOCALIZEDDISPLAYNAME) \n"));
 	my_tprintf(_T("Select: "));
 	int key = my_getch_noblock();
 	int num = key - '0';
-	if(num>=0 && num<=2)
+	if(num>=0 && num<=3)
 		; // valid input
 	else
 		num = 0;
@@ -221,21 +292,73 @@ int _tmain(int argc, TCHAR *argv[])
 	else
 		exi.uselang = (DepictLang_et)_ttoi(argv[2]);
 
-	BOOL succ = EnumSystemLocalesEx(EnumLocalesProcEx, dwFlag, (LPARAM)&exi, 0);
-	if(succ)
+	if (exi.uselang != DepictLang_SimuIntlcpl)
 	{
-		if(exi.count==0)
-			my_tprintf(_T("None.\n"));
-		
-		if (exi.empty == 0)
-			my_tprintf(_T("Callbacks:%d\n"), exi.callbacks);
+		BOOL succ = EnumSystemLocalesEx(EnumLocalesProcEx, dwFlag, (LPARAM)&exi, 0);
+
+		if (succ)
+		{
+			if (exi.count == 0)
+				my_tprintf(_T("None.\n"));
+
+			if (exi.empty == 0)
+				my_tprintf(_T("Callbacks:%d\n"), exi.callbacks);
+			else
+				my_tprintf(_T("Callbacks:%d , Shown:%d, and %d empty-string given by EnumSystemLocalesEx().\n"),
+					exi.callbacks, exi.count, exi.empty);
+		}
 		else
-			my_tprintf(_T("Callbacks:%d , Shown:%d, and %d empty-string given by EnumSystemLocalesEx().\n"), 
-				exi.callbacks, exi.count, exi.empty);
+		{
+			my_tprintf(_T("EnumSystemLocalesEx() fail. WinErr=%d\n"), GetLastError());
+		}
 	}
 	else
 	{
-		my_tprintf(_T("EnumSystemLocalesEx() fail. WinErr=%d\n"), GetLastError());
+		DWORD winerr = 0;
+		Collect_st collect = {};
+		BOOL succ = EnumSystemLocalesEx(EnumLocalesProc_Count, dwFlag, (LPARAM)&collect.Count, 0);
+
+		collect.arPlate = new LocalePlate_st[collect.Count];
+		memset(collect.arPlate, 0, sizeof(collect.arPlate[0]) * collect.Count);
+
+		succ = EnumSystemLocalesEx(EnumLocalesProc_Collect, dwFlag, (LPARAM)&collect, 0);
+		if (!succ)
+			winerr = GetLastError();
+
+		collect.Count = collect.idx; // .idx may be less than .Count
+
+		// Sort the locales according to LOCALE_SLOCALIZEDDISPLAYNAME
+		if(succ)
+		{
+			qsort_s(collect.arPlate, collect.Count, sizeof(LocalePlate_st), LocalePlate_Compare, nullptr);
+		}
+
+		int i;
+		for(i=0; i<collect.Count; i++)
+		{
+			my_tprintf(_T("[%d] %s %s\n"), i+1, 
+				collect.arPlate[i].lcstr, 
+				collect.arPlate[i].dispstr);
+		}
+		
+		// Release memory by `collect`.
+		//
+		for (i = 0; i < collect.Count; i++)
+		{
+			delete collect.arPlate[i].lcstr;
+			delete collect.arPlate[i].dispstr;
+		}
+		delete collect.arPlate;
+
+		if(succ)
+		{
+			my_tprintf(_T("The above %d user-locale display names should match those from intl.cpl, in the same order ."), 
+				collect.Count);
+		}
+		else
+		{
+			my_tprintf(_T("EnumSystemLocalesEx() fail. WinErr=%d\n"), winerr);
+		}
 	}
 
 	return 0;
