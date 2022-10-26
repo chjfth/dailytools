@@ -1,4 +1,5 @@
 #include "utils.h"
+#include <time.h>
 
 void verify_sample_codepages()
 {
@@ -48,6 +49,27 @@ void verify_sample_codepages()
 	}
 }
 
+void see_strftime()
+{
+	// This output help us determine which locale space(s) determine
+	// strftime()'s date-time format.
+	
+	my_tprintf(_T("Calling wcsftime() for 2022-09-17 09:17:03 (AM) ...\n"));
+
+	struct tm tm1 = {};
+	tm1.tm_year = 2022 - 1900, tm1.tm_mon = 9 - 1, tm1.tm_mday = 17;
+	tm1.tm_hour = 9, tm1.tm_min = 17, tm1.tm_sec = 3;
+	tm1.tm_wday = 6;
+
+	TCHAR buf1[200] = {};
+	_tcsftime(buf1, sizeof(buf1), _T("%x (%A); %X ; %z(%Z)"), &tm1);
+
+	TCHAR buf2[200] = {};
+	_tcsftime(buf2, sizeof(buf2), _T("%#c"), &tm1);
+
+	my_tprintf(_T("    %s\n"), buf1);
+	my_tprintf(_T("    %s\n"), buf2);
+}
 
 void custom_test()
 {
@@ -58,6 +80,8 @@ void custom_test()
 	// Define env-var `PERSONAL_CL_DEFINES=CUSTOM_TEST_ON` to enable this block.
 
 	verify_sample_codepages();
+
+	see_strftime();
 	
 #endif
 }

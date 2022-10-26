@@ -1,6 +1,6 @@
 ﻿#include "utils.h"
 
-const TCHAR *g_szversion = _T("1.1.0");
+const TCHAR *g_szversion = _T("1.1.1");
 
 struct EnumInfo_t
 {
@@ -189,7 +189,7 @@ int _tmain(int argc, TCHAR *argv[])
 		my_tprintf(_T("Hint: You can pass two params for EnumSystemLocalesEx() flags, and filters,\n"));
 		my_tprintf(_T("    so that this program will not ask you interactively.\n"));
 		my_tprintf(_T("For example, to list LOCALE_WINDOWS with only <lang>-<Country> entries:\n"));
-		my_tprintf(_T("    %s 1 1\n"), pfn);
+		my_tprintf(_T("    %s B 1\n"), pfn);
 	}
 
 	EnumInfo_t exi = {};
