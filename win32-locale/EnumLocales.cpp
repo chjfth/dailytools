@@ -1,6 +1,6 @@
 ﻿#include "utils.h"
 
-const TCHAR *g_szversion = _T("1.2.0");
+const TCHAR *g_szversion = _T("1.2.1");
 
 struct EnumInfo_t
 {
@@ -117,6 +117,7 @@ struct LocalePlate_st
 {
 	const TCHAR* lcstr;   // locale-name "en-US" etc
 	const TCHAR* dispstr; // LOCALE_SLOCALIZEDDISPLAYNAME string
+	DWORD lcid;
 };
 
 struct Collect_st
@@ -148,6 +149,8 @@ BOOL CALLBACK EnumLocalesProc_Collect(LPWSTR lpLocaleString, DWORD dwFlags, LPAR
 		
 		collect.arPlate[collect.idx].lcstr = lcstr;
 		collect.arPlate[collect.idx].dispstr = dispstr;
+		collect.arPlate[collect.idx].lcid = LocaleNameToLCID(lpLocaleString, 0);
+
 		collect.idx++;
 	}
 	return TRUE;
@@ -336,9 +339,11 @@ int _tmain(int argc, TCHAR *argv[])
 		int i;
 		for(i=0; i<collect.Count; i++)
 		{
-			my_tprintf(_T("[%d] %s %s\n"), i+1, 
-				collect.arPlate[i].lcstr, 
-				collect.arPlate[i].dispstr);
+			LocalePlate_st lcp = collect.arPlate[i];
+			my_tprintf(_T("[%d] %-10s ; 0x%04X.%04X ; %s\n"), i+1, 
+				lcp.lcstr,
+				HIWORD(lcp.lcid), LOWORD(lcp.lcid),
+				lcp.dispstr);
 		}
 		
 		// Release memory by `collect`.
