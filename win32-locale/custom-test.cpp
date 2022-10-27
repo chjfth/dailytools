@@ -71,6 +71,45 @@ void see_strftime()
 	my_tprintf(_T("    %s\n"), buf2);
 }
 
+void see_LocaleDateFormat()
+{
+	struct ValNStr_st
+	{
+		DWORD val;
+		const TCHAR* str;
+	} ar_uselc[] = {
+		{ LOCALE_INVARIANT , _T("LOCALE_INVARIANT")},
+		{ LOCALE_SYSTEM_DEFAULT , _T("LOCALE_SYSTEM_DEFAULT")},
+		{ LOCALE_USER_DEFAULT , _T("LOCALE_USER_DEFAULT")},
+	};
+	
+	BOOL succ = 0;
+	SYSTEMTIME st = {};
+	GetLocalTime(&st);
+	st.wYear = 2022, st.wMonth = 9, st.wDay = 15;
+
+	for(int override=0; override<2; override++)
+	{
+		_tprintf(_T("Show date format for %04d-%02d-%02d: %s\n"),
+			st.wYear, st.wMonth, st.wDay,
+			override ? _T("(with user override)") : _T("(LOCALE_NOUSEROVERRIDE)")
+			);
+
+		int i;
+		for(i=0; i<ARRAYSIZE(ar_uselc); i++)
+		{
+			TCHAR retbuf[100] = {};
+			const ValNStr_st& uselc= ar_uselc[i];
+			int retchars = GetDateFormat(uselc.val,
+                DATE_SHORTDATE | (override ? 0 : LOCALE_NOUSEROVERRIDE),
+                &st,
+                NULL, // lpFormat, NULL means according to thread-locale 
+                retbuf, ARRAYSIZE(retbuf));
+			_tprintf(_T("  %30s : %s\n"), uselc.str, retbuf);
+		}
+	}	
+}
+
 void custom_test()
 {
 	// Execute extra experiment test here.
@@ -82,6 +121,8 @@ void custom_test()
 	verify_sample_codepages();
 
 	see_strftime();
+
+	see_LocaleDateFormat();
 	
 #endif
 }
