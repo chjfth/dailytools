@@ -62,10 +62,10 @@ void see_strftime()
 	tm1.tm_wday = 6;
 
 	TCHAR buf1[200] = {};
-	_tcsftime(buf1, sizeof(buf1), _T("%x (%A); %X ; %z(%Z)"), &tm1);
+	_tcsftime(buf1, ARRAYSIZE(buf1), _T("%x (%A); %X ; %z(%Z)"), &tm1);
 
 	TCHAR buf2[200] = {};
-	_tcsftime(buf2, sizeof(buf2), _T("%#c"), &tm1);
+	_tcsftime(buf2, ARRAYSIZE(buf2), _T("%#c"), &tm1);
 
 	my_tprintf(_T("    %s\n"), buf1);
 	my_tprintf(_T("    %s\n"), buf2);
@@ -100,12 +100,20 @@ void see_LocaleDateFormat()
 		{
 			TCHAR retbuf[100] = {};
 			const ValNStr_st& uselc= ar_uselc[i];
+
 			int retchars = GetDateFormat(uselc.val,
                 DATE_SHORTDATE | (override ? 0 : LOCALE_NOUSEROVERRIDE),
                 &st,
                 NULL, // lpFormat, NULL means according to thread-locale 
                 retbuf, ARRAYSIZE(retbuf));
-			_tprintf(_T("  %30s : %s\n"), uselc.str, retbuf);
+			_tprintf(_T("  %25s (short) : %s\n"), uselc.str, retbuf);
+
+			retchars = GetDateFormat(uselc.val,
+				DATE_LONGDATE | (override ? 0 : LOCALE_NOUSEROVERRIDE),
+				&st,
+				NULL, // lpFormat, NULL means according to thread-locale 
+				retbuf, ARRAYSIZE(retbuf));
+			_tprintf(_T("  %25s (long)  :                  %s\n"), _T(""), retbuf);
 		}
 	}	
 }
