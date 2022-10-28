@@ -13,6 +13,14 @@
 #include <assert.h>
 #include "..\cinclude\dlptr_winapi.h"
 
+#ifndef LOCALE_CUSTOM_USER_DEFAULT
+#define LOCALE_CUSTOM_USER_DEFAULT 0x0C00
+// -- the special LCID that means LOCALE_USER_DEFAULT but current locale-name
+//    only has LangTag representation but not LCID-numeric representation.
+#endif
+
+bool Is_LCID_unspecified(LCID lcid);
+
 const TCHAR *app_GetFilenamePart(const TCHAR *pPath);
 
 void app_print_version(const TCHAR *argv0, const TCHAR *verstr);
@@ -26,7 +34,7 @@ inline void newline()
 	my_tprintf(_T("\n"));
 }
 
-const TCHAR *HexstrLCID(LCID lcid);
+const TCHAR *HexstrLCID(LCID lcid, bool detect_unspecified=false);
 
 const TCHAR *app_GetWindowsVersionStr3();
 

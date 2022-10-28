@@ -1,6 +1,6 @@
 ﻿#include "utils.h"
 
-const TCHAR *g_szversion = _T("1.2.1");
+const TCHAR *g_szversion = _T("1.3.0");
 
 struct EnumInfo_t
 {
@@ -35,6 +35,8 @@ BOOL CALLBACK EnumLocalesProcEx(LPWSTR lpLocaleString, DWORD dwFlags, LPARAM lPa
 		((EnumInfo_t*)lParam)->empty ++ ;
 		return TRUE;
 	}
+
+	count++;
 
 	// Some API behavior verification >>>
 
@@ -81,16 +83,13 @@ BOOL CALLBACK EnumLocalesProcEx(LPWSTR lpLocaleString, DWORD dwFlags, LPARAM lPa
 			exflags[slen - 2] = _T('\0');
 	}
 
-	TCHAR szLCID[20] = {};
 	LCID lcid = LocaleNameToLCID(lpLocaleString, LOCALE_ALLOW_NEUTRAL_NAMES); 
 	// -- LOCALE_ALLOW_NEUTRAL_NAMES effective since Win7
 	
-	_sntprintf_s(szLCID, ARRAYSIZE(szLCID), _T("0x%04X.%04X"), lcid>>16, lcid&0xFFFF);
-
-	count++;
-
-	my_tprintf(_T("[%d] %s ; %s @ %s ; LCID=%s"), count, lpLocaleString, szLang, szCountry, szLCID);
-	
+	my_tprintf(_T("[%d] %s ; %s @ %s ; LCID=%s"), 
+		count, lpLocaleString, 
+		szLang, szCountry, 
+		HexstrLCID(lcid, true));
 
 	my_tprintf(_T(" ; ANSI/OEM[%s/%s]"), szACP, szOCP);
 
@@ -340,9 +339,9 @@ int _tmain(int argc, TCHAR *argv[])
 		for(i=0; i<collect.Count; i++)
 		{
 			LocalePlate_st lcp = collect.arPlate[i];
-			my_tprintf(_T("[%d] %-10s ; 0x%04X.%04X ; %s\n"), i+1, 
+			my_tprintf(_T("[%d] %-10s ; %s ; %s\n"), i+1, 
 				lcp.lcstr,
-				HIWORD(lcp.lcid), LOWORD(lcp.lcid),
+				HexstrLCID(lcp.lcid, true),
 				lcp.dispstr);
 		}
 		

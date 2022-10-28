@@ -6,7 +6,7 @@ This should help user discriminate the abstract and ubiquitous word "locale".
 #include "utils.h"
 #include <muiload.h>
 
-const TCHAR *g_szversion = _T("1.2.1");
+const TCHAR *g_szversion = _T("1.3.0");
 
 LCID g_set_thread_lcid = 0; // If not 0, will call SetThreadLocale() with this value.
 const TCHAR *g_set_crtlocale = _T("");
@@ -53,7 +53,6 @@ void verify_locname_lcid_match(const TCHAR *locname, LCID lcid)
 		return;
 
 	LCID lcid2 = dlptr_LocaleNameToLCID(locname, LOCALE_ALLOW_NEUTRAL_NAMES); //  LOCALE_ALLOW_NEUTRAL_NAMES since Win7
-	// -- TODO: Check for retval LOCALE_CUSTOM_DEFAULT and LOCALE_CUSTOM_UNSPECIFIED
 	if(lcid!=lcid2)
 	{
 		my_tprintf(_T("  [unexpect] LocaleNameToLCID(\"%s\") returns %s (not match!)\n"), 
@@ -168,6 +167,20 @@ int detect_lc_codepage_offset()
 		return -1;
 }
 
+static const TCHAR *LANGID_NumericDesc(LANGID langid)
+{
+	static TCHAR s_szDesc[40];
+	if(Is_LCID_unspecified(langid))
+	{
+		_sntprintf_s(s_szDesc, _TRUNCATE, _T("unspecified"));
+	}
+	else
+	{
+		_sntprintf_s(s_szDesc, _TRUNCATE, _T("LangID=%u, decimal"), langid);
+	}
+	return s_szDesc;
+}
+
 void do_work()
 {
 	LCID lcid = 0; 
@@ -189,15 +202,11 @@ void do_work()
 	my_tprintf(_T("GetSystemDefaultUILanguage() => 0x%04X\n"), langid);
 	LL2_print_LANGID_Desctext(langid);
 
-	/// WinAPI System-locale ///
+	/// Win32 System-locale ///
 
 	lcid = GetSystemDefaultLCID();
-	langid = LANGIDFROMLCID(lcid);
-	my_tprintf(_T("GetSystemDefaultLCID()  => %s (LangID=%u, decimal)\n"), 
-		HexstrLCID(lcid), langid);
-	LL2_print_LANGID_Desctext(langid);
-
-	if(dlptr_GetSystemDefaultLocaleName)
+	
+	if (dlptr_GetSystemDefaultLocaleName)
 	{
 		locname[0] = 0;
 		dlptr_GetSystemDefaultLocaleName(locname, LOCALE_NAME_MAX_LENGTH);
@@ -206,6 +215,11 @@ void do_work()
 		verify_locname_lcid_match(locname, lcid);
 	}
 
+	langid = LANGIDFROMLCID(lcid);
+	my_tprintf(_T("GetSystemDefaultLCID()  => %s (%s)\n"), 
+		HexstrLCID(lcid), LANGID_NumericDesc(langid));
+
+	LL2_print_LANGID_Desctext(langid);
 	LL2_print_ansicodepage_and_oemcodepage(lcid, true);
 
 	newline();
@@ -216,15 +230,11 @@ void do_work()
 	my_tprintf(_T("GetUserDefaultUILanguage()   => 0x%04X\n"), langid);
 	LL2_print_LANGID_Desctext(langid);
 
-	/// WinAPI User-locale ///
+	/// Win32 User-locale ///
 
 	lcid = GetUserDefaultLCID();
-	langid = LANGIDFROMLCID(lcid);
-	my_tprintf(_T("GetUserDefaultLCID()    => %s (LangID=%u, decimal)\n"), 
-		HexstrLCID(lcid), langid);
-	LL2_print_LANGID_Desctext(langid);
 
-	if(dlptr_GetUserDefaultLocaleName)
+	if (dlptr_GetUserDefaultLocaleName)
 	{
 		locname[0] = 0;
 		dlptr_GetUserDefaultLocaleName(locname, LOCALE_NAME_MAX_LENGTH);
@@ -233,6 +243,11 @@ void do_work()
 		verify_locname_lcid_match(locname, lcid);
 	}
 
+	langid = LANGIDFROMLCID(lcid);
+	my_tprintf(_T("GetUserDefaultLCID()    => %s (%s)\n"), 
+		HexstrLCID(lcid), LANGID_NumericDesc(langid));
+
+	LL2_print_LANGID_Desctext(langid);
 	LL2_print_ansicodepage_and_oemcodepage(lcid);
 
 	newline();

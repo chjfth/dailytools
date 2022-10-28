@@ -50,10 +50,19 @@ void app_print_version(const TCHAR *argv0, const TCHAR *verstr)
 
 }
 
-const TCHAR *HexstrLCID(LCID lcid)
+const TCHAR *HexstrLCID(LCID lcid, bool detect_unspecified)
 {
 	static TCHAR s_szLCID[20];
-	_sntprintf_s(s_szLCID, ARRAYSIZE(s_szLCID), _T("0x%04X.%04X"), lcid>>16, lcid&0xffff);
+
+	if(detect_unspecified && Is_LCID_unspecified(lcid))
+	{
+		_sntprintf_s(s_szLCID, _TRUNCATE, _T("unspecified"));
+	}
+	else
+	{
+		_sntprintf_s(s_szLCID, _TRUNCATE, _T("0x%04X.%04X"), HIWORD(lcid), LOWORD(lcid));
+	}
+
 	return s_szLCID;
 }
 
@@ -224,3 +233,10 @@ int qsort_CompareString(void* context, const void* item1, const void* item2)
 	return cmpret - 2;
 }
 
+bool Is_LCID_unspecified(LCID lcid)
+{
+	if (lcid==LOCALE_CUSTOM_UNSPECIFIED || lcid==LOCALE_CUSTOM_USER_DEFAULT)
+		return true;
+	else
+		return false;
+}
