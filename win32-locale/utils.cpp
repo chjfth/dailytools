@@ -173,7 +173,7 @@ const TCHAR * app_WinErrStr(DWORD winerr)
 WCHAR *HexdumpW(const WCHAR *pszw, int count, WCHAR *hexbuf, int bufchars)
 {
 	if (count < 0)
-		count = wcslen(pszw);
+		count = (int)wcslen(pszw);
 	
 	for (int i = 0; i < count; i++)
 	{
@@ -191,7 +191,7 @@ WCHAR *HexdumpW(const WCHAR *pszw, int count, WCHAR *hexbuf, int bufchars)
 char *HexdumpA(const char *pbytes, int count, char *hexbuf, int bufchars)
 {
 	if (count < 0)
-		count = strlen(pbytes);
+		count = (int)strlen(pbytes);
 	
 	for (int i = 0; i < count; i++)
 	{
@@ -219,7 +219,8 @@ int qsort_CompareString(void* context, const void* item1, const void* item2)
 	const TCHAR* text1 = *(const TCHAR**)item1;
 	const TCHAR* text2 = *(const TCHAR**)item2;
 
-	int cmpret = CompareString(LOCALE_USER_DEFAULT, 0, text1, wcslen(text1), text2, wcslen(text2));
+	int cmpret = CompareString(LOCALE_USER_DEFAULT, 0, 
+		text1, (int)wcslen(text1), text2, (int)wcslen(text2));
 	return cmpret - 2;
 }
 
