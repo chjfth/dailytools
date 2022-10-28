@@ -6,11 +6,12 @@ This should help user discriminate the abstract and ubiquitous word "locale".
 #include "utils.h"
 #include <muiload.h>
 
-const TCHAR *g_szversion = _T("1.3.0");
+const TCHAR *g_szversion = _T("1.3.1");
 
 LCID g_set_thread_lcid = 0; // If not 0, will call SetThreadLocale() with this value.
 const TCHAR *g_set_crtlocale = _T("");
 int g_crtmbcp = 0;  // for CRT _setmbcp();
+int g_set_threadui_lang = -1; // 0 consider a valid value to set
 int g_consolecp = 0;
 bool g_pause_on_quit = false;
 
@@ -252,7 +253,7 @@ void do_work()
 
 	newline();
 
-	/// Thread-locale /// 
+	/// Thread-locale (almost obsolete wince Win7) /// 
 
 	lcid = GetThreadLocale();
 	TCHAR lcname[40] = _T("unknown");
@@ -265,10 +266,22 @@ void do_work()
                 lcid, app_WinErrStr());
 		}
 	}
-	my_tprintf(_T("GetThreadLocale() => %s (%s)\n"), HexstrLCID(lcid), lcname);
+	my_tprintf(_T("GetThreadLocale()     => %s (%s)\n"), HexstrLCID(lcid), lcname);
+
+	/// Thread-UI-Language ///
 	
-	LL2_print_LANGID_Desctext(LANGIDFROMLCID(lcid));
-	LL2_print_ansicodepage_and_oemcodepage(lcid);
+	langid = GetThreadUILanguage();
+	TCHAR lcname2[40] = _T("unknown");
+	if (dlptr_LCIDToLocaleName)
+	{
+		int retchars = dlptr_LCIDToLocaleName(langid, lcname2, ARRAYSIZE(lcname2), 0);
+		if (retchars <= 0)
+		{
+			my_tprintf(_T("[Unexpect!] LCIDToLocaleName(0x%04X ,...) fail!\n"),
+				langid, app_WinErrStr());
+		}
+	}
+	my_tprintf(_T("GetThreadUILanguage() => %s (%s)\n"), HexstrLCID(langid), lcname2);
 
 	newline();
 
@@ -299,7 +312,8 @@ void print_help()
 {
 	const TCHAR *helptext =
 _T("Parameter help:\n")
-_T("  threadlcid:<lcid>      Call SetThreadLocale(lcid); on start.\n")
+_T("  threadlcid:<thrlcid>   Call SetThreadLocale(thrlcid); on start.\n")
+_T("  uilangid:<uilangid>    Call SetThreadUILanguage(uilangid); on start. 0 is ok.\n")
 _T("  crtlocale:<locstr>     Call setlocale(LC_ALL, locstr); on start.\n")
 _T("                         If <locstr> is '-', omit calling setlocale().\n")
 _T("  crtmbcp:<mbcp>         Call _setmbcp(mbcp); on start.\n")
@@ -308,7 +322,7 @@ _T("  \n")
 _T("\n")
 _T("Example:\n")
 _T("  DefaultLocales threadlcid:0x0804 crtlocale:zh-CN consolecp:936\n")
-_T("  DefaultLocales threadlcid:0x0404 crtlocale:zh-TW consolecp:950\n")
+_T("  DefaultLocales   uilangid:0x0404 crtlocale:zh-TW consolecp:950\n")
 _T("  DefaultLocales crtlocale:.65001 consolecp:65001\n")
 _T("  DefaultLocales crtlocale:japanese_Japan\n")
 _T("  DefaultLocales crtlocale:-\n")
@@ -343,6 +357,9 @@ int apply_startup_user_params(TCHAR *argv[])
 	// or
 	//		threadlcid:1041
 
+	const TCHAR szThreadUILang[] = _T("uilangid:");
+	const int   nzThreadUILang = ARRAYSIZE(szThreadUILang) - 1;
+
 	const TCHAR szCrtmbcp[] = _T("crtmbcp:");
 	const int   nzCrtmbcp = ARRAYSIZE(szCrtmbcp)-1;
 	
@@ -366,7 +383,18 @@ int apply_startup_user_params(TCHAR *argv[])
 				exit(1);
 			}
 		}
-		else if(_tcsnicmp(*argv, szCrtLocale, nzCrtLocale)==0) 
+		else if (_tcsnicmp(*argv, szThreadUILang, nzThreadUILang) == 0)
+		{
+			const TCHAR* psz_threaduilang = (*argv) + nzThreadUILang;
+			g_set_threadui_lang = _tcstoul(psz_threaduilang, NULL, 0);
+
+			if( !isdigit(psz_threaduilang[0]) || g_set_threadui_lang<0 )
+			{
+				my_tprintf(_T("Invalid uilangid input value: %s\n"), psz_threaduilang);
+				exit(1);
+			}
+		}
+		else if(_tcsnicmp(*argv, szCrtLocale, nzCrtLocale)==0)
 		{
 			g_set_crtlocale = (*argv)+nzCrtLocale;
 		}
@@ -457,6 +485,21 @@ int _tmain(int argc, TCHAR *argv[])
 		{
 			my_tprintf(_T("Startup:      SetThreadLocale() fail. %s\n"), app_WinErrStr());
 			exit(1);
+		}
+	}
+
+	if (g_set_threadui_lang>=0)
+	{
+		my_tprintf(_T("Startup: Call SetThreadUILanguage(0x%04X); \n"), g_set_threadui_lang);
+		LANGID uilang_ret = SetThreadUILanguage(g_set_threadui_lang);
+		if(g_set_threadui_lang==0 || uilang_ret==g_set_threadui_lang)
+		{
+			my_tprintf(_T("  > SetThreadUILanguage() returns 0x%04X. Success.\n"), uilang_ret);
+		}
+		else
+		{
+			my_tprintf(_T("[Unexpect] SetThreadUILanguage() returns 0x%04X. %s\n"), 
+				uilang_ret, app_WinErrStr());
 		}
 	}
 
