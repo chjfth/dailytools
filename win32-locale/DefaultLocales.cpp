@@ -6,7 +6,7 @@ This should help user discriminate the abstract and ubiquitous word "locale".
 #include "utils.h"
 #include <muiload.h>
 
-const TCHAR *g_szversion = _T("1.3.1");
+const TCHAR *g_szversion = _T("1.3.2");
 
 LCID g_set_thread_lcid = 0; // If not 0, will call SetThreadLocale() with this value.
 const TCHAR *g_set_crtlocale = _T("");
@@ -44,6 +44,7 @@ DEFINE_DLPTR_WINAPI("kernel32.dll", GetSystemDefaultLocaleName)
 DEFINE_DLPTR_WINAPI("kernel32.dll", GetUserDefaultLocaleName)
 DEFINE_DLPTR_WINAPI("kernel32.dll", LCIDToLocaleName)
 DEFINE_DLPTR_WINAPI("kernel32.dll", LocaleNameToLCID)
+DEFINE_DLPTR_WINAPI("kernel32.dll", GetThreadUILanguage)
 
 void verify_locname_lcid_match(const TCHAR *locname, LCID lcid)
 {
@@ -269,8 +270,11 @@ void do_work()
 	my_tprintf(_T("GetThreadLocale()     => %s (%s)\n"), HexstrLCID(lcid), lcname);
 
 	/// Thread-UI-Language ///
-	
-	langid = GetThreadUILanguage();
+
+	if (!dlptr_GetThreadUILanguage)
+		goto SKIPPED_THREADUILANG;
+
+	langid = dlptr_GetThreadUILanguage();
 	TCHAR lcname2[40] = _T("unknown");
 	if (dlptr_LCIDToLocaleName)
 	{
@@ -281,8 +285,10 @@ void do_work()
 				langid, app_WinErrStr());
 		}
 	}
-	my_tprintf(_T("GetThreadUILanguage() => %s (%s)\n"), HexstrLCID(langid), lcname2);
+	my_tprintf(_T("GetThreadUILanguage() =>      0x%04X (%s)\n"), langid, lcname2);
 
+SKIPPED_THREADUILANG:
+	
 	newline();
 
 	/// Check/Probe what CRT locale() tells us.
