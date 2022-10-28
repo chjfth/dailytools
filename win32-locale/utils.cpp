@@ -122,15 +122,18 @@ const TCHAR *Desctext_from_LANGID(LANGID lcid, DepictLang_et dlang)
 	else if(dlang==DepictLang_native)
 		lcLang = LOCALE_SNATIVELANGNAME, lcRegn = LOCALE_SNATIVECOUNTRYNAME;
 
-	TCHAR sztmp[40] = {};
+	TCHAR sztmpLang[40] = _T("[unknown]");
+	// -- WinXP will get [unknown] on LOCALE_SLOCALIZEDLANGUAGENAME
 
-	GetLocaleInfo(lcid, lcLang, sztmp, ARRAYSIZE(sztmp)-1);
-	_tcscat_s(szDesc, sztmp);
+	GetLocaleInfo(lcid, lcLang, sztmpLang, ARRAYSIZE(sztmpLang)-1);
+	_tcscat_s(szDesc, sztmpLang); 
 
 	_tcscat_s(szDesc, _T(" @ "));
 
-	GetLocaleInfo(lcid, lcRegn, sztmp, ARRAYSIZE(sztmp)-1); 
-	_tcscat_s(szDesc, sztmp);
+	TCHAR sztmpCountry[40] = _T("[unknown]");
+	
+	GetLocaleInfo(lcid, lcRegn, sztmpCountry, ARRAYSIZE(sztmpCountry)-1); 
+	_tcscat_s(szDesc, sztmpCountry);
 
 	return szDesc;
 }

@@ -6,7 +6,7 @@ This should help user discriminate the abstract and ubiquitous word "locale".
 #include "utils.h"
 #include <muiload.h>
 
-const TCHAR *g_szversion = _T("1.2.0");
+const TCHAR *g_szversion = _T("1.2.1");
 
 LCID g_set_thread_lcid = 0; // If not 0, will call SetThreadLocale() with this value.
 const TCHAR *g_set_crtlocale = _T("");
@@ -38,7 +38,7 @@ const TCHAR *get_ll2info(LCID lcid, LCTYPE ll2type)
 	return s_info;
 }
 
-// Dynamic loading of some Vista+ WinAPI. 
+// Dynamic loading of some Vista+ WinAPI, so this program runs on WinXP. 
 DEFINE_DLPTR_WINAPI("kernel32.dll", GetSystemDefaultLocaleName)
 DEFINE_DLPTR_WINAPI("kernel32.dll", GetUserDefaultLocaleName)
 DEFINE_DLPTR_WINAPI("kernel32.dll", LCIDToLocaleName)
@@ -237,15 +237,18 @@ void do_work()
 
 	newline();
 
-	/// Thread locale /// 
+	/// Thread-locale /// 
 
 	lcid = GetThreadLocale();
-	TCHAR lcname[40] = _T("?");
-	int retchars = LCIDToLocaleName(lcid, lcname, ARRAYSIZE(lcname), 0);
-	if(retchars<=0)
+	TCHAR lcname[40] = _T("unknown");
+	if(dlptr_LCIDToLocaleName)
 	{
-		my_tprintf(_T("[Unexpect!] LCIDToLocaleName(0x%04X ,...) fail!\n"), 
-			lcid, app_WinErrStr());
+		int retchars = dlptr_LCIDToLocaleName(lcid, lcname, ARRAYSIZE(lcname), 0);
+		if(retchars<=0)
+		{
+			my_tprintf(_T("[Unexpect!] LCIDToLocaleName(0x%04X ,...) fail!\n"), 
+                lcid, app_WinErrStr());
+		}
 	}
 	my_tprintf(_T("GetThreadLocale() => %s (%s)\n"), HexstrLCID(lcid), lcname);
 	
@@ -411,7 +414,9 @@ int _tmain(int argc, TCHAR *argv[])
 	_setmode(_fileno(stdout), _O_U8TEXT);
 
 	//setlocale(LC_ALL, "cht_JPN.936");
-	// -- OK for VC2010 CRT, ="Chinese (Traditional)_Japan.936". Just memo, do not call it here.
+	// VC2010 style CRT-locale string (just memo, do not call it here):
+	//		Chinese (Traditional)_Japan.936". 
+	//		cht_Taiwan.950
 
 	app_print_version(argv[0], g_szversion);
 
@@ -499,6 +504,6 @@ int _tmain(int argc, TCHAR *argv[])
 		my_tprintf(_T("==Press a key to end this program.==\n"));
 		_getch();
 	}
-	
+
 	return 0;
 }
