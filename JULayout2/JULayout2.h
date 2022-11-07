@@ -4,7 +4,14 @@ Notices: Copyright (c) 2000 Jeffrey Richter
 Purpose: This class manages child window positioning and sizing when a parent 
          window is resized.
          See Appendix B.
-[2021-10-04] Lots of improvements by Chj, renamed to JULayout2.h .
+
+[2012-11-07] Updated by Chj, renamed to JULayout2.h .
+
+Chj Note: To use this lib, pick one and only one of your xxx.cpp, write at its start:
+	
+	#define JULAYOUT_IMPL
+	#include "JULayout2.h"
+
 ******************************************************************************/
 
 #ifndef __JULayout2_h_
@@ -12,11 +19,6 @@ Purpose: This class manages child window positioning and sizing when a parent
 
 ///////////////////////////////////////////////////////////////////////////////
 
-
-//#include "..\CmnHdr.h"                 // See Appendix A.
-
-
-///////////////////////////////////////////////////////////////////////////////
 
 #define JULAYOUT_MAX_CONTROLS 200 
 
@@ -41,10 +43,32 @@ public:
 
 public:
 	static bool PropSheetProc(HWND hwndPrsht, UINT uMsg, LPARAM lParam);
-	// -- In order to make PropertySheet() dialog resizable, user should call
-	// JULayout::PropSheetProc() once in PropertySheet()'s vanilla PropSheetProc callback, 
-	// relay the three params from Windows, and this function prepares everything 
-	// to make it work. Just that simple.
+	// -- In order to make PropertySheet() dialog resizable, user should hook into
+	// JULayout::PropSheetProc() in PropertySheet()'s PFNPROPSHEETCALLBACK, like this:
+	//
+	// 	static int CALLBACK PrshtProc(HWND hwndPrsht, UINT uMsg, LPARAM lParam)
+	// 	{
+	// 		bool succ = JULayout::PropSheetProc(hwndPrsht, uMsg, lParam);
+	//		if(!succ) ... do some logging ...;
+	// 		return 0;
+	// 	}
+	// 
+	// 	INT_PTR MyPreparePropertysheet(...)
+	// 	{
+	// 		PROPSHEETHEADER psh = {sizeof(PROPSHEETHEADER)};
+	// 
+	// 		psh.dwFlags     = ... | PSH_USECALLBACK;
+	// 		psh.hInstance   = ...;
+	// 		psh.hwndParent  = hWnd;
+	// 	...
+	// 		psh.pfnCallback = PrshtProc;
+	// 
+	// 		return PropertySheet(&psh);
+	// 	}
+	// 
+	// Yes, you relay the three params from Windows to JULayout::PropSheetProc(), 
+	// and this PropSheetProc() prepares everything to make it work. Just that simple.
+	//
 	// Return false on fail, probably due to system running out of resource.
 
 private: // was public, now they are private
@@ -269,9 +293,13 @@ struct DLGTEMPLATEEX_msdn  {
 	// remaining members omitted
 };
 
+// dup constant from prsht.h, so that user don't have to include prsht.h
+#define PSCB_INITIALIZED_1  1
+#define PSCB_PRECREATE_2    2
+
 bool JULayout::PropSheetProc(HWND hwndPrsht, UINT uMsg, LPARAM lParam)
 {
-	if (uMsg==PSCB_PRECREATE) 
+	if (uMsg==PSCB_PRECREATE_2) 
 	{
 		DLGTEMPLATE& dt = *(DLGTEMPLATE*)lParam;
 		DLGTEMPLATEEX_msdn& dtex = *(DLGTEMPLATEEX_msdn*)lParam;
@@ -289,7 +317,7 @@ bool JULayout::PropSheetProc(HWND hwndPrsht, UINT uMsg, LPARAM lParam)
 
 		return 0;
 	}
-	else if(uMsg==PSCB_INITIALIZED)
+	else if(uMsg==PSCB_INITIALIZED_1)
 	{
 		bool succ = JULayout::in_PropSheetPrepare(hwndPrsht);
 		return succ;
