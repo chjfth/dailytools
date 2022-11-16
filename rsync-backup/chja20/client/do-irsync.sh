@@ -17,7 +17,7 @@ _rsync_="--rsync --progress --exclude-from=excludes.list"
 _has_error=FALSE
 _err_list=()
 
-modlist=(myk mym myn myo-vms myd) # define a Bash array
+modlist=(myk mym myn myo-vms myf myd) # define a Bash array
 
 for mod in "${modlist[@]}"; do 
 	echo ""
