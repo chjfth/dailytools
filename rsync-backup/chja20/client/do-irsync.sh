@@ -17,7 +17,10 @@ _rsync_="--rsync --progress --exclude-from=excludes.list"
 _has_error=FALSE
 _err_list=()
 
-modlist=(myk mym myn myo-vms myf myd) # define a Bash array
+if [ -z "$modlist" ]; then
+	# user can override modlist from command line.
+	modlist=(myk mym myn myo-vms myf myd) # define a Bash array
+fi
 
 for mod in "${modlist[@]}"; do 
 	echo ""
