@@ -22,6 +22,7 @@ DumpStack.log.tmp
 ; Those virtual disks accomodate WSL instance files in NTFS partitions.
 ; My strategy is to back up those .vhdx container files, not files within the containers.
 WSL-on-vhdx
+VHD-mount-points
 
 ; rsync: [receiver] rename "/mnt/f/backup-chja20/2022.09.0x[10.22.3.84~1873.myd].working/MapData/.events.log.VBxxlM" -> "MapData/events.log": Permission denied 
 ; rsync: [receiver] rename "/mnt/f/backup-chja20/2022.09.0x[10.22.3.84~1873.myd].working/MapData/mapscache/.index.idx.xj5L3W" -> "MapData/mapscache/index.idx": Permission denied (13)
