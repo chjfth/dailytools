@@ -69,7 +69,7 @@ _Ps1ChjPrefix()
 	return $1
 }
 # _ClearMyErr(){ return 0; } # [2020-11-04]no-effect on clearing inherited error
-PS1_chj="\n[\[\033[1;37m\]\$(_Ps1ChjPrefix $PS1_DQ)\[\033[0m\]\[\033[32m\]`tty`($PS1_TERM) \D{%G-%m-%d} \t \[\033[1;31m\]\$(_ShowOnErr1 $PS1_DQ)\[\033[0m\]\$(_ShowOnErr0 $PS1_DQ)]$PS1_err_bell\n[$PS1fmtuser @\h \[\033$PS1fmtcwd\w\033[0m\]]\n\[\033[1;37;44m\]$PS1char\[\033[0m\] "
+PS1_chj="\n[\[\033[1;37m\]\$(_Ps1ChjPrefix $PS1_DQ)\[\033[0m\]\[\033[32m\]`tty`($PS1_TERM) \D{%Y-%m-%d} \t \[\033[1;31m\]\$(_ShowOnErr1 $PS1_DQ)\[\033[0m\]\$(_ShowOnErr0 $PS1_DQ)]$PS1_err_bell\n[$PS1fmtuser @\h \[\033$PS1fmtcwd\w\033[0m\]]\n\[\033[1;37;44m\]$PS1char\[\033[0m\] "
 PS1=$PS1_chj
 
 # Hint for PS1_chjprefixcmd :
