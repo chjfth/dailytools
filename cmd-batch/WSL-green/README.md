@@ -47,6 +47,8 @@ Note:
 
 Now, just run your `start-Ubuntu-2204.bat` and the WSL1 launches.
 
+![Live run of a WSL1 instance](live-run.png)!
+
 ## Comments
 
 Inside `WSL-green.bat`, it will use WSL-green.reg.0 as template, generate real 
