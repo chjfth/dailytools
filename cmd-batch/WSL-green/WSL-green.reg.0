@@ -1,6 +1,5 @@
 "State"=dword:00000001
 "Version"=dword:00000002
-"Flags"=dword:00000007
 "DefaultUid"=dword:000003e8
 "KernelCommandLine"="BOOT_IMAGE=/kernel init=/init"
 "DefaultEnvironment"=hex(7):48,00,4f,00,53,00,54,00,54,00,59,00,50,00,45,00,3d,\
@@ -17,8 +16,10 @@
   00,65,00,72,00,6d,00,2d,00,32,00,35,00,36,00,63,00,6f,00,6c,00,6f,00,72,00,\
   00,00,00,00
 
+"Flags"=dword:00000007
+; -- Flags: 0x07 means WSL1, 0x0f means WSL2
 "BasePath"="D:\\WSL-Ubuntu-22.04\to-be-modified-by-bat"
 "DistributionName"="DistributionName-to-be-modified-by-bat"
 
-; Override BasePath and DistributionName below:
+; Override Flags, BasePath and DistributionName below:
 

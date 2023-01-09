@@ -44,10 +44,20 @@ if defined UnixUser (
 
 REM =========== ENV CHECKING ==============
 
-set unix_checkdir=%batdir%\rootfs\root
-if not exist "%unix_checkdir%" (
-	call :Echos Error: The folder "%unix_checkdir%" does not exist.
-	call :Echos You must have a Linux file-system inside "%batdir%\rootfs" for this bat to work.
+set wsl1_checkdir=%batdir%\rootfs\root
+set wsl1_seen=
+if exist "%wsl1_checkdir%" set wsl1_seen=1
+
+set wsl2_checkfile=%batdir%\ext4.vhdx
+set wsl2_seen=
+if exist "%wsl2_checkfile%" set wsl2_seen=1
+
+if "%wsl1_seen%%wsl2_seen%" == "" (
+	call :Echos Error: No WSL file-system found in "%batdir%" .
+	call :Echos You should either have 
+	call :Echos     "%wsl1_checkdir%" ^(for WSL1^)
+	call :Echos or 
+	call :Echos     "%wsl2_checkfile%" ^(for WSL2^)
 	exit /b 4
 )
 
@@ -55,9 +65,9 @@ REM =========== PREPARE .REG FILE ==============
 
 REM We need to generate a GUID for current DistributionName,
 REM We can ensure it being unique by calcuating %ThisWslDistributionName%.
-echo %ThisWslDistributionName% > wslname.tmp
+echo %ThisWslDistributionName%> "%batdir%\wslname.tmp"
 
-call :GetFileMD5 wslname.tmp md5
+call :GetFileMD5 "%batdir%\wslname.tmp" md5
 
 if not defined md5 (
 	call :Echos Error: Cannot generate a GUID for ThisWslDistributionName.
@@ -68,6 +78,20 @@ set md5guid=%md5:~0,8%-%md5:~8,4%-%md5:~12,4%-%md5:~16,4%-%md5:~20,12%
 rem For "Ubuntu-22.04", md5guid is
 rem     2b0c8e79-b4a5-1bfc-49cd-4f344cbfe444
 
+set md5finalchar=%md5:~31,1%
+if not defined md5finalchar (
+	call :Echos Error: When generating MD5 for ThisWslDistributionName, certttil.exe returns expected result.
+	call :Echos md5=%md5%
+	exit /b 4
+)
+
+set badoutput=%md5:~32,1%
+if defined badoutput (
+	call :Echos Error: When generating MD5 for ThisWslDistributionName, certttil.exe returns expected result.
+	call :Echos md5=%md5%
+	exit /b 4
+)
+
 set regfile=%batdir%\WSL-green.reg
 
 echo Windows Registry Editor Version 5.00> "%regfile%"
@@ -75,13 +99,25 @@ echo.>> "%regfile%"
 echo [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss\{%md5guid%}]>> "%regfile%"
 
 type "%batdir%\WSL-green.reg.0" >> "%regfile%" 
+
+if defined wsl1_seen (
+	echo "Flags"=dword:00000007 >> "%regfile%"
+	set wslverhint=WSL1
+) else if defined wsl2_seen (
+	echo "Flags"=dword:0000000f >> "%regfile%"
+	set wslverhint=WSL2
+)
+
 echo "BasePath"="%batdir2%" >> "%regfile%"
 echo "DistributionName"="%ThisWslDistributionName%" >> "%regfile%"
 
 
 REM =========== IMPORTING REGISTRY ==============
 
-call :Echos Registering WSL instance using DistributionName: %ThisWslDistributionName%
+call :Echos Registering WSL instance using:
+call :Echos .   WSL version      = %wslverhint%
+call :Echos .   GUID             = {%md5guid%}
+call :Echos .   DistributionName = %ThisWslDistributionName%
 
 call :EchoAndExec reg import "%regfile%"
 if not %ERRORLEVEL%==0 (
