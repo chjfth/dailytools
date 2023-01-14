@@ -393,7 +393,7 @@ int apply_startup_user_params(TCHAR *argv[])
 				exit(1);
 			}
 		}
-		if (_tcsnicmp(*argv, szThreadLcid, nzThreadLcid)==0) // old name for szThrdLcid
+		else if (_tcsnicmp(*argv, szThreadLcid, nzThreadLcid)==0) // old name for szThrdLcid
 		{
 			const TCHAR* psz_threadlcid = (*argv) + nzThreadLcid;
 			g_set_thread_lcid = _tcstoul(psz_threadlcid, NULL, 0);
