@@ -41,7 +41,7 @@ REM ======== Now start your code ========
 
 set fp_videoonly=%inputnen%.--videoonly--.%inputext%
 set fp_audioonly=%inputnen%.--audioonly--.%inputext%
-set fp_finaloutput=%inputnen%.%audiokbps%kbps.%inputext%
+set fp_finaloutput=%inputnen%.a%audiokbps%kbps.%inputext%
 
 call :EchoAndExec ffmpeg -i "%inputmp4%" -an -c copy -y "%fp_videoonly%"
 if not !errorlevel!==0 exit /b 4
