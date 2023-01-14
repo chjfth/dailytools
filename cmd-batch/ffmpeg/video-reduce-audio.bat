@@ -17,11 +17,7 @@ if not !errorlevel!==0 (
 )
 
 set audiokbps=%~1
-
 set inputmp4=%~2
-set inputnen=%~dpn2
-set inputext=%~x2
-set inputext=%inputext:~1,999%
 
 if not defined inputmp4 (
 	call :Echos Input a video file, reduce its audio bitrate.
@@ -39,9 +35,14 @@ if not exist "%inputmp4%" (
 
 REM ======== Now start your code ========
 
-set fp_videoonly=%inputnen%.--videoonly--.%inputext%
-set fp_audioonly=%inputnen%.--audioonly--.%inputext%
-set fp_finaloutput=%inputnen%.a%audiokbps%kbps.%inputext%
+call :FilepathSplit "%inputmp4%" inputdir inputnam
+call :FilenamSplit  "%inputnam%" stem ext
+
+set fp_videoonly=%inputdir%\~%stem%.--videoonly--.%ext%
+set fp_audioonly=%inputdir%\~%stem%.--audioonly--.%ext%
+set fp_finaloutput=%inputdir%\%stem%.a%audiokbps%kbps.%ext%
+set fp_inputrenamed=%inputdir%\~%inputnam%
+REM -- Old and temp filenames will have ~ prefix, so user can easily pinpoint and delete them.
 
 call :EchoAndExec ffmpeg -i "%inputmp4%" -an -c copy -y "%fp_videoonly%"
 if not !errorlevel!==0 exit /b 4
@@ -55,6 +56,19 @@ if not !errorlevel!==0 exit /b 4
 echo.
 call :Echos Convert success:
 call :Echosi4 %fp_finaloutput%
+
+REM Rename original input filename to have a ~ prefix.
+
+if exist "%fp_inputrenamed%" (
+	call :Echos Delete old file: "%fp_inputrenamed%"
+	del "%fp_inputrenamed%"
+	if not !errorlevel!==0 exit /b 4
+)
+
+ren "%inputmp4%" "~%inputnam%"
+if not !errorlevel!==0 (
+	call :Echos Warning. Cannot rename "%inputmp4%" to "~%inputnam%"
+)
 
 exit /b 0
 
@@ -95,4 +109,38 @@ exit /b %1
   setlocal
   for %%p in ("%~1") do set exepath=%%~$PATH:p
   if defined exepath (exit /b 0) else (exit /b 4)
+exit /b 0
+
+:FilepathSplit
+ REM Usage: 
+ REM call :FilepathSplit "c:\program files\d2\d3.txt" dname fname
+ REM Output dname=c:\program files\d2
+ REM Output fname=d3.txt
+  
+  setlocal
+  For %%A in ("%~1") do (
+    set Folder=%%~dpA
+    set Name=%%~nxA
+  )
+  endlocal & (
+    set "%~2=%Folder:~0,-1%"
+    set "%~3=%Name%"
+  )
+exit /b %ERRORLEVEL%
+
+:FilenamSplit
+  REM Usage: 
+  REM call :FilenamSplit "file1.txt" stemname extname
+  REM Output stemname=file1
+  REM Output extname=txt
+  setlocal
+  for %%f in ("%~1") do (
+    set stemname=%%~nf
+    set _extname=%%~xf
+  )
+  ECHO _extname=%_extname%
+  endlocal & (
+    set "%~2=%stemname%"
+    set "%~3=%_extname:~1,999%"
+  )
 exit /b 0

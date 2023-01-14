@@ -67,3 +67,37 @@ exit /b %1
   for %%p in ("%~1") do set exepath=%%~$PATH:p
   if defined exepath (exit /b 0) else (exit /b 4)
 exit /b 0
+
+:FilepathSplit
+ REM Usage: 
+ REM call :FilepathSplit "c:\program files\d2\d3.txt" dname fname
+ REM Output dname=c:\program files\d2
+ REM Output fname=d3.txt
+  
+  setlocal
+  For %%A in ("%~1") do (
+    set Folder=%%~dpA
+    set Name=%%~nxA
+  )
+  endlocal & (
+    set "%~2=%Folder:~0,-1%"
+    set "%~3=%Name%"
+  )
+exit /b %ERRORLEVEL%
+
+:FilenamSplit
+  REM Usage: 
+  REM call :FilenamSplit "file1.txt" stemname extname
+  REM Output stemname=file1
+  REM Output extname=txt
+  setlocal
+  for %%f in ("%~1") do (
+    set stemname=%%~nf
+    set _extname=%%~xf
+  )
+  ECHO _extname=%_extname%
+  endlocal & (
+    set "%~2=%stemname%"
+    set "%~3=%_extname:~1,999%"
+  )
+exit /b 0
