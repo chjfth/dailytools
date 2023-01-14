@@ -6,7 +6,7 @@ This should help user discriminate the abstract and ubiquitous word "locale".
 #include "utils.h"
 #include <muiload.h>
 
-const TCHAR *g_szversion = _T("1.3.2");
+const TCHAR *g_szversion = _T("1.4.0");
 
 LCID g_set_thread_lcid = 0; // If not 0, will call SetThreadLocale() with this value.
 const TCHAR *g_set_crtlocale = _T("");
@@ -318,17 +318,17 @@ void print_help()
 {
 	const TCHAR *helptext =
 _T("Parameter help:\n")
-_T("  threadlcid:<thrlcid>   Call SetThreadLocale(thrlcid); on start.\n")
-_T("  uilangid:<uilangid>    Call SetThreadUILanguage(uilangid); on start. 0 is ok.\n")
-_T("  crtlocale:<locstr>     Call setlocale(LC_ALL, locstr); on start.\n")
-_T("                         If <locstr> is '-', omit calling setlocale().\n")
-_T("  crtmbcp:<mbcp>         Call _setmbcp(mbcp); on start.\n")
-_T("  consolecp:<ccp>        Call SetConsoleCP(ccp); and SetConsoleOutputCP(ccp);.\n")
+_T("  uilangid:<uilangid>  Call SetThreadUILanguage(uilangid); on start. 0 is ok.\n")
+_T("  thrdlcid:<thrlcid>   Call SetThreadLocale(thrlcid); on start.\n")
+_T("  crtlocale:<locstr>   Call setlocale(LC_ALL, locstr); on start.\n")
+_T("                       If <locstr> is '-', omit calling setlocale().\n")
+_T("  crtmbcp:<mbcp>       Call _setmbcp(mbcp); on start.\n")
+_T("  consolecp:<ccp>      Call SetConsoleCP(ccp); and SetConsoleOutputCP(ccp);.\n")
 _T("  \n")
 _T("\n")
 _T("Example:\n")
-_T("  DefaultLocales threadlcid:0x0804 crtlocale:zh-CN consolecp:936\n")
-_T("  DefaultLocales   uilangid:0x0404 crtlocale:zh-TW consolecp:950\n")
+_T("  DefaultLocales uilangid:0x0404 crtlocale:zh-TW consolecp:950\n")
+_T("  DefaultLocales thrdlcid:0x0804 crtlocale:zh-CN consolecp:936\n")
 _T("  DefaultLocales crtlocale:.65001 consolecp:65001\n")
 _T("  DefaultLocales crtlocale:japanese_Japan\n")
 _T("  DefaultLocales crtlocale:-\n")
@@ -356,12 +356,16 @@ int apply_startup_user_params(TCHAR *argv[])
 		exit(1);
 	}
 	
-	const TCHAR szThreadLcid[]   = _T("threadlcid:");
-	const int   nzThreadLcid     = ARRAYSIZE(szThreadLcid)-1;
+	const TCHAR szThrdLcid[]   = _T("thrdlcid:"); 
+	const int   nzThrdLcid     = ARRAYSIZE(szThrdLcid)-1;
 	// -- example: to call SetThreadLocale(0x411); jp-JP , use:
-	//		threadlcid:0x0411
+	//		thrdlcid:0x0411
 	// or
-	//		threadlcid:1041
+	//		thrdlcid:1041
+	//		
+	// This param was named `threadlcid` before 1.4.0, we keep its compatibility
+	const TCHAR szThreadLcid[] = _T("threadlcid:");
+	const int   nzThreadLcid = ARRAYSIZE(szThreadLcid) - 1;
 
 	const TCHAR szThreadUILang[] = _T("uilangid:");
 	const int   nzThreadUILang = ARRAYSIZE(szThreadUILang) - 1;
@@ -378,14 +382,25 @@ int apply_startup_user_params(TCHAR *argv[])
 	int params = 0;
 	for(; *argv!=NULL; argv++, params++)
 	{
-		if(_tcsnicmp(*argv, szThreadLcid, nzThreadLcid)==0)
+		if(_tcsnicmp(*argv, szThrdLcid, nzThrdLcid)==0)
 		{
-			const TCHAR *psz_threadlcid = (*argv)+nzThreadLcid;
-			g_set_thread_lcid = _tcstoul(psz_threadlcid, NULL, 0);
+			const TCHAR *psz_thrdlcid = (*argv)+nzThrdLcid;
+			g_set_thread_lcid = _tcstoul(psz_thrdlcid, NULL, 0);
 
 			if(g_set_thread_lcid==0)
 			{
-				my_tprintf(_T("Invalid threadlcid input value: %s\n"), psz_threadlcid);
+				my_tprintf(_T("Invalid thrdlcid input value: %s\n"), psz_thrdlcid);
+				exit(1);
+			}
+		}
+		if (_tcsnicmp(*argv, szThreadLcid, nzThreadLcid)==0) // old name for szThrdLcid
+		{
+			const TCHAR* psz_threadlcid = (*argv) + nzThreadLcid;
+			g_set_thread_lcid = _tcstoul(psz_threadlcid, NULL, 0);
+
+			if (g_set_thread_lcid == 0)
+			{
+				my_tprintf(_T("Invalid threadlcid input value: %s (Please use new name: thrdlcid)\n"), psz_threadlcid);
 				exit(1);
 			}
 		}
