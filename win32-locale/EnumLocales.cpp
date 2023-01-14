@@ -1,6 +1,6 @@
 ﻿#include "utils.h"
 
-const TCHAR *g_szversion = _T("1.3.0");
+const TCHAR *g_szversion = _T("1.3.1");
 
 struct EnumInfo_t
 {
@@ -260,9 +260,13 @@ int _tmain(int argc, TCHAR *argv[])
 	if(argc==1)
 	{
 		my_tprintf(_T("Hint: You can pass two params for EnumSystemLocalesEx() flags, and filters,\n"));
-		my_tprintf(_T("    so that this program will not ask you interactively.\n"));
-		my_tprintf(_T("For example, to list LOCALE_WINDOWS with only <lang>-<Country> entries:\n"));
-		my_tprintf(_T("    %s B 1\n"), pfn);
+		my_tprintf(_T("so that this program will not ask you interactively.\n"));
+		my_tprintf(_T("\n"));
+		my_tprintf(_T("For example, to get the same user-locales list as in intl.cpl, \n")
+			       _T("which contains only <lang>-<Country> entries, use:\n"));
+		my_tprintf(_T("\n"));
+		my_tprintf(_T("    %s B 3\n"), pfn);
+		my_tprintf(_T("\n"));
 	}
 
 	EnumInfo_t exi = {};
@@ -356,7 +360,7 @@ int _tmain(int argc, TCHAR *argv[])
 
 		if(succ)
 		{
-			my_tprintf(_T("The above %d user-locale display names should match those from intl.cpl, in the same order ."), 
+			my_tprintf(_T("The above %d user-locale display-names should match those from intl.cpl, in the same order ."), 
 				collect.Count);
 		}
 		else
