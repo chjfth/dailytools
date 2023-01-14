@@ -16,18 +16,24 @@ if not !errorlevel!==0 (
 	exit /b 4
 )
 
-set inputmp4=%~1
-set inputnen=%~dpn1
-set inputext=%~x1
-set inputext=%inputext:~1,999%
-set audiokbps=%~2
+set audiokbps=%~1
 
-if not defined audiokbps (
+set inputmp4=%~2
+set inputnen=%~dpn2
+set inputext=%~x2
+set inputext=%inputext:~1,999%
+
+if not defined inputmp4 (
 	call :Echos Input a video file, reduce its audio bitrate.
 	call :Echos Usage:
-	call :Echosi4 %batfilenam% {input-video} {audio-kbps}
+	call :Echosi4 %batfilenam% {audio-kbps} {input-video} 
 	call :Echos Example:
-	call :Echosi4 %batfilenam% input.mp4 64
+	call :Echosi4 %batfilenam% 64 input.mp4
+	exit /b 4
+)
+
+if not exist "%inputmp4%" (
+	call :Echos [ERROR] Input video not found: "%inputmp4%"
 	exit /b 4
 )
 
@@ -46,6 +52,7 @@ if not !errorlevel!==0 exit /b 4
 call :EchoAndExec ffmpeg -i "%fp_videoonly%" -i "%fp_audioonly%" -c copy -y "%fp_finaloutput%"
 if not !errorlevel!==0 exit /b 4
 
+echo.
 call :Echos Convert success:
 call :Echosi4 %fp_finaloutput%
 
