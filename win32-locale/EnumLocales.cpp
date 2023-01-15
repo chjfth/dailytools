@@ -22,13 +22,20 @@ bool is_localstring_empty(LPCWSTR lcstr)
 
 BOOL CALLBACK EnumLocalesProcEx(LPWSTR lpLocaleString, DWORD dwFlags, LPARAM lParam)
 {
-	int &callbacks = ((EnumInfo_t*)lParam)->callbacks;
+	EnumInfo_t *pei = (EnumInfo_t*)lParam;
+	
+	int &callbacks = pei->callbacks;
 	callbacks++;
 
-	int &count = ((EnumInfo_t*)lParam)->count;
-	int calling_dwFlag = ((EnumInfo_t*)lParam)->calling_dwFlag;
-	DepictLang_et uselang = ((EnumInfo_t*)lParam)->uselang;
+	int &count = pei->count;
+	int calling_dwFlag = pei->calling_dwFlag;
+	DepictLang_et uselang = pei->uselang;
 
+	// Note: calling_dwFlag is the exact value we pass to EnumSystemLocalesEx() as 2nd param.
+	// And, Windows does some tweak to calling_dwFlag and relay it to us as dwFlags.
+	// For example, if calling_dwFlag==LOCALE_WINDOWS(1), windows will callback our
+	// EnumLocalesProcEx() many times, sometimes with dwFlags==0x17, sometimes with dwFlags=0x27.
+	
 	if(is_localstring_empty(lpLocaleString))
 	{
 		my_tprintf(_T("[[callback #%d]] Empty!!!\n"), callbacks);
@@ -93,6 +100,17 @@ BOOL CALLBACK EnumLocalesProcEx(LPWSTR lpLocaleString, DWORD dwFlags, LPARAM lPa
 
 	my_tprintf(_T(" ; ANSI/OEM[%s/%s]"), szACP, szOCP);
 
+	if(calling_dwFlag==0)
+	{
+		// test winapi ResolveLocaleName()
+		//  
+		TCHAR szRetLcname[LOCALE_NAME_MAX_LENGTH] = {};
+		int retchars = ResolveLocaleName(lpLocaleString, szRetLcname, LOCALE_NAME_MAX_LENGTH);
+		if (retchars > 0)
+			vaDbgString(_T("[%d] ResolveLocaleName %s => %s\n"), count, lpLocaleString, szRetLcname);
+		else
+			vaDbgString(_T("[%d] ResolveLocaleName %s => WinErr: %d\n"), count, lpLocaleString, GetLastError());
+	}
 	if(exflags[0])
 	{
 		my_tprintf(_T(" (%s)"), exflags);

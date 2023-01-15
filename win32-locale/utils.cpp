@@ -240,3 +240,16 @@ bool Is_LCID_unspecified(LCID lcid)
 	else
 		return false;
 }
+
+void vaDbgString(const TCHAR* szfmt, ...)
+{
+	TCHAR tbuf[4000];
+	va_list args;
+	va_start(args, szfmt);
+	
+	_vsntprintf_s(tbuf, _TRUNCATE, szfmt, args);
+
+	OutputDebugString(tbuf);
+
+	va_end(args);
+}

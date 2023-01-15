@@ -59,3 +59,4 @@ bool ishexdigit(TCHAR c);
 
 int qsort_CompareString(void* context, const void* item1, const void* item2);
 
+void vaDbgString(const TCHAR* szfmt, ...);
