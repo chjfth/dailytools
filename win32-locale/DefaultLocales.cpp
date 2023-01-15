@@ -6,7 +6,7 @@ This should help user discriminate the abstract and ubiquitous word "locale".
 #include "utils.h"
 #include <muiload.h>
 
-const TCHAR *g_szversion = _T("1.4.1");
+const TCHAR *g_szversion = _T("1.4.2");
 
 LCID g_set_thread_lcid = 0; // If not 0, will call SetThreadLocale() with this value.
 const TCHAR *g_set_crtlocale = _T("");
@@ -468,6 +468,21 @@ int _tmain(int argc, TCHAR *argv[])
 
 	apply_startup_user_params(argv);
 
+	if (g_set_threadui_lang >= 0)
+	{
+		my_tprintf(_T("Startup: Call SetThreadUILanguage(0x%04X); \n"), g_set_threadui_lang);
+		LANGID uilang_ret = SetThreadUILanguage(g_set_threadui_lang);
+		if (g_set_threadui_lang == 0 || uilang_ret == g_set_threadui_lang)
+		{
+			my_tprintf(_T("  > SetThreadUILanguage() returns 0x%04X. Success.\n"), uilang_ret);
+		}
+		else
+		{
+			my_tprintf(_T("[Unexpect] SetThreadUILanguage() returns 0x%04X. %s\n"),
+				uilang_ret, app_WinErrStr());
+		}
+	}
+
 	if(g_set_thread_lcid>0)
 	{
 		my_tprintf(_T("Startup: Call SetThreadLocale(0x%04X); \n"), g_set_thread_lcid);
@@ -476,7 +491,8 @@ int _tmain(int argc, TCHAR *argv[])
 		{
 			LCID lcid2 = GetThreadLocale();
 			if(g_set_thread_lcid==lcid2) // OK
-			{	// do nothing
+			{	
+				my_tprintf(_T("  > Success. \n"), lcid2);
 			}
 			else
 			{
@@ -488,21 +504,6 @@ int _tmain(int argc, TCHAR *argv[])
 		{
 			my_tprintf(_T("Startup:      SetThreadLocale() fail. %s\n"), app_WinErrStr());
 			exit(1);
-		}
-	}
-
-	if (g_set_threadui_lang>=0)
-	{
-		my_tprintf(_T("Startup: Call SetThreadUILanguage(0x%04X); \n"), g_set_threadui_lang);
-		LANGID uilang_ret = SetThreadUILanguage(g_set_threadui_lang);
-		if(g_set_threadui_lang==0 || uilang_ret==g_set_threadui_lang)
-		{
-			my_tprintf(_T("  > SetThreadUILanguage() returns 0x%04X. Success.\n"), uilang_ret);
-		}
-		else
-		{
-			my_tprintf(_T("[Unexpect] SetThreadUILanguage() returns 0x%04X. %s\n"), 
-				uilang_ret, app_WinErrStr());
 		}
 	}
 
