@@ -6,7 +6,7 @@ This should help user discriminate the abstract and ubiquitous word "locale".
 #include "utils.h"
 #include <muiload.h>
 
-const TCHAR *g_szversion = _T("1.4.0");
+const TCHAR *g_szversion = _T("1.4.1");
 
 LCID g_set_thread_lcid = 0; // If not 0, will call SetThreadLocale() with this value.
 const TCHAR *g_set_crtlocale = _T("");
@@ -178,7 +178,7 @@ static const TCHAR *LANGID_NumericDesc(LANGID langid)
 	}
 	else
 	{
-		_sntprintf_s(s_szDesc, _TRUNCATE, _T("LangID=%u, decimal"), langid);
+		_sntprintf_s(s_szDesc, _TRUNCATE, _T("LangID=%u decimal"), langid);
 	}
 	return s_szDesc;
 }
@@ -201,93 +201,75 @@ void do_work()
 	/// GetSystemDefaultUILanguage() ///
 	
 	langid = GetSystemDefaultUILanguage();
-	my_tprintf(_T("GetSystemDefaultUILanguage() => 0x%04X\n"), langid);
+	my_tprintf(_T("GetSystemDefaultUILanguage() => 0x%04X   (%u decimal)\n"), langid, langid);
 	LL2_print_LANGID_Desctext(langid);
+
+	/// GetUserDefaultUILanguage() ///
+
+	langid = GetUserDefaultUILanguage();
+	my_tprintf(_T("GetUserDefaultUILanguage()   => 0x%04X   (%u decimal)\n"), langid, langid);
+	LL2_print_LANGID_Desctext(langid);
+
+	/// GetThreadUILanguage() ///
+
+	if (dlptr_GetThreadUILanguage)
+	{
+		langid = dlptr_GetThreadUILanguage();
+		my_tprintf(_T("GetThreadUILanguage()        => 0x%04X   (%u decimal)\n"), langid, langid);
+		LL2_print_LANGID_Desctext(langid);
+	}
+
+	newline();
 
 	/// Win32 System-locale ///
 
 	lcid = GetSystemDefaultLCID();
-	
+	langid = LANGIDFROMLCID(lcid);
+	my_tprintf(_T("GetSystemDefaultLCID()  => %s   (%s)\n"),
+		HexstrLCID(lcid), LANGID_NumericDesc(langid));
+
 	if (dlptr_GetSystemDefaultLocaleName)
 	{
 		locname[0] = 0;
 		dlptr_GetSystemDefaultLocaleName(locname, LOCALE_NAME_MAX_LENGTH);
 		my_tprintf(_T("GetSystemDefaultLocaleName() =>  %s\n"), locname);
-
 		verify_locname_lcid_match(locname, lcid);
 	}
-
-	langid = LANGIDFROMLCID(lcid);
-	my_tprintf(_T("GetSystemDefaultLCID()  => %s (%s)\n"), 
-		HexstrLCID(lcid), LANGID_NumericDesc(langid));
 
 	LL2_print_LANGID_Desctext(langid);
 	LL2_print_ansicodepage_and_oemcodepage(lcid, true);
 
 	newline();
 
-	/// GetUserDefaultUILanguage() ///
-
-	langid = GetUserDefaultUILanguage();
-	my_tprintf(_T("GetUserDefaultUILanguage()   => 0x%04X\n"), langid);
-	LL2_print_LANGID_Desctext(langid);
-
 	/// Win32 User-locale ///
 
 	lcid = GetUserDefaultLCID();
+	langid = LANGIDFROMLCID(lcid);
+	my_tprintf(_T("GetUserDefaultLCID()    => %s   (%s)\n"),
+		HexstrLCID(lcid), LANGID_NumericDesc(langid));
 
 	if (dlptr_GetUserDefaultLocaleName)
 	{
 		locname[0] = 0;
 		dlptr_GetUserDefaultLocaleName(locname, LOCALE_NAME_MAX_LENGTH);
 		my_tprintf(_T("GetUserDefaultLocaleName()   =>  %s\n"), locname);
-
 		verify_locname_lcid_match(locname, lcid);
 	}
-
-	langid = LANGIDFROMLCID(lcid);
-	my_tprintf(_T("GetUserDefaultLCID()    => %s (%s)\n"), 
-		HexstrLCID(lcid), LANGID_NumericDesc(langid));
 
 	LL2_print_LANGID_Desctext(langid);
 	LL2_print_ansicodepage_and_oemcodepage(lcid);
 
 	newline();
 
-	/// Thread-locale (almost obsolete wince Win7) /// 
+	/// Thread-locale (almost obsolete since Win7) /// 
 
 	lcid = GetThreadLocale();
-	TCHAR lcname[40] = _T("unknown");
-	if(dlptr_LCIDToLocaleName)
-	{
-		int retchars = dlptr_LCIDToLocaleName(lcid, lcname, ARRAYSIZE(lcname), 0);
-		if(retchars<=0)
-		{
-			my_tprintf(_T("[Unexpect!] LCIDToLocaleName(0x%04X ,...) fail!\n"), 
-                lcid, app_WinErrStr());
-		}
-	}
-	my_tprintf(_T("GetThreadLocale()     => %s (%s)\n"), HexstrLCID(lcid), lcname);
+	langid = LANGIDFROMLCID(lcid);
+	my_tprintf(_T("GetThreadLocale()       => %s   (%s)\n"),
+		HexstrLCID(lcid), LANGID_NumericDesc(langid));
 
-	/// Thread-UI-Language ///
-
-	if (!dlptr_GetThreadUILanguage)
-		goto SKIPPED_THREADUILANG;
-
-	langid = dlptr_GetThreadUILanguage();
-	TCHAR lcname2[40] = _T("unknown");
-	if (dlptr_LCIDToLocaleName)
-	{
-		int retchars = dlptr_LCIDToLocaleName(langid, lcname2, ARRAYSIZE(lcname2), 0);
-		if (retchars <= 0)
-		{
-			my_tprintf(_T("[Unexpect!] LCIDToLocaleName(0x%04X ,...) fail!\n"),
-				langid, app_WinErrStr());
-		}
-	}
-	my_tprintf(_T("GetThreadUILanguage() =>      0x%04X (%s)\n"), langid, lcname2);
-
-SKIPPED_THREADUILANG:
+	LL2_print_LANGID_Desctext(langid);
+	LL2_print_ansicodepage_and_oemcodepage(lcid);
 	
 	newline();
 
