@@ -6,7 +6,7 @@ This should help user discriminate the abstract and ubiquitous word "locale".
 #include "utils.h"
 #include <muiload.h>
 
-const TCHAR *g_szversion = _T("1.4.2");
+const TCHAR *g_szversion = _T("1.4.3");
 
 LCID g_set_thread_lcid = 0; // If not 0, will call SetThreadLocale() with this value.
 const TCHAR *g_set_crtlocale = _T("");
@@ -361,6 +361,9 @@ int apply_startup_user_params(TCHAR *argv[])
 	const TCHAR szConsoleCP[] = _T("consolecp:");
 	const int   nzConsoleCP   = ARRAYSIZE(szConsoleCP)-1;
 
+	const TCHAR szDEBUG[] = _T("debug:");
+	const int   nzDEBUG = ARRAYSIZE(szDEBUG) - 1;
+
 	int params = 0;
 	for(; *argv!=NULL; argv++, params++)
 	{
@@ -421,6 +424,20 @@ int apply_startup_user_params(TCHAR *argv[])
 			{
 				my_tprintf(_T("Invalid consolecp input value: %s\n"), psz_consolecp);
 				exit(1);
+			}
+		}
+		else if (_tcsnicmp(*argv, szDEBUG, nzDEBUG) == 0)
+		{
+			const TCHAR* psz_debug = (*argv) + nzDEBUG;
+			if (_tcsicmp(psz_debug, _T("break")) == 0)
+			{
+				my_tprintf(_T("Startup: Now calling DebugBreak(), so you have a chance to attach Visual C++ debugger for this very consolecp.exe instance.\n"));
+				DebugBreak();
+			}
+			else if (_tcsicmp(psz_debug, _T("pause")) == 0)
+			{
+				my_tprintf(_T("Startup: [PAUSE] Press a key to continue, or attach a debugger.\n"));
+				_getch();
 			}
 		}
 		else
