@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableDelayedExpansion
 
-set batfilenam=%~n0%~x0
+set batfilenam=%~nx0
 set batdir=%~dp0
 set batdir=%batdir:~0,-1%
 set batdir2=%batdir:\=\\%
@@ -13,10 +13,11 @@ REM =========== BAT PARAMETER CHECKING ==============
 
 if not defined ThisWslDistributionName (
 	echo. Need a DistributionName as parameter.
+	echo. The DistributionName is a new name to be registered into Lxss service.
 	echo. This .bat is compatible with Win10.21H2 or above.
 	echo. Examples:
-	echo.     WSL-start.bat Ubuntu-22.04
-	echo.     WSL-start.bat Ubuntu-22.04 bob
+	echo.     %batfilenam% Ubuntu-22.04
+	echo.     %batfilenam% Ubuntu-22.04 bob
 	exit /b 4
 )
 
