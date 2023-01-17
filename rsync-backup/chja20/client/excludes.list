@@ -14,6 +14,18 @@ WpSystem
 *.crc-error.*
 *.crc-error
 
-; See these two files(8KB) in Win10 C:\ and D:\ , unreadable
+; See these two files(8KB) in C:\ and D:\ , unreadable
 DumpStack.log
 DumpStack.log.tmp
+
+; d:\WSL-on-vhdx hold mount-points to VHDX virtual disks.
+; Those virtual disks accomodate WSL instance files in NTFS partitions.
+; My strategy is to back up those .vhdx container files, not files within the containers.
+WSL-on-vhdx
+VHD-mount-points
+
+; rsync: [receiver] rename "/mnt/f/backup-chja20/2022.09.0x[10.22.3.84~1873.myd].working/MapData/.events.log.VBxxlM" -> "MapData/events.log": Permission denied 
+; rsync: [receiver] rename "/mnt/f/backup-chja20/2022.09.0x[10.22.3.84~1873.myd].working/MapData/mapscache/.index.idx.xj5L3W" -> "MapData/mapscache/index.idx": Permission denied (13)
+; And various error condition from chja20 D:/MapData/... , no idea why the errors rise from irsync client-side machine.
+; The MapData seems to belong to Win10 Map background service.
+MapData/*

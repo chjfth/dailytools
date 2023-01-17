@@ -1,15 +1,26 @@
+#!/bin/bash
+
 # User can set IRSYNC_PARAMS and RSYNC_PARAMS to customize irsync's behavior.
 
 export CHJHOST=10.22.3.84
 export PYTHONPATH=~/gitw/pyutils/pycode
 
-_irsync_="--datetime-pattern=YYYYMMDD --max-retry=3 --old-days=60"
+#datetime_pattern=YYYYMMDD
+datetime_pattern=$(echo $(date +%Y.%m.%d) | sed 's/.$/x/')
+# -- Get current date, and replace final char with 'x' (e.g. 2022.06.1x) , 
+# so that we create a backup every 10 days.
+
+_irsync_="--datetime-pattern=${datetime_pattern} --max-retry=3 --old-days=60"
+
 _rsync_="--rsync --progress --exclude-from=excludes.list"
 
 _has_error=FALSE
 _err_list=()
 
-modlist=(myd myk mym myn myo-vms) # define a Bash array
+if [ -z "$modlist" ]; then
+	# user can override modlist from command line.
+	modlist=(myk mym myn myo-vms myf myd) # define a Bash array
+fi
 
 for mod in "${modlist[@]}"; do 
 	echo ""
@@ -26,3 +37,4 @@ else
 	for value in "${_err_list[@]}"; do echo "  $value"; done
 	exit 4;
 fi
+

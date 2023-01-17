@@ -1,1 +1,1 @@
-See _VSPG\VSPG.README.txt .
+This has been moved to https://github.com/chjfth/VSPG .

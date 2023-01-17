@@ -90,9 +90,11 @@ def main(indir):
 
 			""" Make C/C++ comment line in green color. 
 			    .c-comment { color: #00AA00; }
-			Simple logic: find // but not :// ( get rid of http://www.foobar.com )
+			Simple logic: find '//' and the char before '//' can only be a whitespace(\s).
+			This gets rid of 'http://www.foobar.com', "-//W3C//DTD HTML 4.01 Transitional/..."
 			"""
-			line_text = re.sub(rb'(?<!\:)//.*$', ccRepl, line_text, flags=re.IGNORECASE)
+			line_text = line_text.strip(b'\r\n') # On Windows, '\r' is there and should be stripped.
+			line_text = re.sub(rb'(?<![^\s])//.*$', ccRepl, line_text, flags=re.IGNORECASE)
 
 			htmlcnt.lines[line_idx] = line_text
 		

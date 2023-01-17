@@ -1,0 +1,11 @@
+# Doc: https://git-scm.com/docs/gitattributes
+# Useful hint using * and **: https://stackoverflow.com/a/62564526/151453
+
+*           text=auto
+
+# For following files(Unix shell scripts etc),
+# always use LF as line-ending, even on Windows.
+# -text(=no doing CRLF conversion).
+*.sh    -text
+*.sc    -text
+*.shc   -text
