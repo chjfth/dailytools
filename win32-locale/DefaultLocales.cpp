@@ -290,6 +290,7 @@ void do_work()
 		easySetClipboardText(g_wsSetClipboard, g_nSetClipboard);
 
 		my_tprintf(_T("  > Sent %d WCHARs to Clipboard as CF_UNICODETEXT.\n"), g_nSetClipboard);
+		my_tprintf(_T("  > %s\n"), g_wsSetClipboard);
 	}
 	
 	newline();
@@ -328,13 +329,17 @@ _T("                       If <locstr> is '-', omit calling setlocale().\n")
 _T("  crtmbcp:<mbcp>       Call _setmbcp(mbcp); on start.\n")
 _T("  consolecp:<ccp>      Call SetConsoleCP(ccp); and SetConsoleOutputCP(ccp);.\n")
 _T("  \n")
+_T("  Trailing hex tokens constitute a WCHAR string, and are sent to Clipboard.\n")
 _T("\n")
-_T("Example:\n")
+_T("Examples:\n")
 _T("  DefaultLocales uilangid:0x0404 crtlocale:zh-TW consolecp:950\n")
 _T("  DefaultLocales thrdlcid:0x0804 crtlocale:zh-CN consolecp:936\n")
 _T("  DefaultLocales crtlocale:.65001 consolecp:65001\n")
 _T("  DefaultLocales crtlocale:japanese_Japan\n")
 _T("  DefaultLocales crtlocale:-\n")
+_T("\n")
+_T("  DefaultLocales 41 42 96FB\n")
+_T("    -- This will send Unicode text \"AB電\" (3 WCHARs) to Clipboard.\n")
 _T("\n")
 _T("To pause before program quit, rename exe to have word \"pause\".\n")
 ;
