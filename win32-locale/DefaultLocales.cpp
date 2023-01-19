@@ -6,7 +6,7 @@ This should help user discriminate the abstract and ubiquitous word "locale".
 #include "utils.h"
 #include <muiload.h>
 
-const TCHAR *g_szversion = _T("1.5.0");
+const TCHAR *g_szversion = _T("1.5.1");
 
 LCID g_set_thread_lcid = 0; // If not 0, will call SetThreadLocale() with this value.
 const TCHAR *g_set_crtlocale = _T("");
@@ -14,6 +14,9 @@ int g_crtmbcp = 0;  // for CRT _setmbcp();
 int g_set_threadui_lang = -1; // 0 consider a valid value to set
 int g_consolecp = 0;
 bool g_pause_on_quit = false;
+
+WCHAR g_wsSetClipboard[100];
+int g_nSetClipboard = 0;
 
 ////////
 
@@ -282,6 +285,13 @@ void do_work()
 	my_tprintf(_T("GetKeyboardLayout(0) = %s [%s]\n"), 
 		HexstrLCID(langid), locname);
 
+	if (g_nSetClipboard > 0)
+	{
+		easySetClipboardText(g_wsSetClipboard, g_nSetClipboard);
+
+		my_tprintf(_T("  > Sent %d WCHARs to Clipboard as CF_UNICODETEXT.\n"), g_nSetClipboard);
+	}
+	
 	newline();
 	
 	/// Check/Probe what CRT locale() tells us. ///
@@ -450,6 +460,15 @@ int apply_startup_user_params(TCHAR *argv[])
 				my_tprintf(_T("Startup: [PAUSE] Press a key to continue, or attach a debugger.\n"));
 				_getch();
 			}
+		}
+		else if(ishextoken(*argv))
+		{
+			// This marks the start of WCHAR stream params.
+			// I will send Unicode text by this stream to the Clipboard, so that we can see
+			// CF_LOCALE value in Clipboard is determined by GetKeyboardLayout().
+
+			g_nSetClipboard = collect_hexrpw_from_argv(argv, g_wsSetClipboard, ARRAYSIZE(g_wsSetClipboard));
+			break;
 		}
 		else
 		{

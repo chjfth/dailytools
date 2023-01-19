@@ -57,6 +57,31 @@ char *HexdumpA(const char *pbytes, int count, char *hexbuf, int bufchars);
 
 bool ishexdigit(TCHAR c);
 
+bool ishextoken(const TCHAR* psz);
+
 int qsort_CompareString(void* context, const void* item1, const void* item2);
 
 void vaDbgString(const TCHAR* szfmt, ...);
+
+template<typename TEle>
+int collect_hexrpw_from_argv(TCHAR** argv, TEle obuf[], int nebuf)
+{
+	int i;
+	for (i = 0; i < nebuf; i++)
+	{
+		if (argv[i] == nullptr)
+			break;
+
+		if (!ishextoken(argv[i]))
+		{
+			my_tprintf(_T("[ERROR] The parameter \"%s\" is not a valid hex-token.\n"), argv[i]);
+			exit(1);
+		}
+
+		obuf[i] = (TEle)_tcstoul(argv[i], nullptr, 16);
+	}
+
+	return i;
+}
+
+BOOL easySetClipboardText(const TCHAR Text[], int textchars = -1, HWND hwnd = 0);
