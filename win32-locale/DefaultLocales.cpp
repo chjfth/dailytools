@@ -6,7 +6,7 @@ This should help user discriminate the abstract and ubiquitous word "locale".
 #include "utils.h"
 #include <muiload.h>
 
-const TCHAR *g_szversion = _T("1.4.3");
+const TCHAR *g_szversion = _T("1.5.0");
 
 LCID g_set_thread_lcid = 0; // If not 0, will call SetThreadLocale() with this value.
 const TCHAR *g_set_crtlocale = _T("");
@@ -39,7 +39,7 @@ const TCHAR *get_ll2info(LCID lcid, LCTYPE ll2type)
 	return s_info;
 }
 
-// Dynamic loading of some Vista+ WinAPI, so this program runs on WinXP. 
+// Dynamic loading of some Vista+ WinAPI, so this program runs on WinXP(if compiled with VC2010). 
 DEFINE_DLPTR_WINAPI("kernel32.dll", GetSystemDefaultLocaleName)
 DEFINE_DLPTR_WINAPI("kernel32.dll", GetUserDefaultLocaleName)
 DEFINE_DLPTR_WINAPI("kernel32.dll", LCIDToLocaleName)
@@ -273,7 +273,18 @@ void do_work()
 	
 	newline();
 
-	/// Check/Probe what CRT locale() tells us.
+	/// GetKeyboardLayout() ///
+	
+	HKL curhkl = GetKeyboardLayout(0); // 0 means current thread
+	langid = LOWORD(curhkl);
+	dlptr_LCIDToLocaleName(langid, locname, LOCALE_NAME_MAX_LENGTH, 0);
+
+	my_tprintf(_T("GetKeyboardLayout(0) = %s [%s]\n"), 
+		HexstrLCID(langid), locname);
+
+	newline();
+	
+	/// Check/Probe what CRT locale() tells us. ///
 
 	const TCHAR *crtlocstr = _tsetlocale(LC_ALL, NULL); // query current
 	my_tprintf(_T("setlocale(LC_ALL, NULL) query returns: \n  %s\n"), crtlocstr);
