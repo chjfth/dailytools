@@ -152,7 +152,7 @@
   
   <!-- import VSPG start -->
   <PropertyGroup>
-    <VSPG_BootsDir_NoTBS>..\_VSPG\boots</VSPG_BootsDir_NoTBS>
+    <VSPG_BootsDir_NoTBS>..\__VSPG\_VSPG\boots</VSPG_BootsDir_NoTBS>
   </PropertyGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(VSPG_BootsDir_NoTBS)\_VSPG.props" />
