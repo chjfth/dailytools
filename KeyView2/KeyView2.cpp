@@ -508,6 +508,11 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		break ;        // ie, call DefWindowProc so Sys messages work
 
+	case WM_UNICHAR:
+		dbgprint(_T("WM_UNICHAR: wParam=0x%04X , lParam=0x%04X.%04X"),
+			(DWORD)wParam, HIWORD(lParam), LOWORD(lParam));
+		break;
+
 	case WM_PAINT:
 		hdc = BeginPaint (hwnd, &ps) ;
 
@@ -555,4 +560,3 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	}
 	return DefWindowProc (hwnd, message, wParam, lParam) ;
 }
-

@@ -1,0 +1,3 @@
+[submodule "__VSPG"]
+	path = __VSPG
+	url = ../VSPG
