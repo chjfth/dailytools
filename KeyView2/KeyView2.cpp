@@ -64,7 +64,9 @@ LRESULT CALLBACK WndProc (HWND, UINT, WPARAM, LPARAM) ;
 
 void process_cmd_options(int argc, TCHAR *argv[])
 {
-	(void)argc;
+	if(argc==0)
+		return;
+
 	do
 	{
 		TCHAR *pcur = argv[0], *pnext = argv[1];
@@ -175,7 +177,7 @@ int WINAPI _tWinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	StringCchPrintf(szTitlePrefix, bsTitlePrefix, _T("KeyView2 (%s) v%d.%d"),
 		TVARIANT, THISLIB_VMAJOR, THISLIB_VMINOR);
 
-	process_cmd_options(argc, argv+1);
+	process_cmd_options(argc-1, argv+1);
 
 	g_keydes_all_bufchars = g_chars_per_line_rn*g_max_store_lines;
 	g_keydes_for_clipboard = new TCHAR[g_keydes_all_bufchars+1];
