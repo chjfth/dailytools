@@ -40,9 +40,9 @@ KEYVIEW2.C -- Displays Keyboard and Character Messages
 const int bsTitlePrefix = 80;
 TCHAR szTitlePrefix[bsTitlePrefix];
 
-const TCHAR szTop_s1[] = TEXT ("  Seq Message        VKcode,Keyname  Char     ");
+const TCHAR szTop_s1[] = TEXT ("  Seq Message        VKcode,Keyname  Char        ");
 const TCHAR szTop_s2[] = TEXT ("Repeat Scancode Ext ALT Prev Tran") ;
-const TCHAR szUnd[] = TEXT ("  ___ _______        ______________  ____     ")
+const TCHAR szUnd[] = TEXT ("  ___ _______        ______________  ____        ")
 	TEXT ("______ ________ ___ ___ ____ ____") ;
 const int g_chars_per_line = ARRAYSIZE(szUnd)-1;
 const int g_chars_per_line_rn = g_chars_per_line+2; // including trailing \r\n
@@ -222,6 +222,13 @@ int WINAPI _tWinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	return 0 ;
 }
 
+const TCHAR * DWORDto0x4x(DWORD n)
+{
+	static TCHAR s_buf[12];
+	_sntprintf_s(s_buf, _TRUNCATE, _T("0x%04X"), n);
+	return s_buf;
+}
+
 void GetKeyDes(const MSG &msg, TCHAR s1[], int s1size, TCHAR s2[], int s2size)
 {
 	// KeyDes: key description text
@@ -259,7 +266,7 @@ void GetKeyDes(const MSG &msg, TCHAR s1[], int s1size, TCHAR s2[], int s2size)
 	// keydes section 1
 	if(is_stroke_msg)	
 	{
-		static const TCHAR szfmt_stroke_msg[] = TEXT("%5u %-13s %3d(%02Xh) %-*.*s%c");
+		static const TCHAR szfmt_stroke_msg[] = TEXT("%5u %-13s %3d(%02Xh) %-*.*s%c   ");
 		StringCchPrintfEx(s1, s1size, NULL, NULL, 
 			STRSAFE_FILL_BEHIND_NULL, // opt, can be 0
 			szfmt_stroke_msg,
@@ -274,16 +281,45 @@ void GetKeyDes(const MSG &msg, TCHAR s1[], int s1size, TCHAR s2[], int s2size)
 	}
 	else
 	{
-		static const TCHAR szfmt_char_msg[] = TEXT("%5u %-13.13s                  0x%04X%1s%c ");
+		static const TCHAR szfmt_char_msg1[] = TEXT("%5u %-13.13s              %10s ");
+		//
 		StringCchPrintfEx(s1, s1size, NULL, NULL, 
 			STRSAFE_FILL_BEHIND_NULL, // opt, can be 0
-			szfmt_char_msg, 
+			szfmt_char_msg1
+			, 
 			msg.time % (g_max_store_lines_max+1),     // %5u
 			keymsg_name,  // %-13.13s _Message_ (WM_CHAR etc)
-			msg.wParam,   // %04X  _Char_ (WM_CHAR character code, in 16-bit hex)
-			TEXT(" "),    // %1s
-			msg.wParam    // %c    _Char_'s printable form
+			DWORDto0x4x((DWORD)msg.wParam) // %10s  _Char_ (WM_CHAR character code, 0x0041 or 0xE0Bd85)
 			);
+
+		int part1len = (int)_tcslen(s1);
+
+		TCHAR part2str[5] = {}; // UTF8 max 4-bytes + NUL
+
+		bool is_utf8 = msg.wParam > 0xFFFF;
+		if(is_utf8)
+		{
+#ifdef UNICODE
+			assert(0);
+#else
+			// [2023-01-21] Chj: 
+			// If the UTF8 sequence is [E0 BD 91], we'll have msg.Param=0x91BDE0 .
+			// To see this, in Win10.21H2, add a Tibetan keyboard layout and strike
+			// keyboard physical key a-z, 1~9 etc.
+			//
+			*(DWORD*)part2str = msg.wParam;
+#endif
+		}
+		else
+		{
+			 part2str[0] = (TCHAR)msg.wParam;
+		}
+
+		static const TCHAR szfmt_char_msg2[] = TEXT("%-4s ");
+		//
+		StringCchPrintfEx(s1+part1len, s1size-part1len, NULL, NULL, 
+			STRSAFE_FILL_BEHIND_NULL, // opt, can be 0
+			szfmt_char_msg2, part2str);
 	}
 
 	// keydes section 2
