@@ -21,18 +21,10 @@ KEYVIEW2.C -- Displays Keyboard and Character Messages
 #include <strsafe.h>
 #include <psapi.h> // GetProcessImageFileName 
 
-#include <getopt/sgetopt.h>
-#include <gadgetlib/T_string.h>
-#include <gadgetlib/timefuncs.h>
-
 #include "easyclipboard.h"
 #include "dbgprint.h"
 #include "iversion.h"
 #include "resource.h"
-
-#include <TScalableArray.h>
-
-TScalableArray<int> g_sa;
 
 #ifdef UNICODE
 #define APPNAME TEXT("KeyView2U") 
@@ -70,36 +62,24 @@ MSG  *g_armsg ;
 
 LRESULT CALLBACK WndProc (HWND, UINT, WPARAM, LPARAM) ;
 
-void casual_test()
-{
-	g_sa.SetEleQuan(10, true); // no use, just trying my .h PDB-sewing
-	struct tm tmu, tml;
-	ggt_gmtime(1459575155, &tmu);
-	ggt_localtime(1459575155, &tml); // << no use, just test my lib, Python verify: time.localtime(1459575155)
-}
-
 void process_cmd_options(int argc, TCHAR *argv[])
 {
-	const TCHAR *app_short_options = _T("b:");
-	sgetopt_ctx *si = sgetopt_ctx_create();
-
-	while(1)
+	(void)argc;
+	do
 	{
-		int c = sgetopt(si, argc, argv, app_short_options);
+		TCHAR *pcur = argv[0], *pnext = argv[1];
 
-		if(c == -1)
-			break;
-
-		if(c==_T('b'))
+		if(_tcscmp(pcur, _T("-b"))==0)
 		{
-			g_max_store_lines =T_atoi(si->optarg);
-				// Note: If g_max_store_lines is less than window height by lines,
-				// some lines may display as blank, which seems to be inevitable 
-				// with the ScrollWindow() technique used here.
+			if(pnext)
+			{
+				g_max_store_lines = _tcstoul(pnext, nullptr, 0);
+				argv++;
+			}
 		}
-	}
 
-	sgetopt_ctx_delete(si);
+		argv++;
+	} while(*argv);
 }
 
 const TCHAR *myGetCharsetName(DWORD charset)
@@ -195,8 +175,7 @@ int WINAPI _tWinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	StringCchPrintf(szTitlePrefix, bsTitlePrefix, _T("KeyView2 (%s) v%d.%d"),
 		TVARIANT, THISLIB_VMAJOR, THISLIB_VMINOR);
 
-	casual_test();
-	process_cmd_options(argc, argv);
+	process_cmd_options(argc, argv+1);
 
 	g_keydes_all_bufchars = g_chars_per_line_rn*g_max_store_lines;
 	g_keydes_for_clipboard = new TCHAR[g_keydes_all_bufchars+1];
