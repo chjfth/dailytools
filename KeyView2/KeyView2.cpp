@@ -5,8 +5,11 @@ KEYVIEW2.C -- Displays Keyboard and Character Messages
  * Show current Charset value and FontFace name on title bar.
  * Add a Seq(sequence number) column for easier investigation.
  * Right click context menu to clear or copy screen content.
- * Buffered lined quantity can be configured, default 5000.
+ * Buffered lines quantity can be configured, default 5000.
  * Show hex as well as decimal for VK code and scan code.
+ * v1.8: Show GetACP() value on title.
+ * v1.8: On startup, try to select the Charset that matches
+   user's default input-locale, instead of DEFAULT_CHARSET.
 --------------------------------------------------------*/
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -38,6 +41,8 @@ TScalableArray<int> g_sa;
 #define APPNAME TEXT("KeyView2A") 
 #define TVARIANT TEXT("ANSI")
 #endif
+
+#define CHARSET_UNINITIALIZED (-1)
 
 // #define TITLE TEXT("KeyView2 (") TVARIANT TEXT(") v1.5")
 const int bsTitlePrefix = 80;
@@ -95,6 +100,70 @@ void process_cmd_options(int argc, TCHAR *argv[])
 	}
 
 	sgetopt_ctx_delete(si);
+}
+
+const TCHAR *myGetCharsetName(DWORD charset)
+{
+	if(charset==CHARSET_UNINITIALIZED)
+		return TEXT("unset");
+
+	struct cs2name_st { BYTE charset; const TCHAR *name; };
+	// -- .charset is BYTE bcz TEXTMETRIC.tmCharSet is so.
+
+	static cs2name_st cs2names[] =
+	{
+		{ ANSI_CHARSET, TEXT("ANSI or West European") }, // very trick inside
+		{ DEFAULT_CHARSET, TEXT("Default") }, // relates to GetACP(), will not get this from WM_INPUTLANGCHANGE 
+		{ SYMBOL_CHARSET, TEXT("Symbol") },            // 2
+		{ SHIFTJIS_CHARSET, TEXT("Japanese") },        // 128
+		{ HANGUL_CHARSET, TEXT("Korean") },            // 129
+		{ GB2312_CHARSET, TEXT("Chinese GBK") },       // 134
+		{ CHINESEBIG5_CHARSET, TEXT("Chinese Big5") }, // 136
+		{ HEBREW_CHARSET, TEXT("Hebrew") },   // 177
+		{ ARABIC_CHARSET, TEXT("Arabic") },   // 178
+		{ GREEK_CHARSET, TEXT("Greek") },     // 161
+		{ TURKISH_CHARSET, TEXT("Turkish") }, // 162
+		{ VIETNAMESE_CHARSET, TEXT("Vietnamese") }, // 163
+		{ BALTIC_CHARSET, TEXT("Baltic") },   // 186
+		{ RUSSIAN_CHARSET, TEXT("Russian") }, // 204
+		{ THAI_CHARSET, TEXT("Thai") },	      // 222
+		{ EASTEUROPE_CHARSET, TEXT("Central/East European") },  // 238
+		{ OEM_CHARSET, TEXT("OEM") }, // 255
+	};
+
+	int i;
+	for(i=0; i<ARRAYSIZE(cs2names); i++)
+	{
+		if(charset==cs2names[i].charset)
+			return cs2names[i].name;
+	}
+	return TEXT("unknown");
+}
+
+#define WM_Trigger_INPUTLANGCHANGE (WM_USER+1)
+
+void Trigger_WM_INPUTLANGCHANGE(HWND hwnd)
+{
+	// [2023-01-21] Chj:
+	// Purpose: On program startup, we do not see WM_INPUTLANGCHANGE, 
+	// until human user initiates Input-language change.
+	// Before WM_INPUTLANGCHANGE, we use this function to trigger 
+	// WM_INPUTLANGCHANGE so that we can get current-charset value. 
+	//
+	// But, this trick succeeds only when at least TWO input-langs are available.
+
+	BOOL succ = 0;
+	HKL curhkl = GetKeyboardLayout(0);
+
+	HKL arHkl[100] = {};
+	int nkl = GetKeyboardLayoutList(ARRAYSIZE(arHkl), arHkl);
+	assert(nkl>0);
+
+	if(nkl==1)
+		return;
+
+	PostMessage(hwnd, WM_Trigger_INPUTLANGCHANGE, (WPARAM)HKL_NEXT, 0);
+	PostMessage(hwnd, WM_Trigger_INPUTLANGCHANGE, (WPARAM)curhkl, 0);
 }
 
 int WINAPI _tWinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance,
@@ -170,39 +239,6 @@ int WINAPI _tWinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	delete []g_keydes_for_clipboard;
 	
 	return 0 ;
-}
-
-const TCHAR *GetCharsetName(BYTE charsetid)
-{
-	struct cs2name_st { BYTE id; const TCHAR *name; };
-	static cs2name_st cs2names[] =
-	{
-		{ 0, TEXT("ANSI or West European") },
-		{ 1, TEXT("Default") }, // will not get this
-		{ 2, TEXT("Symbol") },
-		{ 128, TEXT("Japanese") },
-		{ 129, TEXT("Korean") },
-		{ 134, TEXT("Chinese GBK") }, // GB2312_CHARSET
-		{ 136, TEXT("Chinese Big5") },
-		{ 177, TEXT("Hebrew") },
-		{ 178, TEXT("Arabic") },
-		{ 161, TEXT("Greek") }, // GREEK_CHARSET
-		{ 162, TEXT("Turkish") },
-		{ 163, TEXT("Vietnamese") },
-		{ 186, TEXT("Baltic") },
-		{ 204, TEXT("Russian") },	
-		{ 222, TEXT("Thai") },	
-		{ 238, TEXT("Central European") }, // EASTEUROPE_CHARSET
-		{ 255, TEXT("OEM") },	
-	};
-	
-	int i;
-	for(i=0; i<ARRAYSIZE(cs2names); i++)
-	{
-		if(charsetid==cs2names[i].id)
-			return cs2names[i].name;
-	}
-	return TEXT("unknown");
 }
 
 void GetKeyDes(const MSG &msg, TCHAR s1[], int s1size, TCHAR s2[], int s2size)
@@ -365,7 +401,8 @@ int Do_WM_COMMAND(HWND hwnd, WPARAM wParam, LPARAM lParam)
 
 LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	static DWORD dwCharSet = DEFAULT_CHARSET ;            
+	static DWORD s_HKL_charset = CHARSET_UNINITIALIZED; // dwCharSet=DEFAULT_CHARSET; 
+	// -- v1.8: init to CHARSET_UNINITIALIZED(-1).
 	static int   cxClientMax, cyClientMax, cxClient, cyClient, cxChar, cyChar ;
 	static int cWndLinesMax; // lines current window height can hold 
 		// lines to draw on screen, grow from 0, will not exceed cWndLinesMax
@@ -386,7 +423,7 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	TCHAR szKbLayoutName[KL_NAMELENGTH];
 
 	switch (message)
-	{
+	{{
 	case WM_RBUTTONDOWN:
 		point.x = LOWORD (lParam) ;
 		point.y = HIWORD (lParam) ;
@@ -399,10 +436,18 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		return 0 ;
 
 	case WM_INPUTLANGCHANGE:
-		dwCharSet = (DWORD)wParam ;
+		s_HKL_charset = (DWORD)wParam ;
+		assert(s_HKL_charset<256);
+
 		// fall through
 	
 	case WM_CREATE:
+
+		if(s_HKL_charset==CHARSET_UNINITIALIZED)
+		{
+			Trigger_WM_INPUTLANGCHANGE(hwnd);
+		}
+
 		if(!s_popmenu)
 		{
 			s_popmenu = LoadMenu(NULL, MAKEINTRESOURCE(IDR_MENU1));
@@ -420,23 +465,31 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// Get character size for fixed-pitch font
 
 		hdc = GetDC (hwnd) ;
-
 		SelectObject (hdc, CreateFont (0, 0, 0, 0, 0, 0, 0, 0,
-			dwCharSet, 0, 0, 0, FIXED_PITCH, NULL)) ; 
-
+			s_HKL_charset==CHARSET_UNINITIALIZED ? DEFAULT_CHARSET : s_HKL_charset, 
+			0, 0, 0, FIXED_PITCH, NULL)) ; 
 		GetTextMetrics (hdc, &tm) ;
 		cxChar = tm.tmAveCharWidth ;
 		cyChar = tm.tmHeight ;
 
 		GetTextFace(hdc, ARRAYSIZE(szFontface), szFontface);
 
+		if(tm.tmCharSet!=s_HKL_charset)
+		{
+			dbgprint(_T("[UNEXPECT] s_HKL_charset(%d) not equal to Font \"%s\" charset(%d)."),
+				s_HKL_charset, szFontface, tm.tmCharSet);
+		}
+
 		GetKeyboardLayoutName(szKbLayoutName);
-		StringCchPrintf(szTitle, ARRAYSIZE(szTitle), 
-			TEXT("%s - Charset=%d(%s) Fontface=\"%s\" Keyboard[name=%s,HKL=%08X]"),
+
+		_sntprintf_s(szTitle, _TRUNCATE, 
+			TEXT("%s - ACP=%d HKL[name=\"%s\" value=0x%08X Charset=%d(%s)] Fontface=\"%s\""),
 			szTitlePrefix, 
-			tm.tmCharSet, GetCharsetName(tm.tmCharSet),
-			szFontface,
-			szKbLayoutName, GetKeyboardLayout(0)
+			GetACP(),
+			szKbLayoutName, 
+			GetKeyboardLayout(0),
+			s_HKL_charset, myGetCharsetName(s_HKL_charset),
+			szFontface
 			);
 		SetWindowText(hwnd, szTitle);
 
@@ -517,7 +570,8 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		hdc = BeginPaint (hwnd, &ps) ;
 
 		SelectObject (hdc, CreateFont (0, 0, 0, 0, 0, 0, 0, 0,
-			dwCharSet, 0, 0, 0, FIXED_PITCH, NULL)) ; 
+			s_HKL_charset==CHARSET_UNINITIALIZED ? DEFAULT_CHARSET : s_HKL_charset,
+			0, 0, 0, FIXED_PITCH, NULL)) ; 
 
 		SetBkMode (hdc, TRANSPARENT) ;
 		TextOut (hdc, 0,            0, szTop_s1, lstrlen (szTop_s1));
@@ -550,6 +604,12 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		pos = (int)lParam;
 		break;
 
+	case WM_Trigger_INPUTLANGCHANGE:
+	{
+		HKL prev = ActivateKeyboardLayout((HKL)wParam, 0);
+		assert(prev!=0);
+		return 0;
+	}
 	case WM_DESTROY:
 
 		if (g_armsg)
@@ -557,6 +617,6 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		PostQuitMessage (0) ;
 		return 0 ;
-	}
+	}}
 	return DefWindowProc (hwnd, message, wParam, lParam) ;
 }
