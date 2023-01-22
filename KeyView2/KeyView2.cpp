@@ -10,6 +10,8 @@ KEYVIEW2.C -- Displays Keyboard and Character Messages
  * v1.8: Show GetACP() value on title.
  * v1.8: On startup, try to select the Charset that matches
    user's default input-locale, instead of DEFAULT_CHARSET.
+ * v1.9: For Keyview2A, cope with the case that a Unicode codepoint 
+   is packed in one ANSI WM_CHAR message. (Win10.21H2, UTF8ACP on)
 --------------------------------------------------------*/
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -296,8 +298,8 @@ void GetKeyDes(const MSG &msg, TCHAR s1[], int s1size, TCHAR s2[], int s2size)
 
 		TCHAR part2str[5] = {}; // UTF8 max 4-bytes + NUL
 
-		bool is_utf8 = msg.wParam > 0xFFFF;
-		if(is_utf8)
+		bool is_packed_utf8 = msg.wParam > 0xFFFF;
+		if(is_packed_utf8)
 		{
 #ifdef UNICODE
 			assert(0);
@@ -306,6 +308,11 @@ void GetKeyDes(const MSG &msg, TCHAR s1[], int s1size, TCHAR s2[], int s2size)
 			// If the UTF8 sequence is [E0 BD 91], we'll have msg.Param=0x91BDE0 .
 			// To see this, in Win10.21H2, add a Tibetan keyboard layout and strike
 			// keyboard physical key a-z, 1~9 etc.
+			//
+			// But be aware, as of Win10.21H2, not all input-lang's stock keyboard layout
+			// sends UTF8 sequence this way. For example, with UTF8ACP option on, 
+			// Amharic keyboard sends U+12A0 as 3 WM_CHAR messages, each carrying 
+			// one UTF8 byte-sequence, E1 8A A0, respectively.
 			//
 			*(DWORD*)part2str = msg.wParam;
 #endif
@@ -579,7 +586,13 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break ;        // ie, call DefWindowProc so Sys messages work
 
 	case WM_UNICHAR:
+		// [2023-01-21] Chj: Not seeing this yet.
 		dbgprint(_T("WM_UNICHAR: wParam=0x%04X , lParam=0x%04X.%04X"),
+			(DWORD)wParam, HIWORD(lParam), LOWORD(lParam));
+		break;
+
+	case WM_IME_CHAR:
+		dbgprint(_T("WM_IME_CHAR: (chrvalue)wParam=0x%04X , lParam=0x%04X.%04X"),
 			(DWORD)wParam, HIWORD(lParam), LOWORD(lParam));
 		break;
 
