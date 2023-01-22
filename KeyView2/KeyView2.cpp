@@ -259,7 +259,7 @@ void GetKeyDes(const MSG &msg, TCHAR s1[], int s1size, TCHAR s2[], int s2size)
 		msg.message == WM_SYSDEADCHAR ;
 	bool is_stroke_msg = !is_char_msg;
 	
-	TCHAR szKeyName[32] ;
+	TCHAR szKeyName[32] = _T("(unknown)");
 	GetKeyNameText ((LONG)msg.lParam, szKeyName, ARRAYSIZE(szKeyName)); // VK name
 
 	const int keyname_limit = 16;
@@ -425,7 +425,7 @@ int Do_WM_COMMAND(HWND hwnd, WPARAM wParam, LPARAM lParam)
 
 LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	static DWORD s_HKL_charset = CHARSET_UNINITIALIZED; // dwCharSet=DEFAULT_CHARSET; 
+	static int s_HKL_charset = CHARSET_UNINITIALIZED; // dwCharSet=DEFAULT_CHARSET; 
 	// -- v1.8: init to CHARSET_UNINITIALIZED(-1).
 	static int   cxClientMax, cyClientMax, cxClient, cyClient, cxChar, cyChar ;
 	static int cWndLinesMax; // lines current window height can hold 

@@ -2,7 +2,7 @@
 #define _keyview_iversion_h
 
 #define THISLIB_VMAJOR 1
-#define THISLIB_VMINOR 9
+#define THISLIB_VMINOR 10
 #define THISLIB_VBUILD 0
 
 #define THISLIBstr__(n) #n
