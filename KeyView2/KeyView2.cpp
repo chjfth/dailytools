@@ -38,7 +38,8 @@ KEYVIEW2.C -- Displays Keyboard and Character Messages
 
 #define CHARSET_UNINITIALIZED (-1)
 
-// #define TITLE TEXT("KeyView2 (") TVARIANT TEXT(") v1.5")
+const int UI_KEYNAME_LIMIT = 16;
+
 const int bsTitlePrefix = 80;
 TCHAR szTitlePrefix[bsTitlePrefix];
 
@@ -122,6 +123,18 @@ const TCHAR *myGetCharsetName(DWORD charset)
 			return cs2names[i].name;
 	}
 	return TEXT("unknown");
+}
+
+bool Is_CharMsg(UINT message)
+{
+	return (message == WM_CHAR || message == WM_SYSCHAR ||
+		message == WM_DEADCHAR || message == WM_SYSDEADCHAR);
+}
+
+bool Is_KeyStrokeMsg(UINT message)
+{
+	return (message == WM_KEYDOWN || message == WM_KEYUP ||
+		message == WM_SYSKEYDOWN || message == WM_SYSKEYUP);
 }
 
 #define WM_Trigger_INPUTLANGCHANGE (WM_USER+1)
@@ -253,31 +266,25 @@ void GetKeyDes(const MSG &msg, TCHAR s1[], int s1size, TCHAR s2[], int s2size)
 
 	const TCHAR *keymsg_name = szKeyMsgName[msg.message-WM_KEYFIRST];
 
-	bool is_char_msg = msg.message == WM_CHAR ||
-		msg.message == WM_SYSCHAR ||
-		msg.message == WM_DEADCHAR ||
-		msg.message == WM_SYSDEADCHAR ;
-	bool is_stroke_msg = !is_char_msg;
-	
-	TCHAR szKeyName[32] = _T("(unknown)");
+	TCHAR szKeyName[64] = _T("(unknown)");
 	GetKeyNameText ((LONG)msg.lParam, szKeyName, ARRAYSIZE(szKeyName)); // VK name
 
-	const int keyname_limit = 16;
 	int keyname_len = _tcslen(szKeyName);
 
 	// keydes section 1
-	if(is_stroke_msg)	
+	if(Is_KeyStrokeMsg(msg.message))	
 	{
 		static const TCHAR szfmt_stroke_msg[] = TEXT("%5u %-13s %3d(%02Xh) %-*.*s%c   ");
 		StringCchPrintfEx(s1, s1size, NULL, NULL, 
 			STRSAFE_FILL_BEHIND_NULL, // opt, can be 0
-			szfmt_stroke_msg,
+			szfmt_stroke_msg
+			,
 			msg.time % (g_max_store_lines_max+1),     // %5u
 			keymsg_name,  // %-13s _Message_ (WM_KEYDOWN etc)
 			msg.wParam,   // %3d   _VKcode_ (VK code, decimal)
 			msg.wParam,   // %02X  _VKcode_ (VK code, hex)
-			keyname_limit, keyname_limit, szKeyName,    // %-*.*s (Keyname)
-			keyname_len<=keyname_limit ? TEXT(' ') : TEXT('?') // '?' to indicate text truncation
+			UI_KEYNAME_LIMIT, UI_KEYNAME_LIMIT, szKeyName,    // %-*.*s (Keyname)
+			keyname_len<=UI_KEYNAME_LIMIT ? TEXT(' ') : TEXT('?') // '?' to indicate text truncation
 			);
 		// Memo: French keyboard, the dead-char "ACCENT CIRCONFLEXE" (at right-side of P) is 18 chars long.
 	}
@@ -579,6 +586,19 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		g_LinesToDraw++;
 		g_LinesToDraw = min(g_LinesToDraw, cWndLinesMax) ;
 		g_LinesToDraw = min(g_LinesToDraw, g_max_store_lines);
+
+		if(Is_KeyStrokeMsg(message))
+		{
+			TCHAR szKeyName[64] = _T("(unknown)");
+			GetKeyNameText ((LONG)lParam, szKeyName, ARRAYSIZE(szKeyName)); // VK name
+
+			int keyname_len = _tcslen(szKeyName);
+
+			if(keyname_len>UI_KEYNAME_LIMIT)
+			{	// Output lengthy Keyname to debugging channel.
+				dbgprint(_T("#%-5u GetKeyNameText() is %d chars : %s"), g_seq, keyname_len, szKeyName);
+			}
+		}
 
 		// Scroll up the display
 		ScrollWindow (hwnd, 0, -cyChar, &rectScroll, &rectScroll) ;
