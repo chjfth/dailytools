@@ -18,6 +18,8 @@ bool g_pause_on_quit = false;
 WCHAR g_wsSetClipboard[100];
 int g_nSetClipboard = 0;
 
+void print_help();
+
 ////////
 
 // Define this struct to reflect first few members of VC2019 CRT __crt_multibyte_data.
@@ -186,165 +188,6 @@ static const TCHAR *LANGID_NumericDesc(LANGID langid)
 	return s_szDesc;
 }
 
-void do_work()
-{
-	LCID lcid = 0; 
-	TCHAR locname[LOCALE_NAME_MAX_LENGTH+1] = {};
-	LANGID langid = 0;
-		
-	/// Show console-codepage ///
-
-	UINT orig_icp = GetConsoleCP();
-	UINT orig_ocp = GetConsoleOutputCP();
-	my_tprintf(_T("Current GetConsoleCP()       = %d\n"), orig_icp);
-	my_tprintf(_T("Current GetConsoleOutputCP() = %d\n"), orig_ocp);
-
-	newline();
-
-	/// GetSystemDefaultUILanguage() ///
-	
-	langid = GetSystemDefaultUILanguage();
-	my_tprintf(_T("GetSystemDefaultUILanguage() => 0x%04X   (%u decimal)\n"), langid, langid);
-	LL2_print_LANGID_Desctext(langid);
-
-	/// GetUserDefaultUILanguage() ///
-
-	langid = GetUserDefaultUILanguage();
-	my_tprintf(_T("GetUserDefaultUILanguage()   => 0x%04X   (%u decimal)\n"), langid, langid);
-	LL2_print_LANGID_Desctext(langid);
-
-	/// GetThreadUILanguage() ///
-
-	if (dlptr_GetThreadUILanguage)
-	{
-		langid = dlptr_GetThreadUILanguage();
-		my_tprintf(_T("GetThreadUILanguage()        => 0x%04X   (%u decimal)\n"), langid, langid);
-		LL2_print_LANGID_Desctext(langid);
-	}
-
-	newline();
-
-	/// Win32 System-locale ///
-
-	lcid = GetSystemDefaultLCID();
-	langid = LANGIDFROMLCID(lcid);
-	my_tprintf(_T("GetSystemDefaultLCID()  => %s   (%s)\n"),
-		HexstrLCID(lcid), LANGID_NumericDesc(langid));
-
-	if (dlptr_GetSystemDefaultLocaleName)
-	{
-		locname[0] = 0;
-		dlptr_GetSystemDefaultLocaleName(locname, LOCALE_NAME_MAX_LENGTH);
-		my_tprintf(_T("GetSystemDefaultLocaleName() =>  %s\n"), locname);
-		verify_locname_lcid_match(locname, lcid);
-	}
-
-	LL2_print_LANGID_Desctext(langid);
-	LL2_print_ansicodepage_and_oemcodepage(lcid, true);
-
-	newline();
-
-	/// Win32 User-locale ///
-
-	lcid = GetUserDefaultLCID();
-	langid = LANGIDFROMLCID(lcid);
-	my_tprintf(_T("GetUserDefaultLCID()    => %s   (%s)\n"),
-		HexstrLCID(lcid), LANGID_NumericDesc(langid));
-
-	if (dlptr_GetUserDefaultLocaleName)
-	{
-		locname[0] = 0;
-		dlptr_GetUserDefaultLocaleName(locname, LOCALE_NAME_MAX_LENGTH);
-		my_tprintf(_T("GetUserDefaultLocaleName()   =>  %s\n"), locname);
-		verify_locname_lcid_match(locname, lcid);
-	}
-
-	LL2_print_LANGID_Desctext(langid);
-	LL2_print_ansicodepage_and_oemcodepage(lcid);
-
-	newline();
-
-	/// Thread-locale (almost obsolete since Win7) /// 
-
-	lcid = GetThreadLocale();
-	langid = LANGIDFROMLCID(lcid);
-	my_tprintf(_T("GetThreadLocale()       => %s   (%s)\n"),
-		HexstrLCID(lcid), LANGID_NumericDesc(langid));
-
-	LL2_print_LANGID_Desctext(langid);
-	LL2_print_ansicodepage_and_oemcodepage(lcid);
-	
-	newline();
-
-	/// GetKeyboardLayout() ///
-	
-	HKL curhkl = GetKeyboardLayout(0); // 0 means current thread
-	langid = LOWORD(curhkl);
-	dlptr_LCIDToLocaleName(langid, locname, LOCALE_NAME_MAX_LENGTH, 0);
-
-	my_tprintf(_T("GetKeyboardLayout(0) = %s [%s]\n"), 
-		HexstrLCID(langid), locname);
-
-	if (g_nSetClipboard > 0)
-	{
-		easySetClipboardText(g_wsSetClipboard, g_nSetClipboard);
-
-		my_tprintf(_T("  > Sent %d WCHARs to Clipboard as CF_UNICODETEXT.\n"), g_nSetClipboard);
-		my_tprintf(_T("  > %s\n"), g_wsSetClipboard);
-	}
-	
-	newline();
-	
-	/// Check/Probe what CRT locale() tells us. ///
-
-	const TCHAR *crtlocstr = _tsetlocale(LC_ALL, NULL); // query current
-	my_tprintf(_T("setlocale(LC_ALL, NULL) query returns: \n  %s\n"), crtlocstr);
-
-	_locale_t lcnow = _get_current_locale();
-
-	int lccoffs = detect_lc_codepage_offset();
-	if(lccoffs<0)
-	{
-		my_tprintf(_T("[Unexpect] detect_lc_codepage_offset() fail!\n"));
-	}
-	else
-	{
-		int lc_codepage = *((int*)(lcnow->locinfo) + lccoffs);
-		my_tprintf(_T("  [probed] .lc_codepage = %d (offset %d-int)\n"), lc_codepage, lccoffs);
-	}
-	
-	const _digged_mbcinfo *p_mbcinfo = (_digged_mbcinfo*)(lcnow->mbcinfo);
-	my_tprintf(_T("  [probed] .mb_codepage = %d\n"), 
-		p_mbcinfo->mb_codepage);
-}
-
-void print_help()
-{
-	const TCHAR *helptext =
-_T("Parameter help:\n")
-_T("  uilangid:<uilangid>  Call SetThreadUILanguage(uilangid); on start. 0 is ok.\n")
-_T("  thrdlcid:<thrlcid>   Call SetThreadLocale(thrlcid); on start.\n")
-_T("  crtlocale:<locstr>   Call setlocale(LC_ALL, locstr); on start.\n")
-_T("                       If <locstr> is '-', omit calling setlocale().\n")
-_T("  crtmbcp:<mbcp>       Call _setmbcp(mbcp); on start.\n")
-_T("  consolecp:<ccp>      Call SetConsoleCP(ccp); and SetConsoleOutputCP(ccp);.\n")
-_T("  \n")
-_T("  Trailing hex tokens constitute a WCHAR string, and are sent to Clipboard.\n")
-_T("\n")
-_T("Examples:\n")
-_T("  DefaultLocales uilangid:0x0404 crtlocale:zh-TW consolecp:950\n")
-_T("  DefaultLocales thrdlcid:0x0804 crtlocale:zh-CN consolecp:936\n")
-_T("  DefaultLocales crtlocale:.65001 consolecp:65001\n")
-_T("  DefaultLocales crtlocale:japanese_Japan\n")
-_T("  DefaultLocales crtlocale:-\n")
-_T("\n")
-_T("  DefaultLocales 41 42 96FB\n")
-_T("    -- This will send Unicode text \"AB電\" (3 WCHARs) to Clipboard.\n")
-_T("\n")
-_T("To pause before program quit, rename exe to have word \"pause\".\n")
-;
-	my_tprintf(_T("%s"), helptext);
-}
 
 int apply_startup_user_params(TCHAR *argv[])
 {
@@ -505,6 +348,165 @@ TCHAR * join_msz_strings(const TCHAR *msz, int totchars, TCHAR outbuf[], int buf
 	return outbuf;
 }
 
+void do_work()
+{
+	LCID lcid = 0;
+	TCHAR locname[LOCALE_NAME_MAX_LENGTH + 1] = {};
+	LANGID langid = 0;
+
+	/// Show console-codepage ///
+
+	UINT orig_icp = GetConsoleCP();
+	UINT orig_ocp = GetConsoleOutputCP();
+	my_tprintf(_T("Current GetConsoleCP()       = %d\n"), orig_icp);
+	my_tprintf(_T("Current GetConsoleOutputCP() = %d\n"), orig_ocp);
+
+	newline();
+
+	/// GetSystemDefaultUILanguage() ///
+
+	langid = GetSystemDefaultUILanguage();
+	my_tprintf(_T("GetSystemDefaultUILanguage() => 0x%04X   (%u decimal)\n"), langid, langid);
+	LL2_print_LANGID_Desctext(langid);
+
+	/// GetUserDefaultUILanguage() ///
+
+	langid = GetUserDefaultUILanguage();
+	my_tprintf(_T("GetUserDefaultUILanguage()   => 0x%04X   (%u decimal)\n"), langid, langid);
+	LL2_print_LANGID_Desctext(langid);
+
+	/// GetThreadUILanguage() ///
+
+	if (dlptr_GetThreadUILanguage)
+	{
+		langid = dlptr_GetThreadUILanguage();
+		my_tprintf(_T("GetThreadUILanguage()        => 0x%04X   (%u decimal)\n"), langid, langid);
+		LL2_print_LANGID_Desctext(langid);
+	}
+
+	newline();
+
+	/// Win32 System-locale ///
+
+	lcid = GetSystemDefaultLCID();
+	langid = LANGIDFROMLCID(lcid);
+	my_tprintf(_T("GetSystemDefaultLCID()  => %s   (%s)\n"),
+		HexstrLCID(lcid), LANGID_NumericDesc(langid));
+
+	if (dlptr_GetSystemDefaultLocaleName)
+	{
+		locname[0] = 0;
+		dlptr_GetSystemDefaultLocaleName(locname, LOCALE_NAME_MAX_LENGTH);
+		my_tprintf(_T("GetSystemDefaultLocaleName() =>  %s\n"), locname);
+		verify_locname_lcid_match(locname, lcid);
+	}
+
+	LL2_print_LANGID_Desctext(langid);
+	LL2_print_ansicodepage_and_oemcodepage(lcid, true);
+
+	newline();
+
+	/// Win32 User-locale ///
+
+	lcid = GetUserDefaultLCID();
+	langid = LANGIDFROMLCID(lcid);
+	my_tprintf(_T("GetUserDefaultLCID()    => %s   (%s)\n"),
+		HexstrLCID(lcid), LANGID_NumericDesc(langid));
+
+	if (dlptr_GetUserDefaultLocaleName)
+	{
+		locname[0] = 0;
+		dlptr_GetUserDefaultLocaleName(locname, LOCALE_NAME_MAX_LENGTH);
+		my_tprintf(_T("GetUserDefaultLocaleName()   =>  %s\n"), locname);
+		verify_locname_lcid_match(locname, lcid);
+	}
+
+	LL2_print_LANGID_Desctext(langid);
+	LL2_print_ansicodepage_and_oemcodepage(lcid);
+
+	newline();
+
+	/// Thread-locale (almost obsolete since Win7) /// 
+
+	lcid = GetThreadLocale();
+	langid = LANGIDFROMLCID(lcid);
+	my_tprintf(_T("GetThreadLocale()       => %s   (%s)\n"),
+		HexstrLCID(lcid), LANGID_NumericDesc(langid));
+
+	LL2_print_LANGID_Desctext(langid);
+	LL2_print_ansicodepage_and_oemcodepage(lcid);
+
+	newline();
+
+	/// GetKeyboardLayout() ///
+
+	HKL curhkl = GetKeyboardLayout(0); // 0 means current thread
+	langid = LOWORD(curhkl);
+	dlptr_LCIDToLocaleName(langid, locname, LOCALE_NAME_MAX_LENGTH, 0);
+
+	my_tprintf(_T("GetKeyboardLayout(0) = %s [%s]\n"),
+		HexstrLCID(langid), locname);
+
+	if (g_nSetClipboard > 0)
+	{
+		easySetClipboardText(g_wsSetClipboard, g_nSetClipboard);
+
+		my_tprintf(_T("  > Sent %d WCHARs to Clipboard as CF_UNICODETEXT.\n"), g_nSetClipboard);
+		my_tprintf(_T("  > %s\n"), g_wsSetClipboard);
+	}
+
+	newline();
+
+	/// Check/Probe what CRT locale() tells us. ///
+
+	const TCHAR* crtlocstr = _tsetlocale(LC_ALL, NULL); // query current
+	my_tprintf(_T("setlocale(LC_ALL, NULL) query returns: \n  %s\n"), crtlocstr);
+
+	_locale_t lcnow = _get_current_locale();
+
+	int lccoffs = detect_lc_codepage_offset();
+	if (lccoffs < 0)
+	{
+		my_tprintf(_T("[Unexpect] detect_lc_codepage_offset() fail!\n"));
+	}
+	else
+	{
+		int lc_codepage = *((int*)(lcnow->locinfo) + lccoffs);
+		my_tprintf(_T("  [probed] .lc_codepage = %d (offset %d-int)\n"), lc_codepage, lccoffs);
+	}
+
+	const _digged_mbcinfo* p_mbcinfo = (_digged_mbcinfo*)(lcnow->mbcinfo);
+	my_tprintf(_T("  [probed] .mb_codepage = %d\n"),
+		p_mbcinfo->mb_codepage);
+}
+
+void print_help()
+{
+	const TCHAR* helptext =
+		_T("Parameter help:\n")
+		_T("  uilangid:<uilangid>  Call SetThreadUILanguage(uilangid); on start. 0 is ok.\n")
+		_T("  thrdlcid:<thrlcid>   Call SetThreadLocale(thrlcid); on start.\n")
+		_T("  crtlocale:<locstr>   Call setlocale(LC_ALL, locstr); on start.\n")
+		_T("                       If <locstr> is '-', omit calling setlocale().\n")
+		_T("  crtmbcp:<mbcp>       Call _setmbcp(mbcp); on start.\n")
+		_T("  consolecp:<ccp>      Call SetConsoleCP(ccp); and SetConsoleOutputCP(ccp);.\n")
+		_T("  \n")
+		_T("  Trailing hex tokens constitute a WCHAR string, and are sent to Clipboard.\n")
+		_T("\n")
+		_T("Examples:\n")
+		_T("  DefaultLocales uilangid:0x0404 crtlocale:zh-TW consolecp:950\n")
+		_T("  DefaultLocales thrdlcid:0x0804 crtlocale:zh-CN consolecp:936\n")
+		_T("  DefaultLocales crtlocale:.65001 consolecp:65001\n")
+		_T("  DefaultLocales crtlocale:japanese_Japan\n")
+		_T("  DefaultLocales crtlocale:-\n")
+		_T("\n")
+		_T("  DefaultLocales 41 42 96FB\n")
+		_T("    -- This will send Unicode text \"AB電\" (3 WCHARs) to Clipboard.\n")
+		_T("\n")
+		_T("To pause before program quit, rename exe to have word \"pause\".\n")
+		;
+	my_tprintf(_T("%s"), helptext);
+}
 
 int _tmain(int argc, TCHAR *argv[])
 {
