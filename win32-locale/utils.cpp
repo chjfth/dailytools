@@ -273,8 +273,7 @@ void vaDbgString(const TCHAR* szfmt, ...)
 }
 
 
-static BOOL
-openclipboard_with_timeout(DWORD millisec, HWND hwnd)
+BOOL openclipboard_with_timeout(DWORD millisec, HWND hwnd)
 {
 	DWORD msec_start = GetTickCount();
 	do
@@ -285,42 +284,3 @@ openclipboard_with_timeout(DWORD millisec, HWND hwnd)
 	return FALSE;
 }
 
-BOOL
-easySetClipboardText(const TCHAR text[], int textchars, HWND hwnd)
-{
-	BOOL b = FALSE;
-	HANDLE hret = NULL;
-
-	if (textchars < 0)
-		textchars = lstrlen(text);
-
-	int textchars_ = textchars + 1;
-
-	HGLOBAL hmem = GlobalAlloc(GPTR, textchars_ * sizeof(TCHAR));
-	if (!hmem)
-		return FALSE;
-
-	TCHAR* pmem = (TCHAR*)GlobalLock(hmem);
-	lstrcpyn(pmem, text, textchars_);
-	GlobalUnlock(hmem);
-
-	if (!openclipboard_with_timeout(2000, hwnd)) {
-		goto FAIL_FREE_HMEM;
-	}
-
-	b = EmptyClipboard();
-	assert(b);
-
-	hret = SetClipboardData(sizeof(TCHAR) == 1 ? CF_TEXT : CF_UNICODETEXT, hmem);
-	if (!hret) {
-		goto FAIL_FREE_HMEM;
-	}
-
-	CloseClipboard();
-	return TRUE;
-
-FAIL_FREE_HMEM:
-	CloseClipboard();
-	GlobalFree(hmem);
-	return FALSE;
-}

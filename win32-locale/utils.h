@@ -84,4 +84,51 @@ int collect_hexrpw_from_argv(TCHAR** argv, TEle obuf[], int nebuf)
 	return i;
 }
 
-BOOL easySetClipboardText(const TCHAR Text[], int textchars = -1, HWND hwnd = 0);
+BOOL openclipboard_with_timeout(DWORD millisec, HWND hwnd);
+
+template <typename TCHAR>
+BOOL easySetClipboardText(const TCHAR text[], int textchars, HWND hwnd=NULL)
+{
+	BOOL b = FALSE;
+	HANDLE hret = NULL;
+
+	assert(textchars >= 0);
+
+	int textchars_ = textchars + 1;
+
+	int bufbytes  = textchars  * sizeof(TCHAR);
+	int bufbytes_ = textchars_ * sizeof(TCHAR);
+
+	HGLOBAL hmem = GlobalAlloc(GPTR, bufbytes_);
+	if (!hmem)
+		return FALSE;
+
+	TCHAR* pChars = (TCHAR*)GlobalLock(hmem);
+
+	memcpy(pChars, text, bufbytes);
+	pChars[textchars] = '\0';
+
+	GlobalUnlock(hmem);
+
+	if (!openclipboard_with_timeout(2000, hwnd)) {
+		goto FAIL_FREE_HMEM;
+	}
+
+	b = EmptyClipboard();
+	assert(b);
+
+	UINT clipboard_format = sizeof(TCHAR)==1 ? CF_TEXT : CF_UNICODETEXT;
+	hret = SetClipboardData(clipboard_format, hmem);
+	if (!hret) {
+		goto FAIL_FREE_HMEM;
+	}
+
+	CloseClipboard();
+	return TRUE;
+
+FAIL_FREE_HMEM:
+	CloseClipboard();
+	GlobalFree(hmem);
+	return FALSE;
+}
+

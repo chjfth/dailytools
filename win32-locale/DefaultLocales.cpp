@@ -6,7 +6,7 @@ This should help user discriminate the abstract and ubiquitous word "locale".
 #include "utils.h"
 #include <muiload.h>
 
-const TCHAR *g_szversion = _T("1.5.1");
+const TCHAR *g_szversion = _T("1.5.2");
 
 LCID g_set_thread_lcid = 0; // If not 0, will call SetThreadLocale() with this value.
 const TCHAR *g_set_crtlocale = _T("");
@@ -16,7 +16,10 @@ int g_consolecp = 0;
 bool g_pause_on_quit = false;
 
 WCHAR g_wsSetClipboard[100];
-int g_nSetClipboard = 0;
+int g_wnSetClipboard = 0;
+
+char g_asSetClipboard[100];
+int g_anSetClipboard = 0;
 
 void print_help();
 
@@ -311,11 +314,20 @@ int apply_startup_user_params(TCHAR *argv[])
 		}
 		else if(ishextoken(*argv))
 		{
-			// This marks the start of WCHAR stream params.
-			// I will send Unicode text by this stream to the Clipboard, so that we can see
+			// Un-recognized parameter encountered, so, 
+			// this marks the start of ANSI/WCHAR stream params.
+			// I will send ANSI or Unicode text by this stream to the Clipboard,
+			// so that we can see
 			// CF_LOCALE value in Clipboard is determined by GetKeyboardLayout().
 
-			g_nSetClipboard = collect_hexrpw_from_argv(argv, g_wsSetClipboard, ARRAYSIZE(g_wsSetClipboard));
+			if(_tcslen(*argv)>2)
+			{
+				g_wnSetClipboard = collect_hexrpw_from_argv(argv, g_wsSetClipboard, ARRAYSIZE(g_wsSetClipboard));
+			}
+			else
+			{
+				g_anSetClipboard = collect_hexrpw_from_argv(argv, g_asSetClipboard, ARRAYSIZE(g_asSetClipboard));
+			}
 			break;
 		}
 		else
@@ -447,12 +459,24 @@ void do_work()
 	my_tprintf(_T("GetKeyboardLayout(0) = %s [%s]\n"),
 		HexstrLCID(langid), locname);
 
-	if (g_nSetClipboard > 0)
+	if (g_wnSetClipboard > 0)
 	{
-		easySetClipboardText(g_wsSetClipboard, g_nSetClipboard);
+		easySetClipboardText(g_wsSetClipboard, g_wnSetClipboard);
 
-		my_tprintf(_T("  > Sent %d WCHARs to Clipboard as CF_UNICODETEXT.\n"), g_nSetClipboard);
+		my_tprintf(_T("  > Sent %d WCHARs to Clipboard as CF_UNICODETEXT.\n"), g_wnSetClipboard);
 		my_tprintf(_T("  > %s\n"), g_wsSetClipboard);
+	}
+	else if(g_anSetClipboard>0)
+	{
+		easySetClipboardText(g_asSetClipboard, g_anSetClipboard);
+
+		my_tprintf(_T("  > Sent %d chars to Clipboard as CF_TEXT.\n"), g_anSetClipboard);
+
+		// I can't just printf("%s") here, bcz _setmode(, _O_U8TEXT) allows only wprintf.
+		my_tprintf(_T("  > (HEX)"));
+		for (int i = 0; i < g_anSetClipboard; i++)
+			my_tprintf(_T(" %02X"), (unsigned char)g_asSetClipboard[i]);
+		my_tprintf(_T("\n"));		
 	}
 
 	newline();
@@ -500,8 +524,10 @@ void print_help()
 		_T("  DefaultLocales crtlocale:japanese_Japan\n")
 		_T("  DefaultLocales crtlocale:-\n")
 		_T("\n")
-		_T("  DefaultLocales 41 42 96FB\n")
-		_T("    -- This will send Unicode text \"AB電\" (3 WCHARs) to Clipboard.\n")
+		_T("  DefaultLocales 0041 0042 6625 98CE\n")
+		_T("    -- This will send Unicode text \"AB春风\" (4 WCHARs) to Clipboard.\n")
+		_T("  DefaultLocales 41 42 BE A6\n")
+		_T("    -- This will send 4 bytes of ANSI text to Clipboard. GBK:睛, Big5:齒\n")
 		_T("\n")
 		_T("To pause before program quit, rename exe to have word \"pause\".\n")
 		;
