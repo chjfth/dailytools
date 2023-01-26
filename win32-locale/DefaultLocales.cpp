@@ -407,7 +407,7 @@ void do_work()
 
 	if (dlptr_GetSystemDefaultLocaleName)
 	{
-		locname[0] = 0;
+		locname[0] = '\0';
 		dlptr_GetSystemDefaultLocaleName(locname, LOCALE_NAME_MAX_LENGTH);
 		my_tprintf(_T("GetSystemDefaultLocaleName() =>  %s\n"), locname);
 		verify_locname_lcid_match(locname, lcid);
@@ -427,7 +427,7 @@ void do_work()
 
 	if (dlptr_GetUserDefaultLocaleName)
 	{
-		locname[0] = 0;
+		locname[0] = '\0';
 		dlptr_GetUserDefaultLocaleName(locname, LOCALE_NAME_MAX_LENGTH);
 		my_tprintf(_T("GetUserDefaultLocaleName()   =>  %s\n"), locname);
 		verify_locname_lcid_match(locname, lcid);
@@ -454,7 +454,9 @@ void do_work()
 
 	HKL curhkl = GetKeyboardLayout(0); // 0 means current thread
 	langid = LOWORD(curhkl);
-	dlptr_LCIDToLocaleName(langid, locname, LOCALE_NAME_MAX_LENGTH, 0);
+	locname[0] = '\0';
+	if(dlptr_LCIDToLocaleName)
+		dlptr_LCIDToLocaleName(langid, locname, LOCALE_NAME_MAX_LENGTH, 0);
 
 	my_tprintf(_T("GetKeyboardLayout(0) = %s [%s]\n"),
 		HexstrLCID(langid), locname);
