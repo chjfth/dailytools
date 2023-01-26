@@ -50,13 +50,21 @@ void app_print_version(const TCHAR *argv0, const TCHAR *verstr)
 
 }
 
-const TCHAR *HexstrLCID(LCID lcid, bool detect_unspecified)
+const TCHAR *HexstrLCID(LCID lcid)
 {
 	static TCHAR s_szLCID[20];
 
-	if(detect_unspecified && Is_LCID_unspecified(lcid))
+	if (lcid == LOCALE_CUSTOM_UNSPECIFIED)
 	{
-		_sntprintf_s(s_szLCID, _TRUNCATE, _T("unspecified"));
+		_sntprintf_s(s_szLCID, _TRUNCATE, _T("customized "));
+	}
+	else if(lcid == LOCALE_CUSTOM_USER_DEFAULT)
+	{
+		_sntprintf_s(s_szLCID, _TRUNCATE, _T("customized*"));
+	}
+	else if(lcid == LOCALE_CUSTOM_UI_DEFAULT)
+	{
+		_sntprintf_s(s_szLCID, _TRUNCATE, _T("customized#"));                                      
 	}
 	else
 	{
@@ -251,9 +259,10 @@ int qsort_CompareString(void* context, const void* item1, const void* item2)
 	return cmpret - 2;
 }
 
-bool Is_LCID_unspecified(LCID lcid)
+bool Is_LCID_customized(LCID lcid)
 {
-	if (lcid==LOCALE_CUSTOM_UNSPECIFIED || lcid==LOCALE_CUSTOM_USER_DEFAULT)
+	if (lcid==LOCALE_CUSTOM_UNSPECIFIED || lcid==LOCALE_CUSTOM_USER_DEFAULT
+		|| lcid==LOCALE_CUSTOM_UI_DEFAULT)
 		return true;
 	else
 		return false;
