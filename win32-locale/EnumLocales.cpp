@@ -386,7 +386,7 @@ int _tmain(int argc, TCHAR *argv[])
 			{
 				prnseq++;
 				
-				my_tprintf(_T("[%d] %-10s ; %s ; %s\n"), prnseq,
+				my_tprintf(_T("[%d] %-12s ; %s ; %s\n"), prnseq,
 					lcp.lcstr,
 					HexstrLCID(lcp.lcid),
 					lcp.dispstr);
