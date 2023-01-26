@@ -50,13 +50,21 @@ void app_print_version(const TCHAR *argv0, const TCHAR *verstr)
 
 }
 
-const TCHAR *HexstrLCID(LCID lcid, bool detect_unspecified)
+const TCHAR *HexstrLCID(LCID lcid)
 {
 	static TCHAR s_szLCID[20];
 
-	if(detect_unspecified && Is_LCID_unspecified(lcid))
+	if (lcid == LOCALE_CUSTOM_UNSPECIFIED)
 	{
-		_sntprintf_s(s_szLCID, _TRUNCATE, _T("unspecified"));
+		_sntprintf_s(s_szLCID, _TRUNCATE, _T("customized "));
+	}
+	else if(lcid == LOCALE_CUSTOM_USER_DEFAULT)
+	{
+		_sntprintf_s(s_szLCID, _TRUNCATE, _T("customized*"));
+	}
+	else if(lcid == LOCALE_CUSTOM_UI_DEFAULT)
+	{
+		_sntprintf_s(s_szLCID, _TRUNCATE, _T("customized#"));                                      
 	}
 	else
 	{
@@ -251,9 +259,10 @@ int qsort_CompareString(void* context, const void* item1, const void* item2)
 	return cmpret - 2;
 }
 
-bool Is_LCID_unspecified(LCID lcid)
+bool Is_LCID_customized(LCID lcid)
 {
-	if (lcid==LOCALE_CUSTOM_UNSPECIFIED || lcid==LOCALE_CUSTOM_USER_DEFAULT)
+	if (lcid==LOCALE_CUSTOM_UNSPECIFIED || lcid==LOCALE_CUSTOM_USER_DEFAULT
+		|| lcid==LOCALE_CUSTOM_UI_DEFAULT)
 		return true;
 	else
 		return false;
@@ -273,8 +282,7 @@ void vaDbgString(const TCHAR* szfmt, ...)
 }
 
 
-static BOOL
-openclipboard_with_timeout(DWORD millisec, HWND hwnd)
+BOOL openclipboard_with_timeout(DWORD millisec, HWND hwnd)
 {
 	DWORD msec_start = GetTickCount();
 	do
@@ -285,42 +293,3 @@ openclipboard_with_timeout(DWORD millisec, HWND hwnd)
 	return FALSE;
 }
 
-BOOL
-easySetClipboardText(const TCHAR text[], int textchars, HWND hwnd)
-{
-	BOOL b = FALSE;
-	HANDLE hret = NULL;
-
-	if (textchars < 0)
-		textchars = lstrlen(text);
-
-	int textchars_ = textchars + 1;
-
-	HGLOBAL hmem = GlobalAlloc(GPTR, textchars_ * sizeof(TCHAR));
-	if (!hmem)
-		return FALSE;
-
-	TCHAR* pmem = (TCHAR*)GlobalLock(hmem);
-	lstrcpyn(pmem, text, textchars_);
-	GlobalUnlock(hmem);
-
-	if (!openclipboard_with_timeout(2000, hwnd)) {
-		goto FAIL_FREE_HMEM;
-	}
-
-	b = EmptyClipboard();
-	assert(b);
-
-	hret = SetClipboardData(sizeof(TCHAR) == 1 ? CF_TEXT : CF_UNICODETEXT, hmem);
-	if (!hret) {
-		goto FAIL_FREE_HMEM;
-	}
-
-	CloseClipboard();
-	return TRUE;
-
-FAIL_FREE_HMEM:
-	CloseClipboard();
-	GlobalFree(hmem);
-	return FALSE;
-}

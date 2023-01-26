@@ -19,7 +19,7 @@
 //    only has LangTag representation but not LCID-numeric representation.
 #endif
 
-bool Is_LCID_unspecified(LCID lcid);
+bool Is_LCID_customized(LCID lcid);
 
 const TCHAR *app_GetFilenamePart(const TCHAR *pPath);
 
@@ -34,7 +34,7 @@ inline void newline()
 	my_tprintf(_T("\n"));
 }
 
-const TCHAR *HexstrLCID(LCID lcid, bool detect_unspecified=false);
+const TCHAR *HexstrLCID(LCID lcid);
 
 const TCHAR *app_GetWindowsVersionStr3();
 
@@ -44,7 +44,8 @@ enum DepictLang_et
 	DepictLang_localized = 1, // current system's UI language
 	DepictLang_native = 2, // the language current LCID argument is referring to
 
-	DepictLang_SimuIntlcpl = 3, // produce the same list as intl.cpl user-locales list
+	DepictLang_SimuUsrlocs = 3, // produce the same list as intl.cpl user-locales list
+	DepictLang_SimuSyslocs = 4, // produce the same list as intl.cpl system-locales list
 };
 
 const TCHAR *Desctext_from_LANGID(LANGID lcid, DepictLang_et dlang=DepictLang_English);
@@ -84,4 +85,51 @@ int collect_hexrpw_from_argv(TCHAR** argv, TEle obuf[], int nebuf)
 	return i;
 }
 
-BOOL easySetClipboardText(const TCHAR Text[], int textchars = -1, HWND hwnd = 0);
+BOOL openclipboard_with_timeout(DWORD millisec, HWND hwnd);
+
+template <typename TCHAR>
+BOOL easySetClipboardText(const TCHAR text[], int textchars, HWND hwnd=NULL)
+{
+	BOOL b = FALSE;
+	HANDLE hret = NULL;
+
+	assert(textchars >= 0);
+
+	int textchars_ = textchars + 1;
+
+	int bufbytes  = textchars  * sizeof(TCHAR);
+	int bufbytes_ = textchars_ * sizeof(TCHAR);
+
+	HGLOBAL hmem = GlobalAlloc(GPTR, bufbytes_);
+	if (!hmem)
+		return FALSE;
+
+	TCHAR* pChars = (TCHAR*)GlobalLock(hmem);
+
+	memcpy(pChars, text, bufbytes);
+	pChars[textchars] = '\0';
+
+	GlobalUnlock(hmem);
+
+	if (!openclipboard_with_timeout(2000, hwnd)) {
+		goto FAIL_FREE_HMEM;
+	}
+
+	b = EmptyClipboard();
+	assert(b);
+
+	UINT clipboard_format = sizeof(TCHAR)==1 ? CF_TEXT : CF_UNICODETEXT;
+	hret = SetClipboardData(clipboard_format, hmem);
+	if (!hret) {
+		goto FAIL_FREE_HMEM;
+	}
+
+	CloseClipboard();
+	return TRUE;
+
+FAIL_FREE_HMEM:
+	CloseClipboard();
+	GlobalFree(hmem);
+	return FALSE;
+}
+
