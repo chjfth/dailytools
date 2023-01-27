@@ -44,8 +44,8 @@ enum DepictLang_et
 	DepictLang_localized = 1, // current system's UI language
 	DepictLang_native = 2, // the language current LCID argument is referring to
 
-	DepictLang_SimuUsrlocs = 3, // produce the same list as intl.cpl user-locales list
-	DepictLang_SimuSyslocs = 4, // produce the same list as intl.cpl system-locales list
+	DepictLang_SimuSyslocs = 3, // produce the same list as intl.cpl system-locales list
+	DepictLang_SimuUsrlocs = 4, // produce the same list as intl.cpl user-locales list
 };
 
 const TCHAR *Desctext_from_LANGID(LANGID lcid, DepictLang_et dlang=DepictLang_English);

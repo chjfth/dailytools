@@ -1,6 +1,6 @@
 ﻿#include "utils.h"
 
-const TCHAR *g_szversion = _T("1.3.2");
+const TCHAR *g_szversion = _T("1.3.3");
 
 struct EnumInfo_t
 {
@@ -259,8 +259,8 @@ DepictLang_et AskForDepictLang(bool is_simu_intlcpl)
 	if(is_simu_intlcpl)
 	{
 		max_num = 4;
-		my_tprintf(_T("[3]   User-locales from Control Panel. (LOCALE_SLOCALIZEDDISPLAYNAME) \n"));
-		my_tprintf(_T("[4] System-locales from Control Panel. (LOCALE_SLOCALIZEDDISPLAYNAME) \n"));
+		my_tprintf(_T("[3] System-locales from Control Panel. (LOCALE_SLOCALIZEDDISPLAYNAME) \n"));
+		my_tprintf(_T("[4]   User-locales from Control Panel. (LOCALE_SLOCALIZEDDISPLAYNAME) \n"));
 	}	
 
 	my_tprintf(_T("Select: "));
@@ -408,10 +408,10 @@ int _tmain(int argc, TCHAR *argv[])
 			{
 				my_tprintf(
 					_T("The above %d entries should match the user-locale list from intl.cpl, in the same order.\n")
-					_T("(%d custom locales and %d non-custom ones)\n")
+					_T("(%d system-locales and %d custom-locales)\n")
 					,
 					prnseq,
-					ncustom, prnseq-ncustom);
+					prnseq-ncustom, ncustom);
 
 				assert(prnseq==collect.Count);
 			}
