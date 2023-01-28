@@ -118,6 +118,40 @@ void see_LocaleDateFormat()
 	}	
 }
 
+void ZhihuPost_LocaleContentSamples()
+{
+	LCID lcid = GetThreadLocale();
+	TCHAR tbuf[200] = {};
+
+	LCIDToLocaleName(lcid, tbuf, ARRAYSIZE(tbuf), 0);
+	
+	my_tprintf(_T("\n"));
+	my_tprintf(_T("Querying LCID = 0x%04X (%s)\n"), lcid, tbuf);
+
+#define N2S(const_macro) const_macro, _T(#const_macro)
+	struct n2s_st
+	{	
+		int n;
+		const TCHAR* s;
+	} arn2s[] =
+	{
+		N2S(LOCALE_IDEFAULTANSICODEPAGE),
+		N2S(LOCALE_IDEFAULTCODEPAGE),
+		N2S(LOCALE_SINTLSYMBOL),
+		N2S(LOCALE_SCURRENCY),
+		N2S(LOCALE_SDAYNAME1),
+		N2S(LOCALE_SSHORTDATE),
+	};
+
+	const int count = ARRAYSIZE(arn2s);
+	for(int i=0; i<count; i++)
+	{
+		_tcscpy_s(tbuf, ARRAYSIZE(tbuf), _T("(unknown)"));
+		GetLocaleInfo(lcid, arn2s[i].n, tbuf, ARRAYSIZE(tbuf));
+		my_tprintf(_T("%s => %s\n"), arn2s[i].s, tbuf);
+	}
+}
+
 void custom_test()
 {
 	// Execute extra experiment test here.
@@ -131,6 +165,8 @@ void custom_test()
 	see_strftime();
 
 	see_LocaleDateFormat();
+
+	ZhihuPost_LocaleContentSamples();
 	
-#endif
+#endif	
 }
