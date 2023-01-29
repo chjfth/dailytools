@@ -375,19 +375,19 @@ void do_work()
 
 	newline();
 
-	/// GetSystemDefaultUILanguage() ///
+	/// #1 GetSystemDefaultUILanguage() ///
 
 	langid = GetSystemDefaultUILanguage();
 	my_tprintf(_T("GetSystemDefaultUILanguage() => 0x%04X   (%u decimal)\n"), langid, langid);
 	LL2_print_LANGID_Desctext(langid);
 
-	/// GetUserDefaultUILanguage() ///
+	/// #2 GetUserDefaultUILanguage() ///
 
 	langid = GetUserDefaultUILanguage();
 	my_tprintf(_T("GetUserDefaultUILanguage()   => 0x%04X   (%u decimal)\n"), langid, langid);
 	LL2_print_LANGID_Desctext(langid);
 
-	/// GetThreadUILanguage() ///
+	/// #3 GetThreadUILanguage() ///
 
 	if (dlptr_GetThreadUILanguage)
 	{
@@ -398,7 +398,7 @@ void do_work()
 
 	newline();
 
-	/// Win32 System-locale ///
+	/// #4 Win32 System-locale ///
 
 	lcid = GetSystemDefaultLCID();
 	langid = LANGIDFROMLCID(lcid);
@@ -418,7 +418,7 @@ void do_work()
 
 	newline();
 
-	/// Win32 User-locale ///
+	/// #5 Win32 User-locale ///
 
 	lcid = GetUserDefaultLCID();
 	langid = LANGIDFROMLCID(lcid);
@@ -438,7 +438,7 @@ void do_work()
 
 	newline();
 
-	/// Thread-locale (almost obsolete since Win7) /// 
+	/// #6 Thread-locale (almost obsolete since Win7) /// 
 
 	lcid = GetThreadLocale();
 	langid = LANGIDFROMLCID(lcid);
@@ -450,7 +450,7 @@ void do_work()
 
 	newline();
 
-	/// GetKeyboardLayout() ///
+	/// #7 GetKeyboardLayout() ///
 
 	HKL curhkl = GetKeyboardLayout(0); // 0 means current thread
 	langid = LOWORD(curhkl);
@@ -483,7 +483,7 @@ void do_work()
 
 	newline();
 
-	/// Check/Probe what CRT locale() tells us. ///
+	/// #8 Check/Probe what CRT locale() tells us. ///
 
 	const TCHAR* crtlocstr = _tsetlocale(LC_ALL, NULL); // query current
 	my_tprintf(_T("setlocale(LC_ALL, NULL) query returns: \n  %s\n"), crtlocstr);
