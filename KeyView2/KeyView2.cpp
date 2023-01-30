@@ -450,7 +450,7 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	PAINTSTRUCT  ps ;
 	TCHAR        keydes_s1[80], keydes_s2[80];
 	TEXTMETRIC   tm ;
-	TCHAR szTitle[128], szFontface[32];
+	TCHAR szTitle[200], szFontface[32];
 	TCHAR szKbLayoutName[KL_NAMELENGTH];
 
 	switch (message)
