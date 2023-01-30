@@ -6,7 +6,7 @@ This should help user discriminate the abstract and ubiquitous word "locale".
 #include "utils.h"
 #include <muiload.h>
 
-const TCHAR *g_szversion = _T("1.5.3");
+const TCHAR *g_szversion = _T("1.5.4");
 
 LCID g_set_thread_lcid = 0; // If not 0, will call SetThreadLocale() with this value.
 const TCHAR *g_set_crtlocale = _T("");
@@ -182,7 +182,7 @@ static const TCHAR *LANGID_NumericDesc(LANGID langid)
 	static TCHAR s_szDesc[40];
 	if(Is_LCID_customized(langid))
 	{
-		_sntprintf_s(s_szDesc, _TRUNCATE, _T("customized, no LCID value."));
+		_sntprintf_s(s_szDesc, _TRUNCATE, _T("customized, no LCID value"));
 	}
 	else
 	{
