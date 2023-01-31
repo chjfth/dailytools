@@ -1,50 +1,50 @@
-#define UNICODE
-#define _UNICODE
-	// We are to use Unicode variant of FindFirstFile, FindNextFile etc.
-	/* And note: Since we use WriteConsoleW to character output, the 
-	 output cannot be redirected to a file -- that's the decision of
-	 Microsoft. */
-
+#include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include <tchar.h>
 #include <windows.h>
-//#include <wchar.h>
-
-#define GetEleQuan_i(array) ((int)(sizeof(array)/sizeof(array[0])))
 
 void 
-Wprintf(const WCHAR *szfmt, ...)
+my_tprintf(const TCHAR *szfmt, ...)
 {
-	DWORD nWr;
-	WCHAR wbuf[2000];
+	DWORD nWr = 0;
+	TCHAR tbuf[2000];
 	va_list args;
 	va_start(args, szfmt);
-	_vsnwprintf(wbuf, GetEleQuan_i(wbuf)-1, szfmt, args);
-	WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), 
-		wbuf, wcslen(wbuf), &nWr, NULL);
+
+	_vsntprintf_s(tbuf, ARRAYSIZE(tbuf), _TRUNCATE, szfmt, args);
+
+	WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), 
+		tbuf, (DWORD)_tcslen(tbuf), &nWr, NULL);
+
 	va_end(args);
 }
 
-int wmain(int argc, WCHAR *argv[])
+int _tmain(int argc, TCHAR *argv[])
 {
 	if (argc != 2)
 	{
-		printf("usage: enum_indir <directory_name>\n");
+		my_tprintf(_T("usage: enum_indir <directory_name>\n"));
 		return 1;
 	}
 
 	WIN32_FIND_DATA finddata = {0};
-	WCHAR szFindPattern[MAX_PATH+2] = {0};
-	wcsncpy(szFindPattern, argv[1], GetEleQuan_i(szFindPattern)-3);
-	int tlen = wcslen(szFindPattern);
-	if(szFindPattern[tlen-1]!=L'\\')
-		szFindPattern[tlen++] = L'\\';
-	szFindPattern[tlen++] = L'*';
+	TCHAR szFindPattern[MAX_PATH+2] = {0};
 
-	HANDLE hFind = FindFirstFileW(szFindPattern, &finddata);
+	_tcsncpy_s(szFindPattern, argv[1], ARRAYSIZE(szFindPattern)-3);
+
+	int tlen = (int)_tcslen(szFindPattern);
+
+	if(szFindPattern[tlen-1]!='\\')
+		szFindPattern[tlen++] = '\\';
+
+	szFindPattern[tlen++] = L'*';
+	szFindPattern[tlen] = '\0';
+
+	HANDLE hFind = FindFirstFile(szFindPattern, &finddata);
 	if(hFind==INVALID_HANDLE_VALUE)
 	{
-		Wprintf(L"FindFirstFile(\"%s\") failed, WinErr=%d.\n",
+		my_tprintf(_T("FindFirstFile(\"%s\") failed, WinErr=%d.\n"),
 			szFindPattern, GetLastError());
 		return 1;
 	}
@@ -54,23 +54,30 @@ int wmain(int argc, WCHAR *argv[])
 	{
 		// Show files/dirs found.
 
-		Wprintf(L"[%d]: %d/%d chars in filename/shortname.\n", i+1, 
-			wcslen(finddata.cFileName), wcslen(finddata.cAlternateFileName));
+		my_tprintf(_T("[%d]: %d/%d chars in filename/shortname.\n"), i+1, 
+			(int)_tcslen(finddata.cFileName), 
+			(int)_tcslen(finddata.cAlternateFileName));
 	
-		Wprintf(L"Normal name: %s\n", finddata.cFileName);
-		Wprintf(L"        Hex: ");
-		for(j=0; finddata.cFileName[j]; j++)
-			Wprintf(L"%02X ", finddata.cFileName[j]);
-
-		Wprintf(L"\n");
-		Wprintf(L" Short name: %s\n", finddata.cAlternateFileName);
-		Wprintf(L"        Hex: ");
-		for(j=0; finddata.cAlternateFileName[j]; j++)
-			Wprintf(L"%02X ", finddata.cAlternateFileName[j]);
-
-		Wprintf(L"\n\n");
+		my_tprintf(_T("Normal name: %s\n"), finddata.cFileName);
 		
-		if(!FindNextFileW(hFind, &finddata))
+		my_tprintf(_T("        Hex: "));
+		for(j=0; finddata.cFileName[j]; j++)
+			my_tprintf(_T("%02X "), (unsigned char)finddata.cFileName[j]);
+		my_tprintf(_T("\n"));
+
+		if(finddata.cAlternateFileName[0])
+		{
+			my_tprintf(_T(" Short name: %s\n"), finddata.cAlternateFileName);
+
+			my_tprintf(_T("        Hex: "));
+			for(j=0; finddata.cAlternateFileName[j]; j++)
+				my_tprintf(_T("%02X "), (unsigned char)finddata.cAlternateFileName[j]);
+			my_tprintf(_T("\n"));
+		}
+		
+		my_tprintf(_T("\n"));
+		
+		if(!FindNextFile(hFind, &finddata))
 			break;
 
 	}

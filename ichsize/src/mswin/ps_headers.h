@@ -20,6 +20,7 @@ typedef HANDLE FHANDLE; // file-handle type
 
 typedef __int64 int64;
 
+#define FMT_i64d "%I64d"
 
 #ifdef __cplusplus
 } // extern"C"
