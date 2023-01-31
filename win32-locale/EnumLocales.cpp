@@ -1,6 +1,6 @@
 ﻿#include "utils.h"
 
-const TCHAR *g_szversion = _T("1.3.1");
+const TCHAR *g_szversion = _T("1.3.3");
 
 struct EnumInfo_t
 {
@@ -96,7 +96,7 @@ BOOL CALLBACK EnumLocalesProcEx(LPWSTR lpLocaleString, DWORD dwFlags, LPARAM lPa
 	my_tprintf(_T("[%d] %s ; %s @ %s ; LCID=%s"), 
 		count, lpLocaleString, 
 		szLang, szCountry, 
-		HexstrLCID(lcid, true));
+		HexstrLCID(lcid));
 
 	my_tprintf(_T(" ; ANSI/OEM[%s/%s]"), szACP, szOCP);
 
@@ -247,17 +247,28 @@ DWORD AskUserForFlags()
 	return dwFlag;
 }
 
-DepictLang_et AskForDepictLang()
+DepictLang_et AskForDepictLang(bool is_simu_intlcpl)
 {
+	int max_num = 2;
+	
 	my_tprintf(_T("Select in which language to show the locale-names:\n"));
 	my_tprintf(_T("[0] Use English.\n"));
 	my_tprintf(_T("[1] Use your Windows UI language.\n"));
 	my_tprintf(_T("[2] Use context, the language that current locale entry is referring to.\n"));
-	my_tprintf(_T("[3] Simulate that of Control Panel. (LOCALE_SLOCALIZEDDISPLAYNAME) \n"));
+
+	if(is_simu_intlcpl)
+	{
+		max_num = 4;
+		my_tprintf(_T("[3] System-locales from Control Panel. (LOCALE_SLOCALIZEDDISPLAYNAME) \n"));
+		my_tprintf(_T("[4]   User-locales from Control Panel. (LOCALE_SLOCALIZEDDISPLAYNAME) \n"));
+	}	
+
 	my_tprintf(_T("Select: "));
 	int key = my_getch_noblock();
+
 	int num = key - '0';
-	if(num>=0 && num<=3)
+
+	if(num>=0 && num<=max_num)
 		; // valid input
 	else
 		num = 0;
@@ -312,11 +323,11 @@ int _tmain(int argc, TCHAR *argv[])
 	exi.calling_dwFlag = dwFlag;
 	
 	if (argc <= 2)
-		exi.uselang = AskForDepictLang();
+		exi.uselang = AskForDepictLang(dwFlag&LOCALE_SPECIFICDATA ? true : false);
 	else
 		exi.uselang = (DepictLang_et)_ttoi(argv[2]);
 
-	if (exi.uselang != DepictLang_SimuIntlcpl)
+	if (exi.uselang!=DepictLang_SimuUsrlocs && exi.uselang!= DepictLang_SimuSyslocs)
 	{
 		BOOL succ = EnumSystemLocalesEx(EnumLocalesProcEx, dwFlag, (LPARAM)&exi, 0);
 
@@ -357,14 +368,29 @@ int _tmain(int argc, TCHAR *argv[])
 			qsort_s(collect.arPlate, collect.Count, sizeof(LocalePlate_st), LocalePlate_Compare, nullptr);
 		}
 
-		int i;
+		int i, ncustom = 0, prnseq = 0;
 		for(i=0; i<collect.Count; i++)
 		{
 			LocalePlate_st lcp = collect.arPlate[i];
-			my_tprintf(_T("[%d] %-10s ; %s ; %s\n"), i+1, 
-				lcp.lcstr,
-				HexstrLCID(lcp.lcid, true),
-				lcp.dispstr);
+			bool is_print = true;
+			
+			if(Is_LCID_customized(lcp.lcid))
+			{
+				ncustom++;
+
+				if(exi.uselang!=DepictLang_SimuUsrlocs)
+					is_print = false;
+			}
+
+			if(is_print)
+			{
+				prnseq++;
+				
+				my_tprintf(_T("[%d] %-12s ; %s ; %s\n"), prnseq,
+					lcp.lcstr,
+					HexstrLCID(lcp.lcid),
+					lcp.dispstr);
+			}
 		}
 		
 		// Release memory by `collect`.
@@ -378,8 +404,26 @@ int _tmain(int argc, TCHAR *argv[])
 
 		if(succ)
 		{
-			my_tprintf(_T("The above %d user-locale display-names should match those from intl.cpl, in the same order ."), 
-				collect.Count);
+			if(exi.uselang==DepictLang_SimuUsrlocs)
+			{
+				my_tprintf(
+					_T("The above %d entries should match the user-locale list from intl.cpl, in the same order.\n")
+					_T("(%d system-locales and %d custom-locales)\n")
+					,
+					prnseq,
+					prnseq-ncustom, ncustom);
+
+				assert(prnseq==collect.Count);
+			}
+			else
+			{
+				my_tprintf(
+					_T("The above %d entries should match the system-locale list from intl.cpl, in the same order.\n")
+					,
+					prnseq);
+
+				assert(prnseq+ncustom==collect.Count);
+			}
 		}
 		else
 		{

@@ -50,13 +50,21 @@ void app_print_version(const TCHAR *argv0, const TCHAR *verstr)
 
 }
 
-const TCHAR *HexstrLCID(LCID lcid, bool detect_unspecified)
+const TCHAR *HexstrLCID(LCID lcid)
 {
 	static TCHAR s_szLCID[20];
 
-	if(detect_unspecified && Is_LCID_unspecified(lcid))
+	if (lcid == LOCALE_CUSTOM_UNSPECIFIED)
 	{
-		_sntprintf_s(s_szLCID, _TRUNCATE, _T("unspecified"));
+		_sntprintf_s(s_szLCID, _TRUNCATE, _T("customized "));
+	}
+	else if(lcid == LOCALE_CUSTOM_USER_DEFAULT)
+	{
+		_sntprintf_s(s_szLCID, _TRUNCATE, _T("customized*"));
+	}
+	else if(lcid == LOCALE_CUSTOM_UI_DEFAULT)
+	{
+		_sntprintf_s(s_szLCID, _TRUNCATE, _T("customized#"));                                      
 	}
 	else
 	{
@@ -223,6 +231,24 @@ bool ishexdigit(TCHAR c)
 		return false;
 }
 
+bool ishextoken(const TCHAR* psz)
+{
+	// psz needs to be sth like "41", "0041", "96FB" etc
+
+	int slen = (int)_tcslen(psz);
+	if (slen != 2 && slen != 4)
+		return false;
+
+	for (int i = 0; i < slen; i++)
+	{
+		if (!ishexdigit(psz[i]))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
 int qsort_CompareString(void* context, const void* item1, const void* item2)
 {
 	const TCHAR* text1 = *(const TCHAR**)item1;
@@ -233,9 +259,10 @@ int qsort_CompareString(void* context, const void* item1, const void* item2)
 	return cmpret - 2;
 }
 
-bool Is_LCID_unspecified(LCID lcid)
+bool Is_LCID_customized(LCID lcid)
 {
-	if (lcid==LOCALE_CUSTOM_UNSPECIFIED || lcid==LOCALE_CUSTOM_USER_DEFAULT)
+	if (lcid==LOCALE_CUSTOM_UNSPECIFIED || lcid==LOCALE_CUSTOM_USER_DEFAULT
+		|| lcid==LOCALE_CUSTOM_UI_DEFAULT)
 		return true;
 	else
 		return false;
@@ -253,3 +280,16 @@ void vaDbgString(const TCHAR* szfmt, ...)
 
 	va_end(args);
 }
+
+
+BOOL openclipboard_with_timeout(DWORD millisec, HWND hwnd)
+{
+	DWORD msec_start = GetTickCount();
+	do
+	{
+		if (OpenClipboard(hwnd))
+			return TRUE;
+	} while (GetTickCount() - msec_start < millisec);
+	return FALSE;
+}
+

@@ -331,23 +331,6 @@ HANDLE CreateFile_stdio(const TCHAR *szfn)
 	return fh;
 }
 
-static bool is_hextoken(const TCHAR *psz)
-{
-	// psz needs to be sth like "41", "0041", "96FB" etc
-	
-	int slen = (int)_tcslen(psz);
-	if (slen != 2 && slen != 4) 
-		return false;
-	
-	for(int i=0; i<slen; i++)
-	{
-		if (!ishexdigit(psz[i]))
-		{
-			return false;
-		}
-	}
-	return true;
-}
 
 void print_help()
 {
@@ -498,7 +481,7 @@ int apply_startup_user_params(TCHAR *argv[])
 		}
 		else
 		{
-			if(is_hextoken(*argv))
+			if(ishextoken(*argv))
 			{
 				// OK remaining are all user hex
 				break;
@@ -617,7 +600,7 @@ void print_user_dump(TCHAR *argv[])
 			if(argv[i]==NULL)
 				break;
 
-			if(!is_hextoken(argv[i]))
+			if(!ishextoken(argv[i]))
 			{
 				my_tprintf(_T("[ERROR] The parameter \"%s\" is not a valid hex-token.\n"), argv[i]);
 				exit(1);
@@ -666,7 +649,7 @@ void print_user_dump(TCHAR *argv[])
 			if(argv[i]==NULL)
 				break;
 
-			if (!is_hextoken(argv[i]))
+			if (!ishextoken(argv[i]))
 			{
 				my_tprintf(_T("[ERROR] The parameter \"%s\" is not a valid hex-token.\n"), argv[i]);
 				exit(1);
