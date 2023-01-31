@@ -64,7 +64,7 @@ BEGIN
     BEGIN
         MENUITEM "&Copy to clipboard",          IDM_COPY
         MENUITEM SEPARATOR
-        MENUITEM "Increase buffer lines",       IDM_SET_BUFFER_LINES
+        MENUITEM "Increase buffer lines, change font size",       IDM_SET_BUFFER_LINES
         MENUITEM "Clea&r",                      IDM_CLEAR
     END
 END

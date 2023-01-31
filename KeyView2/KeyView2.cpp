@@ -56,6 +56,9 @@ int g_max_store_lines = 5000;
 const int g_max_store_lines_max = 99999;
 	// can change it to 99 for testing, you'll see display Seq rewind to 0
 
+int g_font_px = 0; // font-point, 12 is 12px(not pt), 0 means WinAPI default.
+int g_current_fontheight_px = 0;
+
 int g_keydes_all_bufchars = 0; // assign at program start 
 TCHAR *g_keydes_for_clipboard = NULL; // assign to a dynamic array
 
@@ -79,6 +82,17 @@ void process_cmd_options(int argc, TCHAR *argv[])
 			if(pnext)
 			{
 				g_max_store_lines = _tcstoul(pnext, nullptr, 0);
+				argv++;
+			}
+		}
+		else if(_tcscmp(pcur, _T("-f"))==0)
+		{
+			if(pnext)
+			{
+				g_font_px = (int)_tcstoi64(pnext, nullptr, 0);
+				// -- Allow negative value. trick via CreateFont():
+				//    If user pass in positive value, it will be px.
+				//    If user pass in negative value, it will become pt.
 				argv++;
 			}
 		}
@@ -372,16 +386,25 @@ int Do_WM_COMMAND(HWND hwnd, WPARAM wParam, LPARAM lParam)
 		//GetProcessImageFileName(GetCurrentProcess(), exename, ARRAYSIZE(exename)-1);
 			// This returns something like "\Device\HarddiskVolume9\w\personal\chj\...\KeyView2A.exe"
 
-		TCHAR tbuf[200]={0};
+		const TCHAR *exename = get_exename();
+
+		TCHAR tbuf[400]={0};
 		StringCchPrintf(tbuf, ARRAYSIZE(tbuf)-1
 			, 
 			TEXT("Current buffer lines is %d. It can be changed by using command line parameter (max %d).\n")
 			TEXT("For example:\n")
 			TEXT("\n")
 			TEXT("  %s -b 9999\n")
+			TEXT("\n")
+			TEXT("Current font height is %d px. To change font size to 32pt, use parameter:\n")
+			TEXT("\n")
+			TEXT(" %s -f 32\n")
 			, 
 			g_max_store_lines, g_max_store_lines_max,
-			get_exename());
+			exename,
+			g_current_fontheight_px,
+			exename
+			);
 		MessageBox(hwnd, tbuf, TEXT("Info"), MB_ICONINFORMATION);
 	}
 	else if(idcmd==IDM_COPY) 
@@ -496,12 +519,14 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// Get character size for fixed-pitch font
 
 		hdc = GetDC (hwnd) ;
-		SelectObject (hdc, CreateFont (0, 0, 0, 0, 0, 0, 0, 0,
+		SelectObject (hdc, CreateFont (g_font_px, 0, 0, 0, 0, 0, 0, 0,
 			s_HKL_charset==CHARSET_UNINITIALIZED ? DEFAULT_CHARSET : s_HKL_charset, 
 			0, 0, 0, FIXED_PITCH, NULL)) ; 
 		GetTextMetrics (hdc, &tm) ;
 		cxChar = tm.tmAveCharWidth ;
 		cyChar = tm.tmHeight ;
+
+		g_current_fontheight_px = cyChar;
 
 		GetTextFace(hdc, ARRAYSIZE(szFontface), szFontface);
 
@@ -619,7 +644,7 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_PAINT:
 		hdc = BeginPaint (hwnd, &ps) ;
 
-		SelectObject (hdc, CreateFont (0, 0, 0, 0, 0, 0, 0, 0,
+		SelectObject (hdc, CreateFont (g_font_px, 0, 0, 0, 0, 0, 0, 0,
 			s_HKL_charset==CHARSET_UNINITIALIZED ? DEFAULT_CHARSET : s_HKL_charset,
 			0, 0, 0, FIXED_PITCH, NULL)) ; 
 
