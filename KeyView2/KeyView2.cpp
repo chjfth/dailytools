@@ -251,6 +251,7 @@ int WINAPI _tWinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	return 0 ;
 }
 
+
 const TCHAR * DWORDto0x4x(DWORD n)
 {
 	static TCHAR s_buf[12];
@@ -473,7 +474,8 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	PAINTSTRUCT  ps ;
 	TCHAR        keydes_s1[80], keydes_s2[80];
 	TEXTMETRIC   tm ;
-	TCHAR szTitle[200], szFontface[32];
+	HFONT        hFont = NULL;
+	TCHAR szTitle[200], szFontface[LF_FULLFACESIZE+1]={};
 	TCHAR szKbLayoutName[KL_NAMELENGTH];
 
 	switch (message)
@@ -519,16 +521,18 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// Get character size for fixed-pitch font
 
 		hdc = GetDC (hwnd) ;
-		SelectObject (hdc, CreateFont (g_font_px, 0, 0, 0, 0, 0, 0, 0,
+		hFont = CreateFont (g_font_px, 0, 0, 0, 0, 0, 0, 0,
 			s_HKL_charset==CHARSET_UNINITIALIZED ? DEFAULT_CHARSET : s_HKL_charset, 
-			0, 0, 0, FIXED_PITCH, NULL)) ; 
+			0, 0, 0, FIXED_PITCH, NULL);
+		
+		SelectObject (hdc, hFont) ;
 		GetTextMetrics (hdc, &tm) ;
+		GetTextFace(hdc, ARRAYSIZE(szFontface), szFontface);
+
 		cxChar = tm.tmAveCharWidth ;
 		cyChar = tm.tmHeight ;
 
 		g_current_fontheight_px = cyChar;
-
-		GetTextFace(hdc, ARRAYSIZE(szFontface), szFontface);
 
 		if(tm.tmCharSet!=s_HKL_charset)
 		{
