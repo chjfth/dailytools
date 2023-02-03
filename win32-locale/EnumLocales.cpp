@@ -153,13 +153,13 @@ BOOL CALLBACK EnumLocalesProc_Collect(LPWSTR lpLocaleString, DWORD dwFlags, LPAR
 
 	if(collect.idx < collect.Count)
 	{
-		int slen = _tcslen(lpLocaleString);
+		int slen = (int)_tcslen(lpLocaleString);
 		TCHAR* lcstr = new TCHAR[slen+1];
 		_tcscpy_s(lcstr, slen+1, lpLocaleString);
 
 		TCHAR szLcnameDisplay[80] = {};
 		GetLocaleInfoEx(lpLocaleString, LOCALE_SLOCALIZEDDISPLAYNAME, szLcnameDisplay, ARRAYSIZE(szLcnameDisplay));
-		slen = _tcslen(szLcnameDisplay);
+		slen = (int)_tcslen(szLcnameDisplay);
 
 		TCHAR* dispstr = new TCHAR[slen + 1];
 		_tcscpy_s(dispstr, slen + 1, szLcnameDisplay);
@@ -179,8 +179,8 @@ int LocalePlate_Compare(void* context, const void* item1, const void* item2)
 	LocalePlate_st* p2 = (LocalePlate_st*)item2;
 
 	int cmpret = CompareString(LOCALE_USER_DEFAULT, 0, 
-		p1->dispstr, wcslen(p1->dispstr), 
-		p2->dispstr, wcslen(p2->dispstr));
+		p1->dispstr, (int)_tcslen(p1->dispstr), 
+		p2->dispstr, (int)_tcslen(p2->dispstr));
 	return cmpret - 2;
 }
 
