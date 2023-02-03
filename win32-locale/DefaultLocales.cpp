@@ -511,7 +511,7 @@ void print_help()
 	const TCHAR* helptext =
 		_T("Parameter help:\n")
 		_T("  uilangid:<uilangid>  Call SetThreadUILanguage(uilangid); on start. 0 is ok.\n")
-		_T("  thrdlcid:<thrlcid>   Call SetThreadLocale(thrlcid); on start.\n")
+		_T("  thrdlcid:<thrdlcid>   Call SetThreadLocale(thrdlcid); on start.\n")
 		_T("  crtlocale:<locstr>   Call setlocale(LC_ALL, locstr); on start.\n")
 		_T("                       If <locstr> is '-', omit calling setlocale().\n")
 		_T("  crtmbcp:<mbcp>       Call _setmbcp(mbcp); on start.\n")
