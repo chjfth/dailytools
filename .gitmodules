@@ -1,3 +1,6 @@
 [submodule "__VSPG"]
 	path = __VSPG
 	url = ../VSPG
+[submodule "__WinConst"]
+	path = __WinConst
+	url = ../WinConst
