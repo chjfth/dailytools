@@ -82,6 +82,8 @@ LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 		ki.scanCode, ki.scanCode
 		);
 
+	PrnTs(_T("     flags: %s"), ITCSv(ki.flags, itc::LLKHF_xxx));
+
 	if(g_isDelayInHook)
 	{
 		if(ki.vkCode>='1' && ki.vkCode<='9')
