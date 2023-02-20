@@ -72,7 +72,7 @@ bool g_isDelayInHook = false;
 LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
 	KBDLLHOOKSTRUCT &ki = *(KBDLLHOOKSTRUCT*)lParam;
-	UINT wm_xxx = wParam;
+	UINT wm_xxx = (UINT)wParam;
 
 	PrnTs(_T("KBD: <%d> %-12s, %-16s, Scancode=0x%02X(%d)")
 		,
@@ -89,6 +89,10 @@ LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 			int msec = 500 * (ki.vkCode-'1'+1);
 			PrnTs(_T("Sleep %dms"), msec);
 			Sleep(msec);
+		}
+		else if(ki.vkCode=='0')
+		{
+			PrnTs(_T("!!! Got '0', not calling CallNextHookEx().\n"));
 			return 0;
 		}
 	}
@@ -122,6 +126,8 @@ int _tmain(int argc, TCHAR* argv[])
 
 			_tprintf(_T("Pressing key '1'~'9' would delay hookproc return.\n"));
 			_tprintf(_T("So that we can observe when our hookproc is banned by Windows.\n"));
+			_tprintf(_T("And, pressing key '0' to deliberately NOT calling CallNextHookEx().\n"));
+			_tprintf(_T("\n"));
 		}
 	}
 
