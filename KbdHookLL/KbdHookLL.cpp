@@ -1,8 +1,6 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <time.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <tchar.h>
 #include <locale.h>
 
@@ -69,27 +67,30 @@ void PrnTs(const TCHAR *fmt, ...)
 
 HHOOK g_hhook;
 
+bool g_isDelayInHook = false;
+
 LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
 	KBDLLHOOKSTRUCT &ki = *(KBDLLHOOKSTRUCT*)lParam;
 	UINT wm_xxx = wParam;
 
-//	OutputDebugString( ITCSv(ki.vkCode, itc::VK_xxx) );
-
-	PrnTs(_T("KBD: <%d> %-12s VKcode=%-18s, Scancode=0x%02X(%d)")
+	PrnTs(_T("KBD: <%d> %-12s, %-16s, Scancode=0x%02X(%d)")
 		,
 		nCode,
 		ITCS(wm_xxx, itc::WM_xxx),  // %-12s
-		ITCSv(ki.vkCode, itc::VK_xxx), // %-18s
+		ITCSv(ki.vkCode, itc::VK_xxx), // %-16s
 		ki.scanCode, ki.scanCode
 		);
 
-	if(ki.vkCode>='1' && ki.vkCode<='9')
+	if(g_isDelayInHook)
 	{
-		int msec = 500 * (ki.vkCode-'1'+1);
-		PrnTs(_T("Sleep %dms"), msec);
-//		Sleep(msec);
-		return 0;
+		if(ki.vkCode>='1' && ki.vkCode<='9')
+		{
+			int msec = 500 * (ki.vkCode-'1'+1);
+			PrnTs(_T("Sleep %dms"), msec);
+			Sleep(msec);
+			return 0;
+		}
 	}
 
 	LRESULT lret = CallNextHookEx(g_hhook, nCode, wParam, lParam);
@@ -108,6 +109,21 @@ void do_work()
 int _tmain(int argc, TCHAR* argv[])
 {
 	setlocale(LC_ALL, "");
+
+	if(argc==1)
+	{
+		_tprintf(_T("Hint: Pass param 'D', so that pressing key '1'~'9' would delay hookproc return.\n"));
+	}
+	else
+	{
+		if(argv[1][0]=='D')
+		{
+			g_isDelayInHook = true;
+
+			_tprintf(_T("Pressing key '1'~'9' would delay hookproc return.\n"));
+			_tprintf(_T("So that we can observe when our hookproc is banned by Windows.\n"));
+		}
+	}
 
 	PrnTs(_T("Calling SetWindowsHookEx(WH_KEYBOARD_LL)..."));
 
