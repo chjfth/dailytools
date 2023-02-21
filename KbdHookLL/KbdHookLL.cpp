@@ -68,6 +68,7 @@ void PrnTs(const TCHAR *fmt, ...)
 HHOOK g_hhook;
 
 bool g_isDelayInHook = false;
+int g_DelayConstantMs = 0;
 
 LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
@@ -84,12 +85,12 @@ LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 
 	PrnTs(_T("     flags: %s"), ITCSv(ki.flags, itc::LLKHF_xxx));
 
-	if(g_isDelayInHook)
+	if(g_isDelayInHook && g_DelayConstantMs==0)
 	{
 		if(ki.vkCode>='1' && ki.vkCode<='9')
 		{
 			int msec = 500 * (ki.vkCode-'1'+1);
-			PrnTs(_T("Sleep %dms"), msec);
+			PrnTs(_T("Delay %dms"), msec);
 			Sleep(msec);
 		}
 		else if(ki.vkCode=='0')
@@ -97,6 +98,11 @@ LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 			PrnTs(_T("!!! Got '0', not calling CallNextHookEx().\n"));
 			return 0;
 		}
+	}
+	else if(g_isDelayInHook && g_DelayConstantMs>0)
+	{
+		PrnTs(_T("Delay %dms"), g_DelayConstantMs);
+		Sleep(g_DelayConstantMs);
 	}
 
 	LRESULT lret = CallNextHookEx(g_hhook, nCode, wParam, lParam);
@@ -119,6 +125,7 @@ int _tmain(int argc, TCHAR* argv[])
 	if(argc==1)
 	{
 		_tprintf(_T("Hint: Pass param 'D', so that pressing key '1'~'9' would delay hookproc return.\n"));
+		_tprintf(_T("Hint: Pass param 'D100', so that each hookproc will delay 100 millisec.\n"));
 	}
 	else
 	{
@@ -126,10 +133,18 @@ int _tmain(int argc, TCHAR* argv[])
 		{
 			g_isDelayInHook = true;
 
-			_tprintf(_T("Pressing key '1'~'9' would delay hookproc return.\n"));
-			_tprintf(_T("So that we can observe when our hookproc is banned by Windows.\n"));
-			_tprintf(_T("And, pressing key '0' to deliberately NOT calling CallNextHookEx().\n"));
-			_tprintf(_T("\n"));
+			if(argv[1][1]=='\0') // single 'D'
+			{ 
+				_tprintf(_T("Pressing key '1'~'9' would delay hookproc return, multiple of 500ms.\n"));
+				_tprintf(_T("So that we can observe when our hookproc is banned by Windows.\n"));
+				_tprintf(_T("And, pressing key '0' to deliberately NOT calling CallNextHookEx().\n"));
+				_tprintf(_T("\n"));
+			}
+			else
+			{
+				g_DelayConstantMs = _tcstoul(argv[1]+1, nullptr, 10);
+				_tprintf(_T("Echo hookproc will Delay %d millisec.\n"), g_DelayConstantMs);
+			}
 		}
 	}
 
