@@ -284,7 +284,7 @@ void GetKeyDes(const MSG &msg, TCHAR s1[], int s1size, TCHAR s2[], int s2size)
 	TCHAR szKeyName[64] = _T("(unknown)");
 	GetKeyNameText ((LONG)msg.lParam, szKeyName, ARRAYSIZE(szKeyName)); // VK name
 
-	int keyname_len = _tcslen(szKeyName);
+	int keyname_len = (int)_tcslen(szKeyName);
 
 	// keydes section 1
 	if(Is_KeyStrokeMsg(msg.message))	
@@ -336,7 +336,7 @@ void GetKeyDes(const MSG &msg, TCHAR s1[], int s1size, TCHAR s2[], int s2size)
 			// Amharic keyboard sends U+12A0 as 3 WM_CHAR messages, each carrying 
 			// one UTF8 byte-sequence, E1 8A A0, respectively.
 			//
-			*(DWORD*)part2str = msg.wParam;
+			*(DWORD*)part2str = (DWORD)msg.wParam;
 #endif
 		}
 		else
@@ -621,7 +621,7 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			TCHAR szKeyName[64] = _T("(unknown)");
 			GetKeyNameText ((LONG)lParam, szKeyName, ARRAYSIZE(szKeyName)); // VK name
 
-			int keyname_len = _tcslen(szKeyName);
+			int keyname_len = (int)_tcslen(szKeyName);
 
 			if(keyname_len>UI_KEYNAME_LIMIT)
 			{	// Output lengthy Keyname to debugging channel.
