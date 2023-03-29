@@ -86,7 +86,23 @@ if not !errorlevel!==0 (
 	exit /b 4
 )
 
-call :EchoAndExec del "%csvFilename%"
+REM Keep a copy of WizTree's original csv file.
+
+set csvWizTreeLastTime=WizTree.lasttime.csv
+
+if exist "%csvWizTreeLastTime%" (
+	del "%csvWizTreeLastTime%"
+	if not !errorlevel!==0 (
+		call :Echos ERROR: Delete last-time "%csvWizTreeLastTime%"
+		exit /b 4
+	)
+)
+
+call :EchoAndExec ren "%csvFilename%" "%csvWizTreeLastTime%"
+if not !errorlevel!==0 (
+	call :Echos ERROR: File renaming fail.
+	exit /b 4
+)
 
 call :Echos Done: %CD%\%sumFilename% 
 
