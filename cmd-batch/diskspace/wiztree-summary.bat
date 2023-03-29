@@ -86,6 +86,8 @@ if not !errorlevel!==0 (
 	exit /b 4
 )
 
+call :EchoAndExec del "%csvFilename%"
+
 call :Echos Done: %CD%\%sumFilename% 
 
 call :Echos Success.
