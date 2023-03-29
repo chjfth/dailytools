@@ -9,6 +9,10 @@ REM Remaining parameters are the "real" internal CMD command line to execute.
 REM Limitation: Can only deal with 7 params to internal cmd, bcz `SHIFT` does not affect %* .
 
 set DelaySeconds=%~1
+if "%DelaySeconds%" == "" (
+	set DelaySeconds=0
+)
+
 set JOBCMD_PATH=%~2
 set JOBCMD_LOGFILE=%JOBCMD_PATH%.log
 
@@ -32,23 +36,26 @@ if ERRORLEVEL 1 (
 echo Now datetime: %DATE% %TIME% >> %JOBCMD_LOGFILE%
 echo. >> %JOBCMD_LOGFILE%
 
-if "%DelaySeconds%" == "" (
+if "%DelaySeconds%" == "0" (
 	call "%JOBCMD_PATH%" %3 %4 %5 %6 %7 %8 %9 >> "%JOBCMD_LOGFILE%" 2>&1
-) else (
-	call "%JOBCMD_PATH%" %3 %4 %5 %6 %7 %8 %9
-)
+	
+	REM Since we have redirected program output to file, there is 
+	REM definitely no sense to delay here, no matter the program runs 
+	REM with success or failure. So we exit right now.
+	exit /b %ERRORLEVEL%
+) 
+
+call "%JOBCMD_PATH%" %3 %4 %5 %6 %7 %8 %9
 
 set ERRCODE=%ERRORLEVEL%
 
 if ERRORLEVEL 1 (
-  if "%DelaySeconds%" == "0" (
 	echo.
 	echo ==== ERROR OCCURRED! Please review. Press any key to dismiss. ====
 	echo.
 	pause
-  ) else if not "%DelaySeconds%" == "" (
+) else (
 	call :Delay %DelaySeconds%
-  )
 )
 
 
