@@ -1,8 +1,10 @@
 @setlocal
 @echo off
+set batfilenam=%~nx0
 set batdir=%~dp0
 set batdir=%batdir:~0,-1%
-pushd %batdir%
+
+call :Echos CURDIR IS: %CD%
 
 REM First parameter is the finish-delay seconds.
 REM Remaining parameters are the "real" internal CMD command line to execute.
@@ -51,20 +53,35 @@ set ERRCODE=%ERRORLEVEL%
 
 if ERRORLEVEL 1 (
 	echo.
-	echo ==== ERROR OCCURRED! Please review. Press any key to dismiss. ====
+	call :Echos ==== ERROR OCCURRED! Please review. Press any key to dismiss. ====
 	echo.
 	pause
 ) else (
+	echo.
+	call :Echos Delay %1 seconds before quit...
 	call :Delay %DelaySeconds%
 )
 
 
 exit /b %ERRCODE%
 
-REM ========== Functions Below ==========
+REM =============================
+REM ====== Functions Below ======
+REM =============================
+
+:Echos
+  REM This function preserves %ERRORLEVEL% for the caller,
+  REM and, LastError does NOT pollute the caller.
+  setlocal & set LastError=%ERRORLEVEL%
+  echo [%batfilenam%] %*
+exit /b %LastError%
+
+:EchoAndExec
+  echo [%batfilenam%] EXEC: %*
+  call %*
+exit /b %ERRORLEVEL%
 
 :Delay
-echo Delay %1 seconds before quit...
 ping 127.0.0.1 -n %1 -w 1000 > nul
 ping 127.0.0.1 -n 2 -w 1000 > nul
 exit /b
