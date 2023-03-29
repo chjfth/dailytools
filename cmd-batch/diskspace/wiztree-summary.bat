@@ -6,6 +6,11 @@ set batdir=%~dp0
 set batdir=%batdir:~0,-1%
 set batdir2=%batdir:\=\\%
 
+REM Add my usual exe paths for cat.exe, sed.exe, WizTree.exe
+PATH=%PATH%;C:\Program Files\Git\usr\bin;C:\Git\usr\bin
+PATH=%PATH%;D:\software_vmwin\wintools\WizTree
+
+
 REM 
 REM First parameter: the drive-letter to scan, C: D: etc.
 
@@ -108,6 +113,7 @@ exit /b %ERRORLEVEL%
 :IsRunAsAdmin
   REM Tips from https://www.robvanderwoude.com/clevertricks.php
   REM Exitcode=0 means yes.
+  REM Git-for-Windows have same-same EXEs, so I use Abs-path for whoami.exe etc.
   %windir%\System32\whoami.exe /groups | %windir%\System32\findstr.exe "S-1-16-12288" > NUL
 exit /b %ERRORLEVEL%
 
