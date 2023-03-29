@@ -32,19 +32,20 @@ if not !errorlevel!==0 (
 )
 
 if "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
-	set exefile=WizTree64.exe
+	set exeWizTree=WizTree64.exe
 ) else if "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
-	set exefile=WizTree64a.exe
+	set exeWizTree=WizTree64a.exe
 ) else (
-	set exefile=WizTree.exe
+	set exeWizTree=WizTree.exe
 )
 
-call :FindExeFullPath fpWiztree %exefile%
+call :FindExeFullPath fpWiztree %exeWizTree%
 if not defined fpWiztree (
-	call :Echos [ERROR] %exefile% is not found in your PATH.
+	call :Echos [ERROR] %exeWizTree% is not found in your PATH.
 	call :Echos You may get WizTree version 4.13+ from https://diskanalyzer.com/guide
 	exit /b 4
 )
+call :Echos Found %exeWizTree% at: "%fpWiztree%"
 
 call :FindExeFullPath fpCat cat.exe
 if not defined fpCat (
@@ -52,6 +53,7 @@ if not defined fpCat (
 	call :Echos You may get cat.exe from Git for Windows https://gitforwindows.org/ .
 	exit /b 4
 )
+call :Echos Found cat.exe at: "%fpCat%"
 
 call :FindExeFullPath fpSed sed.exe
 if not defined fpSed (
@@ -59,6 +61,7 @@ if not defined fpSed (
 	call :Echos You may get sed.exe from Git for Windows https://gitforwindows.org/ .
 	exit /b 4
 )
+call :Echos Found sed.exe at: "%fpSed%"
 
 set csvFilename=%curTimestamp%-%DvLetter%.csv
 set sumFilename=%curTimestamp%-%DvLetter%.summary.csv
