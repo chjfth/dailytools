@@ -1,5 +1,5 @@
-@setlocal
 @echo off
+setlocal EnableDelayedExpansion
 set batfilenam=%~nx0
 set batdir=%~dp0
 set batdir=%batdir:~0,-1%
@@ -35,14 +35,53 @@ if ERRORLEVEL 1 (
 :LogfileOK
 
 if "%DelaySeconds%" == "0" (
+	REM In thise case, we will write user-bat's output to log-file, not to console.
+	
+	REM But, If this case is run temporarily in log-foreground-mode, user will 
+	REM still see a CMD window on screen. To make this CMD window message-friendly,
+	REM I will print "prolog" and "epilog" to user in front of the screen.
+	
+	call :Echos [NOTE] Remaining program output will not be display in this console window.
+	call :Echos ...... They will be saved to log file: "%JOBCMD_LOGFILE%"
+
 	call :PrintCurEnv >> "%JOBCMD_LOGFILE%" 2>&1
 	
+	@echo on
 	call "%JOBCMD_PATH%" %3 %4 %5 %6 %7 %8 %9 >> "%JOBCMD_LOGFILE%" 2>&1
 	
-	REM Since we have redirected program output to file, there is 
-	REM definitely no sense to delay here, no matter the program runs 
-	REM with success or failure. So we exit right now.
-	exit /b %ERRORLEVEL%
+	REM Now the user-bat has finished.
+	REM From bat author's perspective, the best behavior is:
+	REM * If it had run in log-background-mode, quit immediately, no matter success/failure.
+	REM   human user can later check the log-file to know the result.
+	REM * If it had run in log-foreground-mode(user can see CMD window on screen), 
+	REM * make a pause so that human-user can see the result.
+	REM
+	REM However, from bat-file code's perspective, we do not know whether our bat 
+	REM is run in log-background-mode or log-foreground mode, which is controlled from 
+	REM taskschd.msc option:
+	REM    log-foreground-mode = "Run only when user is logged on"
+	REM    log-background-mode = "Run whether(no matter) user is logged on or not"
+	REM So, my decision here is:
+	REM * If user-bat runs with success, quit immediately. That is, human user sees 
+	REM   CMD window appearing and vanishes very quickly.
+	REM * If user-bat runs with error, I will have the CMD window delay 5 seconds then quit.
+
+	@echo off
+	set ERRCODE=!ERRORLEVEL!
+	
+	if !ERRCODE!==0 (
+		call :Echos User-bat execution success.
+		exit /b 0
+	) else (
+		echo.
+		call :Echos ##########################################################
+		call :Echos User-bat execution error, please check logfile for reason.
+		call :Echos Delay 5 seconds then quit.
+		call :Echos ##########################################################
+		call :Delay 5
+		exit /b %ERRCODE%
+	)
+	
 ) 
 
 call :PrintCurEnv
