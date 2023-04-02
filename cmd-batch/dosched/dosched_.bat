@@ -4,8 +4,6 @@ set batfilenam=%~nx0
 set batdir=%~dp0
 set batdir=%batdir:~0,-1%
 
-call :Echos CURDIR IS: %CD%
-
 REM First parameter is the finish-delay seconds.
 REM Remaining parameters are the "real" internal CMD command line to execute.
 REM Limitation: Can only deal with 7 params to internal cmd, bcz `SHIFT` does not affect %* .
@@ -35,10 +33,10 @@ if ERRORLEVEL 1 (
 )
 
 :LogfileOK
-echo Now datetime: %DATE% %TIME% >> %JOBCMD_LOGFILE%
-echo. >> %JOBCMD_LOGFILE%
 
 if "%DelaySeconds%" == "0" (
+	call :PrintCurEnv >> "%JOBCMD_LOGFILE%" 2>&1
+	
 	call "%JOBCMD_PATH%" %3 %4 %5 %6 %7 %8 %9 >> "%JOBCMD_LOGFILE%" 2>&1
 	
 	REM Since we have redirected program output to file, there is 
@@ -47,6 +45,7 @@ if "%DelaySeconds%" == "0" (
 	exit /b %ERRORLEVEL%
 ) 
 
+call :PrintCurEnv
 call "%JOBCMD_PATH%" %3 %4 %5 %6 %7 %8 %9
 
 set ERRCODE=%ERRORLEVEL%
@@ -88,3 +87,9 @@ exit /b
 
 :AssumeError
 exit /b 144
+
+:PrintCurEnv 
+  call :Echos Now datetime: %DATE% %TIME%
+  call :Echos Working dir : %CD%
+  echo.
+exit /b 0
