@@ -15,6 +15,7 @@ if "%DelaySeconds%" == "" (
 
 set JOBCMD_PATH=%~2
 set JOBCMD_LOGFILE=%JOBCMD_PATH%.log
+set JOBCMD_LOGFILE0=%JOBCMD_LOGFILE%
 
 call :AssumeError
 
@@ -28,8 +29,20 @@ if not ERRORLEVEL 1 goto :LogfileOK
 set JOBCMD_LOGFILE=%JOBCMD_PATH%.2.log
 ver > %JOBCMD_LOGFILE%
 if ERRORLEVEL 1 (
-  echo So bad, Cannot create logfile after trying as many times as %JOBCMD_LOGFILE%
-  exit /b 145
+	echo.
+	call :Echos [ERROR] Cannot create logfile: "%JOBCMD_LOGFILE0%"
+	call :Echos ....... The user-bat will NOT be launched: "%JOBCMD_PATH%"
+	echo.
+	if "!DelaySeconds!" == "0" (
+		call :Echos ##########################################################
+		call :Echos Delay 5 seconds then quit.
+		call :Echos ##########################################################
+		call :Delay 5
+	) else (
+		call :Echos ==== Press any key to dismiss. ====
+		pause
+	)
+	exit /b 4
 )
 
 :LogfileOK
