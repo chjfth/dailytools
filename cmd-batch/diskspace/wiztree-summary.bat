@@ -95,7 +95,7 @@ if not !errorlevel!==0 (
 
 REM Keep a copy of WizTree's original csv file.
 
-set csvWizTreeLastTime=WizTree.lasttime.csv
+set csvWizTreeLastTime=WizTree.lasttime-%DvLetter%.csv
 
 if exist "%csvWizTreeLastTime%" (
 	del "%csvWizTreeLastTime%"
