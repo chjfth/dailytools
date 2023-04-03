@@ -75,6 +75,13 @@ if not !errorlevel!==0 (
 	exit /b 4
 )
 
+REM WizTree 4.13 may still return 0 on ERROR(buggy), e.g., passing a non-existing drive-letter to it.
+REM So we need to further check whether the csv is generated.
+if not exist "%csvFilename%" (
+	call :Echos ERROR: Desired csv file "%csvFilename%" is not generated, so WizTree exe actually fails.
+	exit /b 4
+)
+
 call :Echos Generating: %CD%\%sumFilename% 
 
 @echo on
