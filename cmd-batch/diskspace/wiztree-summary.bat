@@ -85,7 +85,7 @@ if not exist "%csvFilename%" (
 call :Echos Generating: %CD%\%sumFilename% 
 
 @echo on
-cat "%csvFilename%" | sed -rn 's/^(".+"),([0-9]{1,})[0-9]{8},.+$/\200+ MB,\1/p' > "%sumFilename%"
+cat "%csvFilename%" | sed -rn 's/(".+"),([0-9]{1,})[0-9]{8},.+$/\200+ MB,\1/p' > "%sumFilename%"
 
 @echo off
 
