@@ -8,7 +8,7 @@ set batdir2=%batdir:\=\\%
 
 REM Add my usual exe paths for cat.exe, sed.exe, WizTree.exe
 PATH=%PATH%;C:\Program Files\Git\usr\bin;C:\Git\usr\bin
-PATH=%PATH%;D:\software_vmwin\wintools\WizTree
+PATH=%PATH%;C:\Program Files\WizTree;D:\software_vmwin\wintools\WizTree
 
 
 REM 
