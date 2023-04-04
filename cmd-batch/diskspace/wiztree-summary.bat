@@ -22,7 +22,7 @@ if not defined DvLetter (
 REM Intercept the first letter, so that user can
 set DvLetter=%DvLetter:~0,1%
 
-call :TimeStrAsFilename curTimestamp
+call :NowTimeAsFilename curTimestamp
 
 call :IsRunAsAdmin
 if not !errorlevel!==0 (
@@ -171,17 +171,17 @@ exit /b 0
   )
 exit /b 0
 
-:TimeStrAsFilename
+:NowTimeAsFilename
   REM Example:
   REM 
-  REM   call :TimeStrAsFilename varTimestr
+  REM   call :NowTimeAsFilename varTimestr
   REM 
-  REM On return caller's varTimestr var will contain a string representing
-  REM current time, like: ""
+  REM On return, caller's varTimestr var will contain a string representing
+  REM current time, like: "04-04-2023 Tue 20.53.32"
   REM Note: The output string deliberately has space in it, so caller 
   REM must be able to deal with space-char in filename. This is a situation
   REM that the user MUST cope with, bcz, the %DATE% expanded string 
-  REM may have already contains space-chars, under some user-locale selection
+  REM may have already contained space-chars, under some user-locale selection
   REM (in intl.cpl).
 
   setlocal
