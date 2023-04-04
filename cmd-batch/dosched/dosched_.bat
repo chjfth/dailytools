@@ -130,7 +130,7 @@ if "%DelaySecondsChar0%" == "0" (
 		call :Delay %DelaySeconds%
 	) else (
 		echo.
-		call :Echos ==== ERROR OCCURRED! Please review. Press any key to dismiss. ====
+		call :Echos ==== ERROR OCCURRED. Please review. Press any key to dismiss. ====
 		echo.
 		pause
 	)
