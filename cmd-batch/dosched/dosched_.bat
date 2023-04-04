@@ -58,7 +58,7 @@ if "%DelaySecondsChar0%" == "0" (
 	REM I will print "prolog" and "epilog" to user in front of the screen.
 	
 	call :Echos [NOTE] Remaining program output will not be displayed in this console window.
-	call :Echos ...... They will be saved to log file:
+	call :Echos ...... They will be redirected to logfile:
 	call :Echos ...... "%JOBCMD_LOGFILE%"
 
 	echo.
