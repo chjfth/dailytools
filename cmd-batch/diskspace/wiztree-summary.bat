@@ -22,8 +22,7 @@ if not defined DvLetter (
 REM Intercept the first letter, so that user can
 set DvLetter=%DvLetter:~0,1%
 
-set curTimestamp=%DATE:/=-% %TIME::=.%
-set curTimestamp=%curTimestamp:~0,-3%
+call :TimeStrAsFilename curTimestamp
 
 call :IsRunAsAdmin
 if not !errorlevel!==0 (
@@ -146,7 +145,7 @@ exit /b %ERRORLEVEL%
 exit /b %ERRORLEVEL%
 
 :FindExeFullPath
-  REM Example
+  REM Example:
   REM
   REM   call :FindExeFullPath outvarFullPath "notepad.exe"
   REM 
@@ -172,3 +171,25 @@ exit /b 0
   )
 exit /b 0
 
+:TimeStrAsFilename
+  REM Example:
+  REM 
+  REM   call :TimeStrAsFilename varTimestr
+  REM 
+  REM On return caller's varTimestr var will contain a string representing
+  REM current time, like: ""
+  REM Note: The output string deliberately has space in it, so caller 
+  REM must be able to deal with space-char in filename. This is a situation
+  REM that the user MUST cope with, bcz, the %DATE% expanded string 
+  REM may have already contains space-chars, under some user-locale selection
+  REM (in intl.cpl).
+
+  setlocal
+  REM We create the string from env-var DATE and TIME, and at the sametime,
+  REM replacing invalid file-system chars to valid ones.
+  set timestr=%DATE:/=-% %TIME::=.%
+  REM 
+  REM Remove "percent-second" tail from %TIME%
+  set timestr=%timestr:~0,-3%
+  endlocal & ( set "%~1=%timestr%" )
+exit /b 0
