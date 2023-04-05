@@ -1,0 +1,83 @@
+@echo off
+setlocal EnableDelayedExpansion
+set batfilenam=%~nx0
+set batdir=%~dp0
+set batdir=%batdir:~0,-1%
+
+REM ===== user params here =====
+set userpasswd=123456
+set DIR_SUMMARY=d:\wizsummary
+set DIR_DOSCHED=
+set DRIVELETTER=C
+set TASKNAME=my WizTree-summary
+set WHEN_START=15:30
+REM ============================
+
+if not defined DIR_DOSCHED set DIR_DOSCHED=%batdir%\..\dosched
+
+set fpDoSched0bat=%DIR_DOSCHED%\dosched3.bat
+
+call :IsRunAsAdmin
+if not !errorlevel!==0 (
+    call :Echos This bat must be run as Administrator.
+    exit /b 4
+)
+
+if not exist "%fpDoSched0bat%" (
+	call :Echos Required bat file does not exist: "%fpDoSched0bat%"
+	exit /b 4
+)
+
+if not exist "%DIR_SUMMARY%" (
+	mkdir "%DIR_SUMMARY%"
+	if not !ERRORLEVEL! == 0 (
+		call :Echos [ERROR] Cannot create folder: "%DIR_SUMMARY%"
+		exit /b 4
+	)
+)
+
+set TASKFULLNAME=WizTree\%TASKNAME%-%DRIVELETTER%
+
+set OPT_TASKUSER=/RU "%USERDOMAIN%\%USERNAME%" /RP "%userpasswd%" /NP
+
+call :EchoAndExec schtasks /Create /TN "%TASKFULLNAME%" /SC DAILY /ST %WHEN_START% %OPT_TASKUSER% /TR "'%fpDoSched0bat%' '%batdir%\wiztree-summary.bat' '%DRIVELETTER%:'"
+if not !ERRORLEVEL! == 0 (
+	call :Echos [ERROR] schtasks command failed.
+	exit /b 4
+)
+
+echo.
+call :Echos OK. WizTree scheduled-task created: "%TASKFULLNAME%"
+echo.
+echo Final thing you should do:
+echo.    Open taskschd.msc, goto "%TASKFULLNAME%"'s properties 
+echo.    -^> [Actions] -^> "Start in", assign it to be "%DIR_SUMMARY%", 
+echo.    so to hold your WizTree summary files there. If you omit this, 
+echo.    "%windir%\System32" will be used by default.
+
+exit /b 0
+
+
+
+REM =============================
+REM ====== Functions Below ======
+REM =============================
+
+:Echos
+  REM This function preserves %ERRORLEVEL% for the caller,
+  REM and, LastError does NOT pollute the caller.
+  setlocal & set LastError=%ERRORLEVEL%
+  echo [%batfilenam%] %*
+exit /b %LastError%
+
+:EchoAndExec
+  echo [%batfilenam%] EXEC: %*
+  call %*
+exit /b %ERRORLEVEL%
+
+:IsRunAsAdmin
+  REM Tips from https://www.robvanderwoude.com/clevertricks.php
+  REM Exitcode=0 means yes.
+  REM Git-for-Windows have same-same EXEs, so I use Abs-path for whoami.exe etc.
+  %windir%\System32\whoami.exe /groups | %windir%\System32\findstr.exe "S-1-16-12288" > NUL
+exit /b %ERRORLEVEL%
