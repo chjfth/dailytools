@@ -56,6 +56,12 @@ call :Echos Creating task DoSched00 and exit with 0.
 call :EchoAndExec schtasks /Create /TN "DoSched-test\DoSched00-exit-0" /SC ONCE /ST 23:59 /TR "'%batdir%\dosched00.bat' '%batdir%\justexit.bat' 0"
 if not !ERRORLEVEL! == 0 exit /b 4
 
+REM Now a failure case, user-bat does not exist.
+
+echo.
+call :Echos Creating task User-bat-missing.
+call :EchoAndExec schtasks /Create /TN "DoSched-test\User-bat-missing" /SC ONCE /ST 23:59 /TR "'%batdir%\dosched0.bat' '%batdir%\no-such.bat' xxyyzz"
+if not !ERRORLEVEL! == 0 exit /b 4
 
 exit /b 0
 
