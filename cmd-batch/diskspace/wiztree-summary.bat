@@ -4,12 +4,18 @@ setlocal EnableDelayedExpansion
 set batfilenam=%~nx0
 set batdir=%~dp0
 set batdir=%batdir:~0,-1%
-set batdir2=%batdir:\=\\%
 
 REM Add my usual exe paths for cat.exe, sed.exe, WizTree.exe
 PATH=%PATH%;C:\Program Files\Git\usr\bin;C:\Git\usr\bin
 PATH=%PATH%;C:\Program Files\WizTree;D:\software_vmwin\wintools\WizTree
 
+
+REM If current dir happens to be C:\WINDOWS\system32, switch to %batdir% .
+REM This avoids generating summary file into C:\WINDOWS\system32.
+if /i "%CD%" == "%windir%\system32" (
+	call :Echos Note: Current directory is %CD%, which is not desired, now change it to your bat files directory: "%batdir%"
+	pushd "%batdir%"
+)
 
 REM 
 REM First parameter: the drive-letter to scan, C: D: etc.
@@ -19,7 +25,7 @@ if not defined DvLetter (
 	set DvLetter=C
 )
 
-REM Intercept the first letter, so that user can
+REM Intercept the first letter, so that user can assign C or C:
 set DvLetter=%DvLetter:~0,1%
 
 call :NowTimeAsFilename curTimestamp
