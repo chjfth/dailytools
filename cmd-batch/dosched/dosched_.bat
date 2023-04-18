@@ -8,6 +8,14 @@ REM First parameter is the finish-delay seconds.
 REM Remaining parameters are the "real" internal CMD command line to execute.
 REM Limitation: Can only deal with 7 params to internal cmd, bcz `SHIFT` does not affect %* .
 
+REM If current dir happens to be C:\WINDOWS\system32, switch to %batdir% .
+REM This avoids generating (possible) extra files into C:\WINDOWS\system32 .
+if /i "%CD%" == "%windir%\system32" (
+	call :Echos Note: Current directory is %CD%, which is not good practice, now change it to: "%batdir%"
+	pushd "%batdir%"
+)
+
+
 set DelaySeconds=%~1
 if "%DelaySeconds%" == "" (
 	set DelaySeconds=0
