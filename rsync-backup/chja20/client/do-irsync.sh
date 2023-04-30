@@ -2,7 +2,7 @@
 
 # User can set IRSYNC_PARAMS and RSYNC_PARAMS to customize irsync's behavior.
 
-export CHJHOST=192.168.17.84
+export CHJHOST=chja20
 export PYTHONPATH=~/gitw/pyutils/pycode
 
 #datetime_pattern=YYYYMMDD
