@@ -29,3 +29,11 @@ VHD-mount-points
 ; And various error condition from chja20 D:/MapData/... , no idea why the errors rise from irsync client-side machine.
 ; The MapData seems to belong to Win10 Map background service.
 MapData/*
+
+; 2023-03-08
+Google/Chrome/User Data/Default/Sessions
+
+; WSL1 running files cannot be accessed.
+WSL-Ubuntu-22.04/rootfs
+WSL-Ubuntu-22.04/temp
+
