@@ -37,11 +37,11 @@ Copy files here to your WSL folder, that is, you should finally have:
 Create a simple wrapper bat, any name you like, for example, `start-Ubuntu-2204.bat`, 
 with only one line:
 
-	"%~dp0WSL-green.bat" Ubuntu-22.04-portable bob
+	"%~dp0WSL-green.bat" Ubuntu-22.04-WSL1port bob
 
 Note:
 
-* `Ubuntu-22.04-portable` is the so-called "distribution name" recognized by `wsl -d`.
+* `Ubuntu-22.04-WSL1port` is the so-called "distribution name" recognized by `wsl -d`.
   You select this name by yourself.
 * The "distribution name" **must not contains space-char**, at least for Win10.21H2.
 * If the distribution name conflicts with an existing one on current Win10 machine. 
@@ -63,7 +63,7 @@ Inside `WSL-green.bat`, it will use `WSL-green.reg.0` as template, generate real
 `WSL-green.reg`, and then import that `WSL-green.reg` to your Windows so to live-register 
 your `D:\WSL-Ubuntu-2204` as a new WSL instance.
 
-Upon registering done, `WSL-green.bat` runs `wsl -d Ubuntu-22.04-portable` immediately to launch
+Upon registering done, `WSL-green.bat` runs `wsl -d Ubuntu-22.04-WSL1port` immediately to launch
 that WSL instance.
 
 There is no harm registering the same WSL instance repeatedly, so `WSL-green.bat` does "register"
@@ -80,7 +80,7 @@ A sample `WSL-green.reg` content looks like this:
 ```ini
 Windows Registry Editor Version 5.00
 
-[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss\{1ce81a28-7b3f-6cee-5290-0cf0a2177bd8}]
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss\{10ea9e6f-a553-d114-e281-4771ea028086}]
 "State"=dword:00000001
 "Version"=dword:00000002
 "DefaultUid"=dword:000003e8
@@ -107,12 +107,14 @@ Windows Registry Editor Version 5.00
 ; Override Flags, BasePath and DistributionName below:
 
 "Flags"=dword:00000007 
-"BasePath"="D:\\WSL-Ubuntu-22.04" 
-"DistributionName"="Ubuntu-22.04-chja20" 
+"BasePath"="D:\\Ubuntu WSL1 22.04" 
+"DistributionName"="Ubuntu-22.04-WSL1port" 
 ```
 
 If something can go wrong, it can be `DefaultUid` or `Flags`, tune their values according to 
-your actual case.
+your actual case. If you determined that those values need to be changed, remember to 
+change them in `WSL-green.reg.0` instead of `WSL-green.reg`, because the latter will be 
+overwritten each time you run `WSL-green.bat`.
 
 Of course, your can open Windows registry editor, check whether these values are imported correctly. 
 
