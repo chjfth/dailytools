@@ -43,7 +43,8 @@ Note:
 
 * `Ubuntu-22.04-WSL1port` is the so-called "distribution name" recognized by `wsl -d`.
   You select this name by yourself.
-* The "distribution name" **must not contains space-char**, at least for Win10.21H2.
+* The "distribution name" **must not contain space-char**. At least on Win10.21H2,
+  you should obey this rule.
 * If the distribution name conflicts with an existing one on current Win10 machine. 
   That name will point to this "new" distribution, and the "old" one is masked off.
   So, to ensure no conflict, please use `wsl -l` in advance to know what distribution names 
