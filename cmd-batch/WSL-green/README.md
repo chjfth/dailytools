@@ -37,33 +37,94 @@ Copy files here to your WSL folder, that is, you should finally have:
 Create a simple wrapper bat, any name you like, for example, `start-Ubuntu-2204.bat`, 
 with only one line:
 
-	"%~dp0WSL-green.bat" Ubuntu-22.04-portable bob
+	"%~dp0WSL-green.bat" Ubuntu-22.04-WSL1port bob
 
 Note:
 
-* `Ubuntu-22.04-portable` is the so-called "distribution name" recognized by `wsl -d`.
+* `Ubuntu-22.04-WSL1port` is the so-called "distribution name" recognized by `wsl -d`.
   You select this name by yourself.
-* The "distribution name" **must not contains space-char**, at least for Win10.21H2.
+* The "distribution name" **must not contain space-char**. At least on Win10.21H2,
+  you should obey this rule.
 * If the distribution name conflicts with an existing one on current Win10 machine. 
   That name will point to this "new" distribution, and the "old" one is masked off.
-  So, to ensure no conflict, please use `wsl -l` to know what names have already existed.
-* The `bob` assigns the default login user, it will be passed to `wsl -d` as `-u bob`. 
-  If you omit this parameter, the default is either told by the registry item `DefaultUid`
-  or `root`.
+  So, to ensure no conflict, please use `wsl -l` in advance to know what distribution names 
+  have already existed on your Win10 host machine.
+* The `bob` assigns the default login user, you should replace it to an existing user name 
+  on your target WSL instance. This user name will be passed to `wsl -d` as `-u bob`. 
+  You can omit this parameter, then the wsl.exe will pick the user told by the registry item 
+  `DefaultUid`(usually 0x3e8, =1000, the first Linux user created).
 
-Now, just run your `start-Ubuntu-2204.bat` and the WSL instance launches.
+Now, run your `start-Ubuntu-2204.bat` and the WSL instance launches.
 
-![Live run of a WSL1 instance](live-run.png)!
+![Live run of a WSL1 instance](live-run.png)
 
 ## Comments
 
-Inside `WSL-green.bat`, it will use WSL-green.reg.0 as template, generate real 
-WSL-green.reg, and then import that .reg so to live-register 
+Inside `WSL-green.bat`, it will use `WSL-green.reg.0` as template, generate real 
+`WSL-green.reg`, and then import that `WSL-green.reg` to your Windows so to live-register 
 your `D:\WSL-Ubuntu-2204` as a new WSL instance.
 
-Upon registering done, `wsl -d my_distribution_name` is immediately executed to launch
+Upon registering done, `WSL-green.bat` runs `wsl -d Ubuntu-22.04-WSL1port` immediately to launch
 that WSL instance.
 
-There is no harm registering the same WSL instance repeatedly each time you run `WSL-green.bat`.
+There is no harm registering the same WSL instance repeatedly, so `WSL-green.bat` does "register"
+and "run" in one shot.
 
-Administrator privilege is not required to register and run the bat provided here.
+Administrator privilege is not required to register and run the .bat provided here.
+
+## What if something goes wrong
+
+I suggest reviewing the generated `WSL-green.reg` to see whether there is some problem in it.
+
+A sample `WSL-green.reg` content looks like this:
+
+```ini
+Windows Registry Editor Version 5.00
+
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss\{10ea9e6f-a553-d114-e281-4771ea028086}]
+"State"=dword:00000001
+"Version"=dword:00000002
+"DefaultUid"=dword:000003e8
+"KernelCommandLine"="BOOT_IMAGE=/kernel init=/init"
+"DefaultEnvironment"=hex(7):48,00,4f,00,53,00,54,00,54,00,59,00,50,00,45,00,3d,\
+  00,78,00,38,00,36,00,5f,00,36,00,34,00,00,00,4c,00,41,00,4e,00,47,00,3d,00,\
+  65,00,6e,00,5f,00,55,00,53,00,2e,00,55,00,54,00,46,00,2d,00,38,00,00,00,50,\
+  00,41,00,54,00,48,00,3d,00,2f,00,75,00,73,00,72,00,2f,00,6c,00,6f,00,63,00,\
+  61,00,6c,00,2f,00,73,00,62,00,69,00,6e,00,3a,00,2f,00,75,00,73,00,72,00,2f,\
+  00,6c,00,6f,00,63,00,61,00,6c,00,2f,00,62,00,69,00,6e,00,3a,00,2f,00,75,00,\
+  73,00,72,00,2f,00,73,00,62,00,69,00,6e,00,3a,00,2f,00,75,00,73,00,72,00,2f,\
+  00,62,00,69,00,6e,00,3a,00,2f,00,73,00,62,00,69,00,6e,00,3a,00,2f,00,62,00,\
+  69,00,6e,00,3a,00,2f,00,75,00,73,00,72,00,2f,00,67,00,61,00,6d,00,65,00,73,\
+  00,3a,00,2f,00,75,00,73,00,72,00,2f,00,6c,00,6f,00,63,00,61,00,6c,00,2f,00,\
+  67,00,61,00,6d,00,65,00,73,00,00,00,54,00,45,00,52,00,4d,00,3d,00,78,00,74,\
+  00,65,00,72,00,6d,00,2d,00,32,00,35,00,36,00,63,00,6f,00,6c,00,6f,00,72,00,\
+  00,00,00,00
+
+"Flags"=dword:00000007
+; -- Flags: 0x07 means WSL1, 0x0f means WSL2
+"BasePath"="D:\\WSL-Ubuntu-22.04\to-be-modified-by-bat"
+"DistributionName"="DistributionName-to-be-modified-by-bat"
+
+; Override Flags, BasePath and DistributionName below:
+
+"Flags"=dword:00000007 
+"BasePath"="D:\\Ubuntu WSL1 22.04" 
+"DistributionName"="Ubuntu-22.04-WSL1port" 
+```
+
+If something can go wrong, it can be `DefaultUid` or `Flags`, tune their values according to 
+your actual case. If you determined that those values need to be changed, remember to 
+change them in `WSL-green.reg.0` instead of `WSL-green.reg`, because the latter will be 
+overwritten each time you run `WSL-green.bat`.
+
+Of course, your can open Windows registry editor, check whether these values are imported correctly. 
+
+BTW: You may see a typical error message saying:
+
+> `The requested operation cannot be performed on a file with a user-mapped section open`
+
+This can be caused by two Lxss GUIDs (in registry) pointing to the same WSL1 BasePath. 
+The first one can be launched correctly, but when you want to launch the second at 
+the same time, that error message pops out. The solution is simple, just manually delete one of 
+those GUID registry node. Of course, I suggest deleting the one not generated by `WSL-green.bat`.
+
