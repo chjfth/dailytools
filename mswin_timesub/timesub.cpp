@@ -1,5 +1,5 @@
 /*
-[2023-07-04] This program creates a sub-process, waits for its completion,
+[2023-07-03] This program creates a sub-process, waits for its completion,
 and use GetProcessTimes() to report its time cost.
 Yes, it is like the Unix/Linux `time` program.
 */
@@ -185,6 +185,8 @@ int _tmain(int argc, TCHAR* argv[])
 		_tprintf(_T("[timesub] PANIC! GetProcessTimes() got WinErr=%d.\n"), winerr);
 		exit(4);
 	}
+
+	CloseHandle(hProcess);
 
 	// hns: count of 100ns
 	__int64 hnsTimespan = diff_FILETIME(weExit, weCreate);
