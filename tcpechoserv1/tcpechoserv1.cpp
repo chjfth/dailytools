@@ -223,9 +223,9 @@ void sockserv(SOCKET sock_listen, Ushort listen_port)
 		SOCKET sock_conn = accept(sock_listen, (sockaddr*)&addr_peer, &peer_len);
 		
 		g_cur_connections++;
-		printf("[%d]{%s} %s accepted(SOCKET=0x%X)\n", g_cur_connections,
+		printf("[%d]{%s} %s accepted(SOCKET=0x%p)\n", g_cur_connections,
 			GetTimeStr(timebuf, sizeof(timebuf)),
-			IPv4Addr2Str(addr_peer, tbuf), sock_conn);
+			IPv4Addr2Str(addr_peer, tbuf), (void*)sock_conn);
 
 		// Create a thread to serve the client.
 
