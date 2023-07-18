@@ -37,3 +37,6 @@ Google/Chrome/User Data/Default/Sessions
 WSL-Ubuntu-22.04/rootfs
 WSL-Ubuntu-22.04/temp
 
+; 2023-07-14: There are quite some dirs in %AppData% that are 'Permission denied', such as:
+; C_Junctions/Users/chj/AppData/Local/Google/Chrome/User Data/Default/Network/Cookies
+C_Junctions
