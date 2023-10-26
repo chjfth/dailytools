@@ -11,6 +11,10 @@ if "%param1%" == "" (
 	exit /b 4
 )
 
+if not defined SLEEP_SECONDS_BETWEEN_REPEAT (
+	set SLEEP_SECONDS_BETWEEN_REPEAT=3
+)
+
 set /A ii=0
 
 :REPEAT
@@ -22,7 +26,7 @@ call %*
 
 set exitcode=%ERRORLEVEL%
 
-timeout /t 3
+timeout /t %SLEEP_SECONDS_BETWEEN_REPEAT%
 
 goto :REPEAT
 
