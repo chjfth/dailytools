@@ -35,7 +35,7 @@ set -o ignoreeof
 
 # Set very beautiful and useful PS1 prompt for bash user:
 if [ $UID != 0 ]; then PS1fmtuser='\u'; else PS1fmtuser='\[\033[1;31m\]\u\[\033[0m\]'; fi
-if [ $UID != 0 ]; then PS1fmtcwd='[33m'; else PS1fmtcwd='[1;31m'; fi
+PS1fmtcwd='[33m'
 if [ $UID != 0 ]; then PS1char='$'; else PS1char='#'; fi
 PS1_err_bell='$(if [ $? != 0 ];then echo -e \a; fi)'
 PS1_TERM='$TERM'
