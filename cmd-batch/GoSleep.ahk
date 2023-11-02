@@ -1,4 +1,5 @@
 
+Sleep, 1000
 DllCall("PowrProf\SetSuspendState", "Int",0, "Int",0, "Int",0)
 
 /*
