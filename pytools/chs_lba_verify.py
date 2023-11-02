@@ -94,7 +94,7 @@ def chs_lba_checkmatch(argv):
 		lba_start_bias_report = "(OK! match CHS.)"
 		lba_start_bias_report_hex = ""
 	else:
-		lba_start_bias_report = f"(CHS BAD! bias: {lba_start_bias:+d})"
+		lba_start_bias_report = f"(CHS BAD! bias: {lba_start_bias:+d})" # f"{lba_start_bias:+d,}" errs on Python 3.9
 		plus_minus = '+' if lba_start_bias>=0 else '-'
 		lba_start_bias_report_hex = f"                {plus_minus}0x{abs(lba_start_bias):X}"
 
