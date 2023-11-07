@@ -19,7 +19,7 @@ _err_list=()
 
 if [ -z "$modlist" ]; then
 	# user can override modlist from command line.
-	modlist=(myk mym myn myo-vms myf myd) # define a Bash array
+	modlist=(myk mym myn myo-vms myf myd myi-keep) # define a Bash array
 fi
 
 for mod in "${modlist[@]}"; do 
