@@ -92,12 +92,14 @@ class CSessinfo:
 	
 	def __init__(self, display_line):
 		"""
-		display_line is like:
+		display_line is like one of:
 		
 			chj2s: 2 windows (created Sun Apr  8 17:26:40 2012) [100x35]
+			
 			panes: 3 windows (created Sun Apr  8 12:10:19 2012) [100x35] (attached)
 		
-		Note: detached lines are not marked with "(detached)".
+		Note: Tmux does NOT tail-mark a detached line with "(detached)".
+		Note: Since tmux 3.0, dimension hint [100x35] is no longer present.
 		"""
 		line_format = r'(.+?): ([0-9]+) windows \(created (.+?)\)(.*)'
 		r = re.match(line_format, display_line)
@@ -284,7 +286,7 @@ def main():
 	nsess = attaches+detaches
 	first_detached_sess = next( (s for s in sess_infos if s.status==CSessinfo.Detached), None)
 
-#	sys.stderr.write( "attaches:%d detaches:%d\n"%(attaches, detaches) ) # debug
+#	sys.stderr.write( "### all:%d, attaches:%d, detaches:%d\n"%(len(sess_infos), attaches, detaches) ) # debug
 #	exit(0)
 
 	shcmd = ''
