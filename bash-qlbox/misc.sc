@@ -29,7 +29,7 @@ function L()
 hexadd0x() { echo "$1" | sed -r 's:( *)([0-9A-Fa-f]{2}): 0x\2:g'; }
 # $ hexadd0x '35E7 94   b5'
 # 0x35 0xE7 0x94 0xb5
-#	See https://www.evernote.com/shard/s21/sh/d28501d4-8a33-45b7-97e9-a8e63ce7b510/26d6a4eb1495c6af9dffc130f15ad567
+#	See https://www.evernote.com/l/ABXShQHUijNFt5fpqOY857UQJtak6xSVxq8/
 
 run-to-death()
 {
