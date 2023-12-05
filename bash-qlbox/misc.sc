@@ -4,10 +4,10 @@
 # whose name start with PA .
 lset () 
 { 
-    for v in "$@";
-    do
-        env | grep "^$v";
-    done
+	for v in "$@";
+	do
+		env | grep "^$v";
+	done
 }
 
 function addpath()
@@ -53,4 +53,14 @@ pid-args()
 	fi
 	
 	cat /proc/$1/cmdline | xargs -0 printf "%s\n"; echo
+}
+
+pid-envs()
+{
+	if [ "$1" = "" ]; then 
+		echo "Usage: Pass a pid as parameter, to show its environ[] values, one line each."
+		return 1
+	fi
+	
+	cat /proc/$1/environ | xargs -0 printf "%s\n"; echo
 }
