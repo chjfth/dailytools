@@ -9,3 +9,4 @@
 *.sh    -text
 *.sc    -text
 *.shc   -text
+*.rc    -text
