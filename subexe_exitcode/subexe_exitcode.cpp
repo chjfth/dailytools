@@ -36,7 +36,7 @@ int main(int argc, char *const argv[])
         int err_launch = execvp(argv_child[0], argv_child);
         if(err_launch<0) {
             printf("[CHILD] Fail to exec '%s'.\n", argv_child[0]);
-            exit(8);
+            exit(0x44);
         }
        
     } else {
@@ -47,7 +47,7 @@ int main(int argc, char *const argv[])
        
         if(ret<0) {
             printf("[PARENT] Unexpect: waitpid(%d) failed!\n", pid);
-            return 4;
+            return 44;
         }
        
         printf("[PARENT] Subprocess exit wstatus is: %d (0x%X)\n", wstatus, wstatus);
