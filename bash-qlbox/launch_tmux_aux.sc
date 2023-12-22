@@ -15,7 +15,7 @@ fi
 if [[ $SSH_CONNECTION == *"127.0.0.22 22" ]]; then
 	# You can use it with socat TCP redirection:
 	#
-	#   socat TCP4-LISTEN:2222,fork TCP:127.0.0.22:22
+	#   socat TCP4-LISTEN:2222,fork,nodelay,reuseaddr TCP:127.0.0.22:22
 	#
 	# If someone(e.g. VSLinux) SSH connects to this Linux
 	# via TCP port 2222, then Easytmux will NOT launch.
