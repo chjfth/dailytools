@@ -22,6 +22,12 @@ if [[ $SSH_CONNECTION == *"127.0.0.22 22" ]]; then
 	return 0
 fi
 
+if [ "$DONT_LAUNCH_EASYTMUX" = 1 ]; then
+	# Give user a way to suppress Easytmux's launch via env-var
+	return 0
+fi
+
+
 # The "default" behavior is to launch tmux on each shell login.
 # But give 3 seconds timeout so that user can opt NOT to launch tmux.
 
