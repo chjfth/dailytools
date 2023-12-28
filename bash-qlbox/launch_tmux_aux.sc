@@ -142,7 +142,13 @@ if [ "$TMUX" = "" ]; then
 		tmux_conf_filename=tmux.conf
 	fi
 	
-	tmuxcmd="$("$dir_qlbox/launch_tmux.py" --tmuxconf="$dir_qlbox/$tmux_conf_filename")"
+	if which python; then
+		python_exe=python
+	else
+		python_exe=python3
+	fi
+	
+	tmuxcmd="$("$python_exe" "$dir_qlbox/launch_tmux.py" --tmuxconf="$dir_qlbox/$tmux_conf_filename")"
 		# Grab the .py's stdout content as to-execute shell command.
 		# The double-quotes surrounding $(...) is optional, I put them here 
 		# just to demonstrate nested double-quotes inside $(...) should not
