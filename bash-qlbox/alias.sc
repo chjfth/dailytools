@@ -24,3 +24,5 @@ if [ "$(uname)" = "Darwin" ]; then
   alias ls='ls -GFh'
   alias la='\ls -laTGF'
 fi
+
+alias gsu='git status -uno'
