@@ -1,4 +1,5 @@
 // [2005-02-10] Both for Windows and Unix
+// [2024-01-09] On Linux, there is stock printenv command available.
 
 /* 
 	This program shows the environment variable(env-var) values for itself.
@@ -16,7 +17,7 @@ TEMP=
 
 ---Examples Output (2)---
 
-$ ./show-envvar-hex OS TMP
+$ ./show-envvar-hex OS HOME TMP
 OS=
 HOME=2f 68 6f 6d 65 2f 63 68 6a
 TEMP=
