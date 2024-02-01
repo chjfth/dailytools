@@ -7,7 +7,10 @@ Re-encoding then to 80% quality will reduce the file size to be 25~30% of the or
 
 import os, sys, shutil
 import re
+from fnmatch import fnmatch
 from PIL import Image
+
+MARK_PANO = "_PANO"
 
 pyfilename = os.path.split(sys.argv[0])[1]
 
@@ -58,24 +61,38 @@ def copy_screenshots(indir):
 
 def jpgfn_get_newname(jpgfn):
 
-	# Note: For PANO_yyyymmdd_hhmmss...jpg, I will rename it to IMG_yyyymmdd_hhmmss_pano...jpg
-	# so that when the filenames are sorted alphabetically, they natuarally appears timestamp sorted.
-
-	m = re.match(r"(IMG|PANO)(_[0-9]{8}_[0-9]{6})(.+).jpg", jpgfn)
+	m = re.match(r"IMG_([0-9]{8}_[0-9]{6})(.+)\.jpg$", jpgfn)
 	if m:
-		prefix = m.group(1)
-		midpart = m.group(2)
-		suffix = m.group(3)
+		timestp = m.group(1)
+		suffix = m.group(2)
 		if re.match(r"^_[0-9]+$", suffix):
 			# This is from burst-shot duplicates; discard it.
 			return None
+		elif suffix==MARK_PANO or suffix=="_pano":
+			return None
 		else:
-			if(prefix=="IMG"):
-				return jpgfn
-			else:
-				return "IMG" + midpart + "_pano" + suffix + ".jpg"
+			return jpgfn
 	else:
 		return None
+
+def rename_panos(indir):
+	# For PANO_yyyymmdd_hhmmss...jpg, I will rename it to IMG_yyyymmdd_hhmmss_PANO...jpg
+	# so that when the filenames are sorted alphabetically, they natuarally appears timestamp sorted.
+
+	files = os.listdir(indir)
+	for file in files:
+		m = re.match(r"PANO_([0-9]{8}_[0-9]{6})(.*)\.jpg$", file)
+		if not m:
+			continue
+
+		timestp = m.group(1)
+		suffix = m.group(2)
+		newfile = "IMG_" + timestp + MARK_PANO + suffix + ".jpg"
+
+		oldpath = os.path.join(indir, file)
+		newpath = os.path.join(indir, newfile)
+		print("Renamed: " + newpath)
+		os.rename(oldpath, newpath)
 
 def do_main():
 	if len(sys.argv)<3:
@@ -85,8 +102,6 @@ def do_main():
 		print("Files with the following pattern, will be re-encoded to be 80% jpg quality.")
 		print("    IMG_20231107_184622 xxx.jpg")
 		print("    IMG_20231107_184622_xxx.jpg")
-		print("    PANO_20231107_184622 xxx.jpg")
-		print("    PANO_20231107_184622_xxx.jpg")
 		print("")
 		print("Files like IMG_20231107_184622.jpg will be left as is.")
 		exit(1)
@@ -102,6 +117,8 @@ def do_main():
 
 	copy_screenshots(indir)
 
+	rename_panos(indir)
+
 	nskip = 0
 	nencode = 0
 
@@ -114,11 +131,11 @@ def do_main():
 		newjpgpath = os.path.join(outdir, jpgfn_new)
 
 		if os.path.exists(newjpgpath):
-			print("Skip existing %s"%(newjpgpath))
+			print("Skip existing: %s"%(newjpgpath))
 			nskip += 1
 			continue
 
-		print("Encoding to %s"%(newjpgpath))
+		print("Encoding to: %s"%(newjpgpath))
 
 		with Image.open(oldjpgpath) as img:
 			exif_info = img.info.get('exif')
