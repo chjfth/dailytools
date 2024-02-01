@@ -74,7 +74,10 @@ if __name__=='__main__':
 		print("Encoding to %s"%(newjpgpath))
 
 		with Image.open(oldjpgpath) as img:
-			img.save(newjpgpath, quality=80)
+			img.save(newjpgpath,
+			         quality=80,
+			         exif=img.info.get('exif')
+			         )
 
 		nencode += 1
 
