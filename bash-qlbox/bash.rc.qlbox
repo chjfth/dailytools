@@ -1,36 +1,16 @@
+#
+# The main `source`-file of Jimm Chen's qlbox.
+#
 
-# _gmu_rel2abs (): 
-# Input a dir(relative or absolute), return(echo) its absolute dir.
-# If the input dir is not valid or not accessible, return null string.
-# This function will not change callers current working directory.
-_gmu_rel2abs ()
-{
-	if [ "$1" = "" ]; then return 4; fi
-
-	if cd "$1" >/dev/null; then pwd
-	else return 5; fi
-}
-
-#echo "[${BASH_SOURCE}]"
-
-# If not running interactively, don't do anything. (this makes VisualGDB happy)
+# If not running interactively, don't do anything. 
+# (This makes VisualGDB and VSLinux happy.)
 [[ $- != *i* ]] && return
 
 # Get dir of this script.
 dir_qlbox="${BASH_SOURCE%/*}"
-dir_qlbox=$(_gmu_rel2abs "$dir_qlbox")
+source "$dir_qlbox/bash.rc.pretty"
 
 alias tmuxhelp='cat "$dir_qlbox/tmuxhelp.txt"'
 
 source "$dir_qlbox/launch_tmux_aux.sc"
 	# Double-quotes are required, in case $dir_qlbox contains space char.
-
-source "$dir_qlbox/alias.sc"
-
-source "$dir_qlbox/misc.sc"
-
-source "$dir_qlbox/PS1.sc"
-
-set -o ignoreeof
-	# Disable Ctrl+D exit shell
-
