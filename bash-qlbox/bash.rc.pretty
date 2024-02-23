@@ -31,5 +31,3 @@ qlbox_make_bash_pretty()
 }
 
 qlbox_make_bash_pretty
-
-echo '=======11111'
