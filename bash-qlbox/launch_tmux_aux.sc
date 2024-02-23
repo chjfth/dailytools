@@ -142,9 +142,8 @@ if [ "$TMUX" = "" ]; then
 		tmux_conf_filename=tmux.conf
 	fi
 	
-	if which python; then
-		python_exe=python
-	else
+	python_exe=$(which python)
+	if [ -z "$python_exe" ]; then
 		python_exe=python3
 	fi
 	

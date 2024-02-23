@@ -6,7 +6,7 @@
 # (This makes VisualGDB and VSLinux happy.)
 [[ $- != *i* ]] && return
 
-# Get dir of this script.
+# Get dir of this script. (Caller should ensure it is a abspath.)
 dir_qlbox="${BASH_SOURCE%/*}"
 source "$dir_qlbox/bash.rc.pretty"
 
