@@ -67,19 +67,26 @@ pid-envs()
 
 function diffdays()
 {
-	# Show date difference between two days.
-	# Example:
-	#	$ diffdays 040130 040203
-	#	2004-01-30 -> 2004-02-03
-	#	Difference: 4 days
-	#
-	# Second parameter is optional, default to today.
+	comment="
+# Show date difference between two days.
+# Example:
+#	$ diffdays 040130 040203
+#	2004-01-30 -> 2004-02-03
+#	Difference: 4 days
+#
+# If a input is only four digits, it will be MMDD of this year.
+# Second parameter is optional, default to today.
+	"
 	
 	start_date=$1
 	end_date=$2
 	
 	if [ -z "$2" ]; then end_date=$(date +%Y-%m-%d); fi;
 
+	year=$(date +%Y)
+	if [ ${#start_date} -eq 4 ]; then start_date=$year$start_date; fi
+	if [ ${#end_date} -eq 4 ]; then end_date=$year$end_date; fi
+	
 	echo "$(date -d "$start_date" +%Y-%m-%d) -> $(date -d "$end_date" +%Y-%m-%d)"
 	
 	date_diff=$(( ($(date -d "$end_date" +%s) -$(date -d "$start_date" +%s)) / 86400 ))
