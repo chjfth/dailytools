@@ -1,0 +1,21 @@
+[DEFAULT]
+preserve_days = 30
+
+
+[test1]
+; If srcdir is a relative dir, it is relative to this ini file.
+srcdir = .idea
+
+; If dstdir is a relative dir, it is relative to the -d parameter from command-line.
+; If dstdir is a relative dir and -d is empty, it will be relative to current working dir.
+dstdir = I:\test\111
+
+; Only files matching these patterns(Python fnmatch) will be copied, patterns sep-by | .
+; If empty, all files will be matched( include=* ).
+include = *.txt|*.cpp|*.h|*pro*/*.xml
+
+
+[test2]
+srcdir = D:\gitw\pyutils\pyide-cfg\PyCharm2020.1
+dstdir = out222
+
