@@ -30,7 +30,7 @@ if not !errorlevel!==1 (
 	exit /b 0
 )
 
-call :EchoAndExec py.exe "D:\gitw\dailytools\pytools\dailycopy.py" -v "%batdir%\dailycopy.ini"
+call :EchoAndExec py.exe "D:\gitw\dailytools\pytools\dailycopy.py" -v "%batdir%\dailycopy.ini" %*
 
 if not !errorlevel!==0 (
 	call :Echos [ERROR] myexe execution fail.

@@ -16,11 +16,12 @@ if sys.version_info < (3, 8):
     exit(1)
 
 
-g_version = '20240401.3'
+g_version = '20240401.4'
 
 KEYNAME_SRCDIR = 'srcdir'
 KEYNAME_DSTDIR = 'dstdir'
-KEYNAME_INCLUDE_PTNS = 'include'
+KEYNAME_INCLUDE_FILENAME_PTNS = 'include_filename'
+KEYNAME_EXCLUDE_DIRNAME_PTNS = 'exclude_dirname'
 KEYNAME_PRESERVE_DAYS = 'preserve_days'
 KEYNAME_DATE_PLUS_SUBDIR = 'date_plus_subdir'
 
@@ -75,7 +76,8 @@ def delete_outdated_dirs(dstdir_base, preserve_days):
 
 
 
-def make_ignore(srcroot:str, dstroot:str, include_ptns:[str]):
+def make_ignore(srcroot:str, dstroot:str,
+                filename_include_ptns:[str], dirname_exclude_ptns:[str]):
 
 	# srcroot\* and dstroot\* will contain same dir-structure. For example:
 	# srcroot = d:\mysrc
@@ -95,19 +97,34 @@ def make_ignore(srcroot:str, dstroot:str, include_ptns:[str]):
 			srcpath = os.path.join(cur_srcdir, entry)
 			dstpath = os.path.join(cur_dstdir, entry)
 
-			# Check 'include=' fnmatch
-			inset_path = os.path.join(inset_dir, entry)
-			if include_ptns and not is_fnmatch_ptns(inset_path, include_ptns):
+			#
+			# Check fnmatch for this file-/dir- entry
+			#
+
+			is_file = os.path.isfile(srcpath)
+			is_dir = os.path.isdir(srcpath)
+
+			is_include = False # include this entry?
+
+			if is_file:
+				if is_fnmatch_ptns(entry, filename_include_ptns):
+					is_include = True
+
+			if is_dir:
+				if not is_fnmatch_ptns(entry, dirname_exclude_ptns):
+					is_include = True
+
+			if not is_include:
+				ignores.append(entry)
 				if g_verbose>=2:
 					print(f"{INDENT2}[ignored] {dstpath}")
-				ignores.append(entry)
 				continue
 
 			srctime = os.path.getmtime(srcpath)
 
 			# Note: Do NOT check a directory's modification-time(that's not reliable).
 			# If we see a dir, we always tell copytree() to recurse into it.
-			if os.path.isfile(dstpath):
+			if is_file and os.path.exists(dstpath):
 				dsttime = os.path.getmtime(dstpath)
 			else:
 				dsttime = 0
@@ -116,7 +133,7 @@ def make_ignore(srcroot:str, dstroot:str, include_ptns:[str]):
 				if g_verbose>=1:
 					print(f"{INDENT2}[existed] {dstpath}")
 				ignores.append(entry)
-			elif os.path.isfile(srcpath):
+			elif is_file:
 				print(f"{INDENT2}[copying] {dstpath}")
 
 		return ignores
@@ -143,14 +160,15 @@ def run_one_inisec(inisec, inifilepath, dstroot):
 	if is_date_plus_subdir:
 		dstdir_date = os.path.join(dstdir_date, os.path.basename(srcdir))
 
-	include = inisec.get(KEYNAME_INCLUDE_PTNS, '') # '*.txt|*.doc' etc
-	if include:
-		include_ptns = include.split('|')
-	else:
-		include_ptns = []
+	include = inisec.get(KEYNAME_INCLUDE_FILENAME_PTNS, '*') # '*.txt|*.doc' etc
+	include_filename_ptns = [item.strip() for item in include.split('|')]
+
+	exclude = inisec.get(KEYNAME_EXCLUDE_DIRNAME_PTNS, '')
+	exclude_dirname_ptns = [item.strip() for item in exclude.split('|')]
 
 	shutil.copytree(srcdir, dstdir_date,
-	                ignore=make_ignore(srcdir, dstdir_date, include_ptns),
+	                ignore=make_ignore(srcdir, dstdir_date,
+	                                   include_filename_ptns, exclude_dirname_ptns),
 	                dirs_exist_ok=True)
 
 	# Remove outdated copies from dstdir.

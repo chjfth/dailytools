@@ -24,9 +24,11 @@ srcdir = .idea
 ; If dstdir is a relative dir and -d option absent, it will be relative to current working dir.
 dstdir = d:\dstdata1
 
-; Only files matching these patterns(Python fnmatch) will be copied, patterns sep-by | .
-; If empty, all files will be matched( include=* ).
-include = *.txt|*.cpp|*.h|*pro*/*.xml
+; Only files matching filename_include patterns AND not-matching dirname_exclude patterns
+; will be copied, patterns separated by | . 
+include_filename = *.txt|*.cpp
+exclude_dirname = .svn
+
 
 
 [job2]
