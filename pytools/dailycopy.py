@@ -11,12 +11,13 @@ import getopt
 import configparser
 from fnmatch import fnmatch
 
-g_version = '20240401.2'
+g_version = '20240401.3'
 
 KEYNAME_SRCDIR = 'srcdir'
 KEYNAME_DSTDIR = 'dstdir'
 KEYNAME_INCLUDE_PTNS = 'include'
 KEYNAME_PRESERVE_DAYS = 'preserve_days'
+KEYNAME_DATE_PLUS_SUBDIR = 'date_plus_subdir'
 
 INDENT2 = "  "
 
@@ -71,6 +72,12 @@ def delete_outdated_dirs(dstdir_base, preserve_days):
 
 def make_ignore(srcroot:str, dstroot:str, include_ptns:[str]):
 
+	# srcroot\* and dstroot\* will contain same dir-structure. For example:
+	# srcroot = d:\mysrc
+	# dstroot = d:\mydst\20240401
+	#   or
+	# dstroot = d:\mydst\20240401\mysrc
+
 	def ignore_existed_by_time(cur_srcdir, entries):
 		assert(cur_srcdir.startswith(srcroot))
 		inset_dir = cur_srcdir[len(srcroot)+1:] # +1 is for "\"
@@ -123,6 +130,13 @@ def run_one_inisec(inisec, inifilepath, dstroot):
 	srcdir = os.path.join(inidir, srcdir0)
 	dstdir_base = os.path.join(dstroot, dstdir0)
 	dstdir_date = os.path.join(dstdir_base, get_dirnam_today())
+
+	print(f"{INDENT2}srcdir  = {srcdir}")
+	print(f"{INDENT2}dstdir* = {dstdir_date}")
+
+	is_date_plus_subdir = inisec.getboolean(KEYNAME_DATE_PLUS_SUBDIR, False)
+	if is_date_plus_subdir:
+		dstdir_date = os.path.join(dstdir_date, os.path.basename(srcdir))
 
 	include = inisec.get(KEYNAME_INCLUDE_PTNS, '') # '*.txt|*.doc' etc
 	if include:

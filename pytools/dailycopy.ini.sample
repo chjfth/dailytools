@@ -1,21 +1,35 @@
 [DEFAULT]
 preserve_days = 30
 
+; date_plus_subdir = yes
+; -- If yes, an extra subdir will be created in dstdir, so that we can consolidate 
+;    multiple jobs inside a single backup date.
+;
+; For example, job1's srcdir is D:\srcdata1, job2's srcdir is D:\srcdata2 ,
+;              job1's dstdir is D:\dstdata1, job2's dstdir is D:\dstdata2 ,
+; with date_plus_subdir=no, we will get output:
+;	D:\dstdata1\20240401\*
+;	D:\dstdata2\20240401\*
+;
+; with date_plus_subdir=yes, and dstdir both be D:\dstdata , we will get output:
+;	D:\dstdata\20240401\srcdata1\*
+;	D:\dstdata\20240401\srcdata2\*
 
-[test1]
+
+[job1]
 ; If srcdir is a relative dir, it is relative to this ini file.
 srcdir = .idea
 
 ; If dstdir is a relative dir, it is relative to the -d parameter from command-line.
-; If dstdir is a relative dir and -d is empty, it will be relative to current working dir.
-dstdir = I:\test\111
+; If dstdir is a relative dir and -d option absent, it will be relative to current working dir.
+dstdir = d:\dstdata1
 
 ; Only files matching these patterns(Python fnmatch) will be copied, patterns sep-by | .
 ; If empty, all files will be matched( include=* ).
 include = *.txt|*.cpp|*.h|*pro*/*.xml
 
 
-[test2]
+[job2]
 srcdir = D:\gitw\pyutils\pyide-cfg\PyCharm2020.1
-dstdir = out222
+dstdir = dstdata2
 
