@@ -10,6 +10,25 @@ set batdir2=%batdir:\=\\%
 set _vspgINDENTS=%_vspgINDENTS%.
 call :Echos START from %batdir%
 
+call :Echos Now time %DATE% %TIME%
+echo.
+
+
+set timeoutsec=600
+
+REM User needs to answer 'y' to go on daily-copy/daily-backup.
+REM If timeout, it means user is not at the computer, and the backup will not be carried out.
+CHOICE /T %timeoutsec% /C yn /CS /D n /M "(Timeout %timeoutsec% seconds) Run dailycopy now? "
+
+if !errorlevel!==2 (
+	call :Echos User answers no. Task quit.
+	exit /b 0
+)
+
+if not !errorlevel!==1 (
+	call :Echos No user keyboard input. Task quit.
+	exit /b 0
+)
 
 call :EchoAndExec py.exe "D:\gitw\dailytools\pytools\dailycopy.py" -v "%batdir%\dailycopy.ini"
 
@@ -19,8 +38,6 @@ if not !errorlevel!==0 (
 )
 
 exit /b 0
-
-
 
 
 

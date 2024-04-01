@@ -11,7 +11,7 @@ import getopt
 import configparser
 from fnmatch import fnmatch
 
-g_version = '20240401.1'
+g_version = '20240401.2'
 
 KEYNAME_SRCDIR = 'srcdir'
 KEYNAME_DSTDIR = 'dstdir'
@@ -30,6 +30,9 @@ g_verbose = 0
 # ign_callback = shutil.ignore_patterns('*.bak', '.svn', '.git')
 
 DIRNAM_FMT_ONEDAY = '%Y%m%d.dailycopy'
+
+def getnowstr():
+	return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 def get_dirnam_today():
 	now = time.localtime()
@@ -108,9 +111,39 @@ def make_ignore(srcroot:str, dstroot:str, include_ptns:[str]):
 
 	return ignore_existed_by_time
 
+def run_one_inisec(inisec, inifilepath, dstroot):
+
+	inidir = os.path.split(inifilepath)[0]
+	try:
+		srcdir0 = inisec[KEYNAME_SRCDIR]
+		dstdir0 = inisec[KEYNAME_DSTDIR]
+	except KeyError as e:
+		raise ErrMsg(f'In "{inifilepath}", [{inisec.name}] lacks keyname: "{e.args[0]}"')
+
+	srcdir = os.path.join(inidir, srcdir0)
+	dstdir_base = os.path.join(dstroot, dstdir0)
+	dstdir_date = os.path.join(dstdir_base, get_dirnam_today())
+
+	include = inisec.get(KEYNAME_INCLUDE_PTNS, '') # '*.txt|*.doc' etc
+	if include:
+		include_ptns = include.split('|')
+	else:
+		include_ptns = []
+
+	shutil.copytree(srcdir, dstdir_date,
+	                ignore=make_ignore(srcdir, dstdir_date, include_ptns),
+	                dirs_exist_ok=True)
+
+	# Remove outdated copies from dstdir.
+	preserve_days = inisec.getint(KEYNAME_PRESERVE_DAYS, 30)
+	if preserve_days<=0:
+		raise ErrMsg(f'In "{inifilepath}", [{inisec.name}] has bad value {KEYNAME_PRESERVE_DAYS}={preserve_days} .')
+
+	delete_outdated_dirs(dstdir_base, preserve_days)
+
 
 def do_work(sys_argv):
-	optlist, inilist = getopt.getopt(sys_argv[1:], 'vd:')
+	optlist, arglist = getopt.getopt(sys_argv[1:], 'vd:')
 	optdict = dict(optlist)
 
 	global g_verbose
@@ -118,54 +151,34 @@ def do_work(sys_argv):
 
 	dstroot = optdict.setdefault('-d', '')
 
-	# Convert to abspaths
-	inilist = [os.path.abspath(ini) for ini in inilist]
+	inisec_count = 0
 
-	print(f"Loading configs from:")
-	for inifile in inilist:
-		print(f"   {inifile}")
+	# Get INI's abspaths
+	inilist = [os.path.abspath(ini) for ini in arglist]
 
-	iniobj = configparser.ConfigParser()
-
-	iniobj.read(inilist)
-	allsec = iniobj.sections()
-
-	for secname in allsec:
-		print("")
-		print(f"[{secname}] Processing...")
+	for inipath in inilist:
+		iniobj = configparser.ConfigParser()
 		try:
-			# 'srcdir=' and 'dstdir=' are required.
+			iniobj.read_file(open(inipath))
+		except FileNotFoundError as e:
+			raise ErrMsg(f'Cannot open INI file "{inipath}".')
 
-			srcdir = iniobj[secname][KEYNAME_SRCDIR]
+		allsec = iniobj.sections() # get all section names
 
-			# TODO: When srcdir is relative-dir, make it relative to INI file.
+		for secname in allsec:
+			print("")
+			uesec_start = time.time()
+			print(f"[{getnowstr()}] Start INI section #{inisec_count+1}")
+			print(f"[{secname}] from {inipath}")
 
-			dstdir0 = iniobj[secname][KEYNAME_DSTDIR]
-			dstdir_base = os.path.join(dstroot, dstdir0) # base does not contain YYYYMMDD
-			dstdir_date = os.path.join(dstdir_base, get_dirnam_today())
+			try:
+				run_one_inisec(iniobj[secname], inipath, dstroot)
+			finally:
+				uesec_end = time.time()
+				sec_used = uesec_end - uesec_start
+				print(f"[{getnowstr()}] End INI section #{inisec_count+1} ({sec_used:.3f} seconds)")
 
-			print(f"srcdir = {srcdir}")
-			print(f"dstdir = {dstdir_date}")
-
-		except KeyError as e:
-			raise ErrMsg(f'In INI file, [{secname}] lacks keyname: {e.args[0]}')
-
-		include = iniobj.get(secname, KEYNAME_INCLUDE_PTNS, fallback='') # '*.txt|*.doc' etc
-		if include:
-			include_ptns = include.split('|')
-		else:
-			include_ptns = []
-
-		shutil.copytree(srcdir, dstdir_date,
-		                ignore=make_ignore(srcdir, dstdir_date, include_ptns),
-		                dirs_exist_ok=True)
-
-		# Remove outdated copies from dstdir.
-		preserve_days = iniobj.getint(secname, KEYNAME_PRESERVE_DAYS, fallback=30)
-		if preserve_days<=0:
-			raise ErrMsg(f'In INI file, [{secname}] has bad value {KEYNAME_PRESERVE_DAYS}={preserve_days} .')
-		delete_outdated_dirs(dstdir_base, preserve_days)
-
+			inisec_count += 1
 	pass
 
 
