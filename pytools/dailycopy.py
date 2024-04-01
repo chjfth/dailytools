@@ -11,6 +11,11 @@ import getopt
 import configparser
 from fnmatch import fnmatch
 
+if sys.version_info < (3, 8):
+    print("Python version 3.8 or higher is required to run this program.")
+    exit(1)
+
+
 g_version = '20240401.3'
 
 KEYNAME_SRCDIR = 'srcdir'
