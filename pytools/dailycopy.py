@@ -16,7 +16,7 @@ if sys.version_info < (3, 8):
     exit(1)
 
 
-g_version = '20240401.4'
+g_version = '20240402.1'
 
 KEYNAME_SRCDIR = 'srcdir'
 KEYNAME_DSTDIR = 'dstdir'
@@ -85,10 +85,12 @@ def make_ignore(srcroot:str, dstroot:str,
 	#   or
 	# dstroot = d:\mydst\20240401\mysrc
 
-	def ignore_existed_by_time(cur_srcdir, entries):
+	def ignore_by_copytree(cur_srcdir, entries):
+		# This function is compatible with copytree()'s `ignore` callback
+
 		assert(cur_srcdir.startswith(srcroot))
-		inset_dir = cur_srcdir[len(srcroot)+1:] # +1 is for "\"
-		cur_dstdir = os.path.join(dstroot, inset_dir)
+		inset_dirs = cur_srcdir[len(srcroot)+1:] # +1 is for "\"
+		cur_dstdir = os.path.join(dstroot, inset_dirs)
 
 		ignores = []
 		for entry in entries:
@@ -138,7 +140,7 @@ def make_ignore(srcroot:str, dstroot:str,
 
 		return ignores
 
-	return ignore_existed_by_time
+	return ignore_by_copytree
 
 def run_one_inisec(inisec, inifilepath, dstroot):
 
@@ -166,10 +168,33 @@ def run_one_inisec(inisec, inifilepath, dstroot):
 	exclude = inisec.get(KEYNAME_EXCLUDE_DIRNAME_PTNS, '')
 	exclude_dirname_ptns = [item.strip() for item in exclude.split('|')]
 
-	shutil.copytree(srcdir, dstdir_date,
-	                ignore=make_ignore(srcdir, dstdir_date,
-	                                   include_filename_ptns, exclude_dirname_ptns),
-	                dirs_exist_ok=True)
+	# Now I wiill walk the source tree(srcdir) and copy the files.
+	# Note: I do not use shutil.copytree(), bcz it will create unnecessary
+	# empty directories inside dstdir.
+	# Using os.walk(), I can postpone os.makedirs() until a file gets
+	# actually copied.
+
+	fn_ignore = make_ignore(srcdir, dstdir_date,
+	                        include_filename_ptns, exclude_dirname_ptns)
+
+	for root, dirs, files in os.walk(srcdir):
+		ignores = fn_ignore(root, dirs+files)
+		pass
+		for ie in ignores:
+			if ie in dirs:
+				dirs.remove(ie)
+			if ie in files:
+				files.remove(ie)
+
+		inset_dirs = root[len(srcdir)+1:] # +1 for os.sep
+		cur_dstdir = os.path.join(dstdir_date, inset_dirs)
+
+		for file in files:
+			fpath_src = os.path.join(root, file)
+			fpath_dst = os.path.join(cur_dstdir, file)
+
+			os.makedirs(cur_dstdir, exist_ok=True)
+			shutil.copy2(fpath_src, fpath_dst)
 
 	# Remove outdated copies from dstdir.
 	preserve_days = inisec.getint(KEYNAME_PRESERVE_DAYS, 30)
