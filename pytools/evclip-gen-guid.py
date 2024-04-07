@@ -10,7 +10,7 @@ from enum import Enum
 
 import msvcrt
 
-version = '1.1'
+version = '1.2'
 
 hexdm = lambda bytes :  ''.join('{:02X}'.format(x) for x in bytes)
 
@@ -145,7 +145,7 @@ def do_work():
 			else:
 				print("Generate GUID for above %d evclips? [y/n] "%(count), end='', flush=True)
 				ans = msvcrt.getch()
-				print("")
+				print(chr(ord(ans)))
 				if ans in [b'y', b'Y']:
 					do_gen = True
 	else:
