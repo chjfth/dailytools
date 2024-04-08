@@ -58,11 +58,14 @@ def gen_uuid(dbfilepath, is_gen_now=False):
 	return count
 
 def print_help():
-	print("%s version %s"%(os.path.basename(__file__), version))
-	print("Need an Evernote .exb file as first param.")
-	print("  Check whether some evclip entry has missing GUID.")
-	print("Optional second param:")
-	print("  -s : Silent mode. Fill missing GUID(s) silently(will change .exb)")
+	name = os.path.basename(__file__)
+	print("%s version %s"%(name, version))
+	print("Need an Evernote .exb file as first parameter.")
+	print("  %s [options] [some-username.exb]"%(name))
+	print("")
+	print("Options:")
+	print("  (no option): Check/list evclips with missing GUID(s).")
+	print("  -s : Silent mode. Fill missing GUID(s) silently. (will change .exb)")
 	print("  -i : Interactive mode. Check first then ask for confirmation.")
 	print("")
 	print(
