@@ -1,4 +1,9 @@
-#include "stdafx.h"
+#include <assert.h>
+#include <stdio.h>
+#include <tchar.h>
+
+#include <windows.h>
+#include <winioctl.h>
 
 // https://msdn.microsoft.com/en-gb/library/windows/desktop/aa363147%28v=vs.85%29.aspx
 
@@ -154,4 +159,3 @@ int wmain(int argc, wchar_t *argv[])
 		return 0;
 	}
 }
-
