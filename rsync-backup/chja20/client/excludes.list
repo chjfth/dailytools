@@ -43,3 +43,7 @@ C_Junctions
 
 ; Do not backup temp VMs directory, like F:\_temp_vms
 _temp_vms
+
+; 2024-04-23, Skip those files/dirs known to have bad sectors.
+*BAD-SECTORS*
+
