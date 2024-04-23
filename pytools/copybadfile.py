@@ -5,7 +5,7 @@ import re, os, sys, traceback
 import time
 from collections import namedtuple
 
-version = '1.2'
+version = '1.3'
 
 LV0_BIG_CHUNK_SIZE = 1024*1024
 LV1_SMALL_CHUNK_SIZE = 4096
@@ -13,6 +13,7 @@ IS_FILLZERO = True
 FOUND_BADBLOCK_EXITCODE = 2
 
 is_truncate = False # initial value
+is_nulldst = False # If true, read bytes from source file and discard.
 
 BadRange = namedtuple('BadRange', 'start end_')
 
@@ -83,9 +84,10 @@ def in_CopyFile_FindBadRanges(Lv, start, end_,
 			got_error = True
 		
 		if not got_error:
-			# Big chunk read success, just copy to dst-file and we're done.
-			dstfh.seek(start)
-			dstfh.write(data) # would let write error(exception) propagate 
+			if not is_nulldst:
+				# Big chunk read success, just copy to dst-file and we're done.
+				dstfh.seek(start)
+				dstfh.write(data) # would let write error(exception) propagate 
 			return []
 		else:
 			# Big chunk read error. Will retry with smaller chunks below.
@@ -99,7 +101,7 @@ def in_CopyFile_FindBadRanges(Lv, start, end_,
 		# just stop here, no further splitting.
 		
 		# fill zeros to dstfh at those "bad" location, don't leave garbage there.
-		if IS_FILLZERO:
+		if (not is_nulldst) and IS_FILLZERO:
 			dstfh.seek(start)
 			dstfh.write(b'\x00'*nbytes)
 		
@@ -182,13 +184,17 @@ def do_main():
 		print(r"copybadfile.py M:\vms\win7.vmdk R:\vms\win7.vmdk 6021971968 -8192")
 		print(r"    Copy from offset 6021971968, until 8192 less of source file. No truncation.")
 		print(r"")
+		print(r"Special: If <dstfile> is \"-\", only read srcfile and no dstfile is created.")
 		
 		exit(1)
 
 	global is_truncate
+	global is_nulldst
 
 	srcfile = sys.argv[1]
 	dstfile = sys.argv[2]
+	if dstfile=='-':
+		is_nulldst = True
 	
 	if len(sys.argv)>3:
 		offset = eval( sys.argv[3] )
@@ -206,7 +212,7 @@ def do_main():
 	srcfilesize = os.path.getsize(srcfile)
 	
 	dstfilesize = 0
-	if os.path.exists(dstfile):
+	if (not is_nulldst) and os.path.exists(dstfile):
 		dstfilesize = os.path.getsize(dstfile)
 
 	if param4s[0:1] == "+":
@@ -239,10 +245,13 @@ def do_main():
 
 	srcfh = open(srcfile, "rb")
 
-	if os.path.exists(dstfile):
-		dstfh = open(dstfile, "rb+")
+	if is_nulldst:
+		dstfh = -1
 	else:
-		dstfh = open(dstfile, "wb")
+		if os.path.exists(dstfile):
+			dstfh = open(dstfile, "rb+")
+		else:
+			dstfh = open(dstfile, "wb")
 
 
 	badranges = CopyFile_FindBadRanges(srcfh, dstfh, offset, end_offset_)
@@ -274,13 +283,16 @@ def do_main():
 		print("Success. Total %d bytes copied."%(totbytes))
 	
 	if is_truncate:
-		dstfh.truncate(end_offset_)
+		if not is_nulldst:
+			dstfh.truncate(end_offset_)
 		
 		if end_offset_ < dstfilesize:
 			print("Dst-file truncated from %d to %d."%(dstfilesize, end_offset_))
 
 	srcfh.close()
-	dstfh.close()
+	
+	if not is_nulldst:
+		dstfh.close()
 	
 	return (0 if badbytes_total==0 else FOUND_BADBLOCK_EXITCODE)
 
