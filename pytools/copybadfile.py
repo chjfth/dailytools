@@ -184,7 +184,7 @@ def do_main():
 		print(r"copybadfile.py M:\vms\win7.vmdk R:\vms\win7.vmdk 6021971968 -8192")
 		print(r"    Copy from offset 6021971968, until 8192 less of source file. No truncation.")
 		print(r"")
-		print(r"Special: If <dstfile> is \"-\", only read srcfile and no dstfile is created.")
+		print(r'Special: If <dstfile> is "-", only read srcfile and no dstfile is created.')
 		
 		exit(1)
 
