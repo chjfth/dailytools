@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
 #coding: utf-8
 
+"""
+In Linux Bash prompt, to scan a folder for all corrupted vmdk files, we can:
+
+	find /mnt/m/_VMS_ -name '*.vmdk' -exec copybadfile.py {} - \; 2> >(tee badlist.txt)
+"""
+
+
 import re, os, sys, traceback
 import time
 from collections import namedtuple
 
-version = '1.3'
+version = '1.4'
 
 LV0_BIG_CHUNK_SIZE = 1024*1024
 LV1_SMALL_CHUNK_SIZE = 4096
@@ -17,6 +24,8 @@ is_nulldst = False # If true, read bytes from source file and discard.
 
 BadRange = namedtuple('BadRange', 'start end_')
 
+def printe(errmsg):
+	sys.stderr.write(errmsg+"\n")
 
 def MergeAdjacentRanges(ranges1, ranges2):
 	
@@ -241,6 +250,7 @@ def do_main():
 		sys.exit(1)
 
 	print_my_version()
+	print("Processing: %s"%(srcfile))
 	print("From offset %d to %d, total %d bytes."%(offset, end_offset_, totbytes))
 
 	srcfh = open(srcfile, "rb")
@@ -261,24 +271,26 @@ def do_main():
 	
 	if badrange_count>0:
 
-		print("!!!!!!!!!!!!!!!!!!!!!!!!")
+		printe("!!!!!!!!!!!!!!!!!!!!!!!!")
 
 		for i, br in enumerate(badranges):
 			
 			badbytes_c = br.end_-br.start
 			badbytes_total += badbytes_c
 			
-			print("[Bad#%d] offset: %d - %d (%d bytes)"%(i+1, br.start, br.end_, badbytes_c))
+			printe("[Bad#%d] offset: %d - %d (%d bytes)"%(i+1, br.start, br.end_, badbytes_c))
 
-		print("Source file total BAD range count: %d !"%(badrange_count))
+		printe("Source file total BAD range count: %d !"%(badrange_count))
 
-		print("!!!!!!!!!!!!!!!!!!!!!!!!")
+		printe("!!!!!!!!!!!!!!!!!!!!!!!!")
 		
 		pctbad = badbytes_total/totbytes*100
 		str_pctbad = "%.2f%%"%(pctbad) if pctbad>=0.01 else ">0.00%"
 		
-		print("BAD SECTORS DETECTED! For total %d bytes, %d bytes(4KB*%g) are NOT copied (%s)!"%(
+		printe("BAD SECTORS DETECTED! For total %d bytes, %d bytes(4KB*%g) are NOT copied (%s)!"%(
 			totbytes, badbytes_total, badbytes_total/4096, str_pctbad))
+		printe("BADFILE: %s"%(srcfile))
+		printe("")
 	else:
 		print("Success. Total %d bytes copied."%(totbytes))
 	
