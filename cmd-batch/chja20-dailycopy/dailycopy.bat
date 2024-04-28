@@ -60,7 +60,7 @@ set zipfilename=chjfth-evernote-exb-%yyyymmdd%.7z
 set zipoutdir=%dirOutRoot%\chja20-daily\%yyyymmdd%.dailycopy
 set exbinput=%zipoutdir%\chj-Evernote\Databases\chjfth.exb
 
-call :EchoAndExec "C:\program Files\7-Zip\7z.exe" a  "%zipoutdir%\%zipfilename%"  "%exbinput%"
+call :EchoAndExec "C:\program Files\7-Zip\7z.exe" a -mmt8  "%zipoutdir%\%zipfilename%"  "%exbinput%"
 if not !errorlevel!==0 (
 	call :Echos [ERROR] 7-zip command line execution fail.
     exit /b 4
