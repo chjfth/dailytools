@@ -16,7 +16,7 @@ if sys.version_info < (3, 8):
     exit(1)
 
 
-g_version = '20240402.1'
+g_version = '20240428.1'
 
 KEYNAME_SRCDIR = 'srcdir'
 KEYNAME_DSTDIR = 'dstdir'
@@ -136,7 +136,7 @@ def make_ignore(srcroot:str, dstroot:str,
 					print(f"{INDENT2}[existed] {dstpath}")
 				ignores.append(entry)
 			elif is_file:
-				print(f"{INDENT2}[copying] {dstpath}")
+				print(f"{INDENT2}[copy-to] {dstpath}")
 
 		return ignores
 
@@ -168,7 +168,7 @@ def run_one_inisec(inisec, inifilepath, dstroot):
 	exclude = inisec.get(KEYNAME_EXCLUDE_DIRNAME_PTNS, '')
 	exclude_dirname_ptns = [item.strip() for item in exclude.split('|')]
 
-	# Now I wiill walk the source tree(srcdir) and copy the files.
+	# Now I will walk the source tree(srcdir) and copy the files.
 	# Note: I do not use shutil.copytree(), bcz it will create unnecessary
 	# empty directories inside dstdir.
 	# Using os.walk(), I can postpone os.makedirs() until a file gets
@@ -258,6 +258,7 @@ def print_help():
 	print(f"{g_exename} -d E:\\backups dailycopy.ini")
 	print(f"    -d assigns the backup destination root dir. When a 'dstdir' in the INI is")
 	print(f"    a relative dir, it will be relative to E:\\backups .")
+	print(f"    But if the INI assigns an absolute dir, it cannot be overridden .")
 	print(f"")
 	print(f"{g_exename} -v dailycopy.ini")
 	print(f"    -v prints those existed files in dest-dir, implying no copy action required.")
