@@ -14,7 +14,7 @@ call :Echos Now time %DATE% %TIME%
 echo.
 
 
-set timeoutsec=600
+set timeoutsec=3600
 
 REM User needs to answer 'y' to go on daily-copy/daily-backup.
 REM If timeout, it means user is not at the computer, and the backup will not be carried out.
@@ -30,12 +30,51 @@ if not !errorlevel!==1 (
 	exit /b 0
 )
 
-call :EchoAndExec py.exe "D:\gitw\dailytools\pytools\dailycopy.py" -v "%batdir%\dailycopy.ini" %*
+set dirOutRoot=I:\auto-backups
+
+call :EchoAndExec py.exe "D:\gitw\dailytools\pytools\dailycopy.py" -v -d "%dirOutRoot%" "%batdir%\dailycopy.ini" %*
 
 if not !errorlevel!==0 (
 	call :Echos [ERROR] myexe execution fail.
     exit /b 4
 )
+
+
+REM
+REM Now zipping chjfth.exb .
+REM
+
+call :Echos 
+call :Echos Now zipping chjfth.exb ...
+
+rem First check that %DATE% is in YYYY-MM-DD format.
+
+if not "%DATE:~4,1%.%DATE:~7,1%" == "-.-" (
+	call :Echos [ERROR] You have to set Window's CRT locale to have env-var DATE in format YYYY-MM-DD .
+	exit /b 4
+)
+
+set yyyymmdd=%DATE:-=%
+set zipfilename=chjfth-evernote-exb-%yyyymmdd%.7z
+
+set zipoutdir=%dirOutRoot%\chja20-daily\%yyyymmdd%.dailycopy
+set exbinput=%zipoutdir%\chj-Evernote\Databases\chjfth.exb
+
+call :EchoAndExec "C:\program Files\7-Zip\7z.exe" a  "%zipoutdir%\%zipfilename%"  "%exbinput%"
+if not !errorlevel!==0 (
+	call :Echos [ERROR] 7-zip command line execution fail.
+    exit /b 4
+)
+
+call :Echos 
+call :Echos Removing the big chjfth.exb ...
+
+call :EchoAndExec rd /s /q "%zipoutdir%\chj-Evernote"
+if not !errorlevel!==0 (
+	call :Echos [ERROR] RD, removing dir, execution fail.
+    exit /b 4
+)
+
 
 exit /b 0
 
