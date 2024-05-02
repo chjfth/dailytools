@@ -16,7 +16,7 @@ if sys.version_info < (3, 8):
     exit(1)
 
 
-g_version = '20240428.1'
+g_version = '20240503.1'
 
 KEYNAME_SRCDIR = 'srcdir'
 KEYNAME_DSTDIR = 'dstdir'
@@ -154,6 +154,14 @@ def run_one_inisec(inisec, inifilepath, dstroot):
 	srcdir = os.path.join(inidir, srcdir0)
 	dstdir_base = os.path.join(dstroot, dstdir0)
 	dstdir_date = os.path.join(dstdir_base, get_dirnam_today())
+
+	# Note: os.walk() does NOT assert error when the input-dir does NOT exist,
+	# so we need to check its existence manually.
+	if not os.path.exists(srcdir):
+		raise ErrMsg(f'Source dir not exist: {srcdir}')
+
+	if not os.path.isdir(srcdir):
+		raise ErrMsg(f'Source dir is not a directory: {srcdir}')
 
 	print(f"{INDENT2}srcdir  = {srcdir}")
 	print(f"{INDENT2}dstdir* = {dstdir_date}")
