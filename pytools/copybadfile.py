@@ -63,8 +63,16 @@ def in_CopyFile_FindBadRanges(Lv, start, end_,
 	
 	(Lv2): This level processes a single small chunk.
 	
+	start0, end0_ :
+		This is the start/end_ range specified on user command-line.
+		These two values are mainly used to report copy-progress.
+		
+	start, end_ :
+		This is the range to copy of this invocation.
+	
 	Return: 
-		A list of BadRange tuples, telling the caller which file parts are bad/lost.
+		A list of BadRange tuples, telling the caller which file parts are bad/lost
+		within [start, end).
 	"""
 
 	if start==end_:
@@ -81,13 +89,16 @@ def in_CopyFile_FindBadRanges(Lv, start, end_,
 	elif Lv>=1:
 		chunk_size = Lv1_small_chunk
 
-	if Lv>0:
+	if Lv>0: # Process Lv1 & Lv2 first; Lv0 code later.
 
 		# For Lv1 & Lv2, try one-shot read/write of whole data from start to end_
 		got_error = False
 		try:
+			# Read a small chunk here.
 			srcfh.seek(start)
+
 			data = srcfh.read(nbytes) # May encounter file reading error, and we will catch it.
+
 		except OSError:
 			# catch file-reading error.
 			got_error = True
@@ -96,7 +107,9 @@ def in_CopyFile_FindBadRanges(Lv, start, end_,
 			if not is_nulldst:
 				# Big chunk read success, just copy to dst-file and we're done.
 				dstfh.seek(start)
+
 				dstfh.write(data) # would let write error(exception) propagate 
+
 			return []
 		else:
 			# Big chunk read error. Will retry with smaller chunks below.
@@ -109,7 +122,7 @@ def in_CopyFile_FindBadRanges(Lv, start, end_,
 		# This [start, end_) range falls within a single *small* chunk, 
 		# just stop here, no further splitting.
 		
-		# fill zeros to dstfh at those "bad" location, don't leave garbage there.
+		# fill zeros to dstfh at those "bad" location, don't leave garbage bytes in Dst-file.
 		if (not is_nulldst) and IS_FILLZERO:
 			dstfh.seek(start)
 			dstfh.write(b'\x00'*nbytes)
@@ -141,7 +154,7 @@ def in_CopyFile_FindBadRanges(Lv, start, end_,
 			
 			print("  \r", end='') # better have some spaces to overwrite same-line previous chars.
 		
-		### recurse call
+		### recurse call to re-try read disk with Lv1_small_chunk
 		brs = in_CopyFile_FindBadRanges(Lv+1, substart, subend_,
 			start0, end0_, srcfh, dstfh, Lv0_big_chunk, Lv1_small_chunk)
 		
