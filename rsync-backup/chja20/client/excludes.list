@@ -32,6 +32,12 @@ MapData/*
 
 ; 2023-03-08
 Google/Chrome/User Data/Default/Sessions
+;
+; 2024-05-21
+GoogleChromePortable64-109/Data/profile/Default/Sessions
+; rsync: [sender] send_files failed to open "portableapps/GoogleChromePortable64-109/Data/profile/Default/Sessions/Session_13360738863245102" (in myd): Permission denied (13)
+; rsync: [sender] send_files failed to open "portableapps/GoogleChromePortable64-109/Data/profile/Default/Sessions/Tabs_13360631969187827" (in myd): Permission denied (13)
+
 
 ; WSL1 running files cannot be accessed.
 WSL-Ubuntu-22.04/rootfs
