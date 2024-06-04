@@ -52,7 +52,7 @@ pid-args()
 		return 1
 	fi
 	
-	cat /proc/$1/cmdline | xargs -0 printf "%s\n"; echo
+	cat /proc/$1/cmdline | xargs -0 printf "%s\n"
 }
 
 pid-envs()
@@ -62,7 +62,7 @@ pid-envs()
 		return 1
 	fi
 	
-	cat /proc/$1/environ | xargs -0 printf "%s\n"; echo
+	cat /proc/$1/environ | xargs -0 printf "%s\n"
 }
 
 function diffdays()
