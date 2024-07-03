@@ -1,13 +1,10 @@
-# Provided by AI
-import sys
+# Guided by AI
+import os, sys
 import socket
 
-if len(sys.argv)==1:
-	listen_port = 7777 # default listen port
-else:
-	listen_port = int(sys.argv[1])
+prgname = os.path.basename(sys.argv[0])
 
-def start_echo_server(host='0.0.0.0', port=listen_port):
+def start_echo_server(host, port):
     # Create a TCP/IP socket
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
@@ -41,4 +38,12 @@ def start_echo_server(host='0.0.0.0', port=listen_port):
             print(f"Connection closed from {client_address}")
 
 if __name__ == "__main__":
-    start_echo_server()
+
+	nargs = len(sys.argv)
+	if nargs!=3:
+		print(f"TCP echo server. Usage:")
+		print(f"    {prgname} localhost 1234")
+		print(f"    {prgname} 0.0.0.0  12345")
+		sys.exit(1)
+	
+	start_echo_server(sys.argv[1], int(sys.argv[2]))

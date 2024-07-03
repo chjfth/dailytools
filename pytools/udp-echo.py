@@ -1,3 +1,4 @@
+# Guided by AI
 import os, sys
 import socket
 
@@ -12,7 +13,7 @@ def start_udp_echo_server(ip, port):
 	sock.bind(server_address)
 
 	while True:
-		print(f"\nWaiting to receive message on port {port}")
+		print(f"\nWaiting to receive UDP message on port {port}")
 		data, address = sock.recvfrom(4096)
 
 		print(f"Received {len(data)} bytes from {address}")
@@ -26,7 +27,7 @@ if __name__ == "__main__":
 	
 	nargs = len(sys.argv)
 	if nargs!=3:
-		print(f"Usage:")
+		print(f"UDP echo server. Usage:")
 		print(f"    {prgname} localhost 1234")
 		print(f"    {prgname} 0.0.0.0  12345")
 		sys.exit(1)
