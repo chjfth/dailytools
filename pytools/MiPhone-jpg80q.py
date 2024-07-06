@@ -11,6 +11,8 @@ from fnmatch import fnmatch
 from PIL import Image
 
 MARK_PANO = "_PANO"
+MARK_SNAP = "_SNAP"
+MARK_MVIMG = "_MVIMG" # sth like iPhone Live-photo
 
 pyfilename = os.path.split(sys.argv[0])[1]
 
@@ -61,14 +63,26 @@ def copy_screenshots(indir):
 
 def jpgfn_get_newname(jpgfn):
 
+	# If jpgfn should be copied to new-dir, return the new-name it should be.
+	# Otherwise, return None.
+
 	m = re.match(r"IMG_([0-9]{8}_[0-9]{6})(.+)\.jpg$", jpgfn)
 	if m:
 		timestp = m.group(1)
 		suffix = m.group(2)
-		if re.match(r"^_[0-9]+$", suffix):
+		Suffix = suffix.upper()
+		if Suffix==MARK_PANO:
+			return None
+		elif Suffix==MARK_SNAP:
+			return None
+		elif Suffix==MARK_MVIMG:
+			return None
+		elif re.match(r"^_[0-9]+$", suffix):
+			# IMG_20240705_080808_1.jpg, IMG_20240705_080808_2.jpg etc
 			# This is from burst-shot duplicates; discard it.
 			return None
-		elif suffix==MARK_PANO or suffix=="_pano":
+		elif re.match(r'_TIMEBURST([0-9]+)', Suffix):
+			# IMG_20240621_162431_TIMEBURST1.jpg, IMG_20240621_162431_TIMEBURST2.jpg etc
 			return None
 		else:
 			return jpgfn
@@ -78,16 +92,20 @@ def jpgfn_get_newname(jpgfn):
 def rename_panos(indir):
 	# For PANO_yyyymmdd_hhmmss...jpg, I will rename it to IMG_yyyymmdd_hhmmss_PANO...jpg
 	# so that when the filenames are sorted alphabetically, they natuarally appears timestamp sorted.
+	#
+	# [2024-07-06] Same process for MVIMG_yyyymmdd_hhmmss...jpg
 
 	files = os.listdir(indir)
 	for file in files:
-		m = re.match(r"PANO_([0-9]{8}_[0-9]{6})(.*)\.jpg$", file)
+		m = re.match(r"(PANO|MVIMG)_([0-9]{8}_[0-9]{6})(.*)\.jpg$", file)
+		#               prefix       timestp            suffix
 		if not m:
 			continue
 
-		timestp = m.group(1)
-		suffix = m.group(2)
-		newfile = "IMG_" + timestp + MARK_PANO + suffix + ".jpg"
+		prefix = m.group(1)
+		timestp = m.group(2)
+		suffix = m.group(3)
+		newfile = "IMG_" + timestp + "_" + prefix + suffix + ".jpg"
 
 		oldpath = os.path.join(indir, file)
 		newpath = os.path.join(indir, newfile)
