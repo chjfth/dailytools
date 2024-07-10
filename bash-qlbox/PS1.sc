@@ -49,7 +49,7 @@ _Ps1Jobs_not_working()
 
 _Ps1Jobs()
 {
-	# Call should pass in $1 for relaying purpose.
+	# Caller should pass in $1 for relaying purpose.
 	if [ "$(jobs -r)" != "" ]; then
 		# count `jobs -r` output lines, that is the running jobs count.
 		running_jobs="$(jobs -r | wc -l)"
@@ -70,8 +70,24 @@ _Ps1Jobs()
 	return $1
 }
 
+_Ps1HostExtra()
+{
+	# Usage: In user's ~/.bashrc , user can add 
+	#	QLBOX_PS1_HOST_EXTRA=$WSL_DISTRO_NAME
+	# so that, when the Bash is run from a WSL distro(WSL instance), 
+	# current WSL instance name is displayed on the prompt string.
+	# The helps user distinguish different WSL instances running on the same Windows host.
+	
+	if [ "$QLBOX_PS1_HOST_EXTRA" = "" ]; then
+		echo ""
+	else
+		echo " ("$QLBOX_PS1_HOST_EXTRA")"
+	fi
+	return 0
+}
+
 # _ClearMyErr(){ return 0; } # [2020-11-04]no-effect on clearing inherited error
-PS1_chj="\n[\[\033[1;37m\]\$(_Ps1ChjPrefix $PS1_DQ)\[\033[0m\]\[\033[32m\]`tty`($PS1_TERM) \D{%Y-%m-%d} \t \[\033[0;36m\]\$(_Ps1Jobs $PS1_DQ)\[\033[1;31m\]\$(_ShowOnErr1 $PS1_DQ)\[\033[0m\]\$(_ShowOnErr0 $PS1_DQ)]$PS1_err_bell\n[$PS1fmtuser @\h \[\033$PS1fmtcwd\w\033[0m\]]\n\[\033[1;37;44m\]$PS1char\[\033[0m\] "
+PS1_chj="\n[\[\033[1;37m\]\$(_Ps1ChjPrefix $PS1_DQ)\[\033[0m\]\[\033[32m\]`tty`($PS1_TERM) \D{%Y-%m-%d} \t \[\033[0;36m\]\$(_Ps1Jobs $PS1_DQ)\[\033[1;31m\]\$(_ShowOnErr1 $PS1_DQ)\[\033[0m\]\$(_ShowOnErr0 $PS1_DQ)]$PS1_err_bell\n[$PS1fmtuser @\h\$(_Ps1HostExtra) \[\033$PS1fmtcwd\w\033[0m\]]\n\[\033[1;37;44m\]$PS1char\[\033[0m\] "
 
 PS1=$PS1_chj
 
