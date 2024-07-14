@@ -4,6 +4,7 @@
 
 export CHJHOST=chja20
 export PYTHONPATH=~/gitw/pyutils/pycode
+export SHDIR=${0%/*}
 
 #datetime_pattern=YYYYMMDD
 datetime_pattern=$(echo $(date +%Y.%m.%d) | sed 's/.$/x/')
@@ -12,7 +13,7 @@ datetime_pattern=$(echo $(date +%Y.%m.%d) | sed 's/.$/x/')
 
 _irsync_="--datetime-pattern=${datetime_pattern} --max-retry=3 --old-days=90"
 
-_rsync_="--rsync --progress --exclude-from=excludes.list"
+_rsync_="--rsync --progress --exclude-from=${SHDIR}/excludes.list"
 
 _has_error=FALSE
 _err_list=()
