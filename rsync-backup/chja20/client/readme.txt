@@ -31,8 +31,9 @@ Win10.21H2 has fixed this problem.
 
 [2024-07-14]
 
-Client machine do: 
-* Open a CMD window, and `cd` into this directory.
-* Execute do-irsync-wsl.bat .
-* Then backup content will appear right inside this directory.
+Windows client machine do: 
+* Launch a WSL1 env, git checkout ~/gitw/dailytools and ~/gitw/pyutils .
+* Open a CMD window, and `cd` into your desired backup store dir, e.g. F:\bkchja20 .
+* Copy do-irsync-wsl.bat.sample to F:\bkchja20\do-irsync-wsl.bat .
+* Run do-irsync-wsl.bat , then backup content will appear right inside F:\bkchja20 .
 
