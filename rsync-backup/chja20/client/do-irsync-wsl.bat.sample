@@ -11,4 +11,4 @@ set batdir_fs=%batdir:\=/%
 pushd %batdir%
 
 @echo on
-wsl.exe './do-irsync.sh'
+wsl.exe  ~/gitw/dailytools/rsync-backup/chja20/client/do-irsync.sh
