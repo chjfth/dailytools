@@ -4,6 +4,7 @@ do-irsync-wsl.bat and do-irsync.sh are run from a rsync-client machine that will
 
 
 [2022-06-20]
+
 If using WSL1 to run irsync, I suggest open a WSL Linux Bash shell, then execute sth like:
 
 	[chj @Win10BlueSSD /mnt/f/backup-chja20]
@@ -17,6 +18,7 @@ success results in fake backup finishing. So it's a threat to backup integrity.
 
 So Avoid using Cygwin. Use WSL1 instead.
 
+
 [2022-07-01]
 
 Be aware, do NOT use old WSL1 from Win10.1709, which has bug. Win10.1709 would not respect 
@@ -25,3 +27,12 @@ hard-links, instead, it will do full copy of the "same" file, so that will be ve
 hogging if you do periodical backups.
 
 Win10.21H2 has fixed this problem.
+
+
+[2024-07-14]
+
+Client machine do: 
+* Open a CMD window, and `cd` into this directory.
+* Execute do-irsync-wsl.bat .
+* Then backup content will appear right inside this directory.
+
