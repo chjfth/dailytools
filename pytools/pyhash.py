@@ -32,6 +32,8 @@ usage="""Usage:
 
   pyhash sha1 <file>
 
+  pyhash sha224 <file>
+
   pyhash sha256 <file>
 """
 
