@@ -1,11 +1,14 @@
 #!/bin/bash
 
-# User can set IRSYNC_PARAMS and RSYNC_PARAMS to customize irsync's behavior.
+# User can set env-var IRSYNC_PARAMS and RSYNC_PARAMS to customize irsync's behavior.
+# datetime_pattern=YYYYMMDD_hhmmss
 
 export PYTHONPATH=/home/chj/gitw/pyutils/pycode
 export SHDIR=${0%/*}
 
-datetime_pattern=YYYYMMDD
+if [ -z "$datetime_pattern" ]; then
+	datetime_pattern=YYYYMMDD
+fi
 
 _irsync_="--datetime-pattern=${datetime_pattern} --max-retry=1 --old-days=90"
 
