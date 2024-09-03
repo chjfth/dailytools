@@ -1,0 +1,29 @@
+$RECYCLE.BIN
+pagefile.sys
+DeliveryOptimization
+System Volume Information
+WindowsApps
+WpSystem
+
+; portableapps/GoogleChrome-74/Data/profile/Default/Current Session" (in myd): Permission denied (13)
+*/Default/Current Session
+*/Default/Current Tabs
+
+*文件名太长，Everything搜不出*
+
+; 2023-03-08
+Google/Chrome/User Data/Default/Sessions
+;
+; 2023-07-14: There are quite some dirs in %AppData% that are 'Permission denied', such as:
+; C_Junctions/Users/chj/AppData/Local/Google/Chrome/User Data/Default/Network/Cookies
+C_Junctions
+
+; 2024-04-23, Skip those files/dirs known to have bad sectors.
+*BAD-SECTORS*
+
+; For ChjX570G
+
+; These get Permission denied (13)
+_langgenius/dify/docker/volumes/weaviate
+_langgenius/dify/docker/volumes/redis
+_langgenius/dify/docker/volumes/db/data/pgdata
