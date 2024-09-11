@@ -4,13 +4,13 @@ set batfilenam=%~nx0
 set batdir=%~dp0
 set batdir=%batdir:~0,-1%
 
-REM ===== user params here =====
+REM ===== user params to customize: =====
 set DIR_SUMMARY=d:\wizsummary
 set DIR_DOSCHED=
 set DRIVELETTER=C
 set TASKNAME=my WizTree-summary
 set WHEN_START=08:30
-REM ============================
+REM ===== customization done =====
 
 if not defined DIR_DOSCHED set DIR_DOSCHED=%batdir%\..\dosched
 
