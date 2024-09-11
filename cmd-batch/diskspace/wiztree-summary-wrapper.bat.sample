@@ -4,6 +4,9 @@ set batfilenam=%~nx0
 set batdir=%~dp0
 set batdir=%batdir:~0,-1%
 
+REM This .bat is NOT required if you have installed Git-for-Windows and WizTree
+REM both to their default locations.
+REM If not have customized their locations, your should use this sample .bat .
 
 REM ===== user params to customize: =====
 
