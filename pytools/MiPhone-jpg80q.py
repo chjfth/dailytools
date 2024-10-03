@@ -16,6 +16,15 @@ MARK_MVIMG = "_MVIMG" # sth like iPhone Live-photo
 
 pyfilename = os.path.split(sys.argv[0])[1]
 
+def match_startswith(prefix, array):
+	# for each ele in array, check whether ele startswith prefix.
+	# If yes, return the index; if none found in array, return -1
+	for idx, ele in enumerate(array):
+		if ele.startswith(prefix):
+			return idx
+	
+	return -1
+
 def copy_screenshots(indir):
 	# Copy $indir/Scrn/Screenshot_2023-01-04-18-18-35-559_someappname.jpg
 	# to
@@ -23,12 +32,14 @@ def copy_screenshots(indir):
 
 	indir_sub = os.path.join(indir, 'Scrn')
 	if os.path.isdir(indir_sub):
-		print("=== Scanning Screenshot_xxx.jpg in " + indir_sub + "...")
+		print("=== Scanning Screenshot_xxx.jpg in " + indir_sub + " ...")
 	else:
-		print("### No Screenshot dir: " + indir_sub)
+		print("### No Screenshot dir(so skip it): " + indir_sub)
 		return
 
 	scrjpgs = os.listdir(indir_sub)
+	converged_jpgs = os.listdir(indir)
+	converged_stems = [os.path.splitext(filename)[0] for filename in converged_jpgs]
 
 	for scrfn in scrjpgs:
 
@@ -46,16 +57,18 @@ def copy_screenshots(indir):
 		minute = m.group(5)
 		second = m.group(6)
 		millisec = m.group(7)
-		dstfn = f"IMG_{year}{month}{day}_{hour}{minute}{second}_{millisec}.jpg"
+		dstfn_stem = f"IMG_{year}{month}{day}_{hour}{minute}{second}_{millisec}"
+		dstfn = dstfn_stem + ".jpg" # example: "IMG_20240712_110504_047.jpg"
+
+		if match_startswith(dstfn_stem, converged_stems)>=0 :
+			# This jpg had been copied since previous run, do not copy again.
+			continue
 
 		sjpgpath = os.path.join(indir_sub, scrfn)
 		djpgpath = os.path.join(indir, dstfn)
 
 #		print("===", sjpgpath)
 #		print("   ", djpgpath)
-
-		if os.path.exists(djpgpath):
-			continue
 
 		print("Screenshot: %s"%(djpgpath))
 		shutil.copy(sjpgpath, djpgpath)
@@ -134,6 +147,8 @@ def do_main():
 		os.mkdir(outdir)
 
 	copy_screenshots(indir)
+
+	print("=== Scanning Camera jpg-s in " + indir + " ...")
 
 	rename_panos(indir)
 
