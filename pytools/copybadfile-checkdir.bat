@@ -49,7 +49,8 @@ for /R "%dircheck%" %%a in (*.*) do (
 	if not !errorlevel!==0 (
 		if !errorlevel!==74 (
 			set /A badfiles=badfiles+1
-			REM Continue next file
+			REM Continue next file.
+			call :Echos See bad file: %%a
 		) else (
 			exit /b 4
 		)
