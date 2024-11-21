@@ -12,12 +12,12 @@ import re, os, sys, traceback
 import time
 from collections import namedtuple
 
-version = '1.4'
+version = '1.5'
 
 LV0_BIG_CHUNK_SIZE = 1024*1024
 LV1_SMALL_CHUNK_SIZE = 4096
 IS_FILLZERO = True
-FOUND_BADBLOCK_EXITCODE = 2
+FOUND_BADBLOCK_EXITCODE = 74
 
 is_truncate = False # initial value
 is_nulldst = False # If true, read bytes from source file and discard.
