@@ -251,8 +251,8 @@ def do_main():
 		print("Parameter error: Source and destination is the same file."%(totbytes))
 		sys.exit(1)
 
-	if totbytes<=0:
-		print("Parameter error: Total bytes(%d) is not positive number."%(totbytes))
+	if totbytes<0:
+		print("Parameter error: Total bytes(%d) is negative number."%(totbytes))
 		sys.exit(1)
 
 	if offset > srcfilesize:
@@ -261,6 +261,15 @@ def do_main():
 	elif end_offset_ > srcfilesize:
 		print("Parameter error: end-offset_(%d) exceeds srcfile size(%d)."%(end_offset_, srcfilesize))
 		sys.exit(1)
+
+	if not os.path.isfile(srcfile):
+		print("Error: Input path is not a file: %s"%(srcfile))
+		sys.exit(1)
+
+	if os.path.isdir(dstfile):
+		print("Error: Output path is an existing directory: %s"%(dstfile))
+		sys.exit(1)
+
 
 	print_my_version()
 	print("Processing: %s"%(srcfile))
