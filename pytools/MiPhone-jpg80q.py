@@ -57,8 +57,8 @@ def copy_screenshots(indir):
 		minute = m.group(5)
 		second = m.group(6)
 		millisec = m.group(7)
-		dstfn_stem = f"IMG_{year}{month}{day}_{hour}{minute}{second}-{millisec}"
-		dstfn = dstfn_stem + "_scrn.jpg" # example: "IMG_20240712_110504_047_scrn.jpg"
+		dstfn_stem = f"IMG_{year}{month}{day}_{hour}{minute}{second}.{millisec}"
+		dstfn = dstfn_stem + "_scrn.jpg" # example: "IMG_20240712_110504.047_scrn.jpg"
 
 		if match_startswith(dstfn_stem, converged_stems)>=0 :
 			# This jpg had been copied since previous run, do not copy again.
@@ -80,6 +80,7 @@ def jpgfn_get_newname(jpgfn):
 	# Otherwise, return None.
 
 	m = re.match(r"IMG_([0-9]{8}_[0-9]{6})(.+)\.jpg$", jpgfn)
+	#                                     ^ suffix
 	if m:
 		timestp = m.group(1)
 		suffix = m.group(2)
@@ -94,9 +95,9 @@ def jpgfn_get_newname(jpgfn):
 			# IMG_20240705_080808_1.jpg, IMG_20240705_080808_2.jpg etc
 			# This is from burst-shot duplicates; discard it.
 			return None
-		elif re.match(r"^-[0-9]{3}_scrn$", suffix):
-			# IMG_20241009_083852-915_scrn etc
-			# This is un-renamed screenshot jpg (quality 100).
+		elif re.match(r"^\.[0-9]{3}_scrn$", suffix):
+			# IMG_20240712_110504.047_scrn.jpg etc
+			# This is un-renamed(meaning ungiven) screenshot jpg (quality 100).
 			return None
 		elif re.match(r'_TIMEBURST([0-9]+)', Suffix):
 			# IMG_20240621_162431_TIMEBURST1.jpg, IMG_20240621_162431_TIMEBURST2.jpg etc
