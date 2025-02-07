@@ -33,6 +33,7 @@ if not !errorlevel!==1 (
 set dirOutRoot=I:\auto-backups
 
 call :EchoAndExec py.exe "D:\gitw\dailytools\pytools\dailycopy.py" -v -d "%dirOutRoot%" "%batdir%\dailycopy.ini" %*
+REM -- dailycopy.ini tells preserve_days=60, so backups older than 60 days will be deleted by .py automatically.
 
 if not !errorlevel!==0 (
 	call :Echos [ERROR] myexe execution fail.
