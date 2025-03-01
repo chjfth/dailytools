@@ -4,3 +4,6 @@
 [submodule "__WinConst"]
 	path = __WinConst
 	url = ../WinConst
+[submodule "chjcxx"]
+	path = __chjcxx
+	url = ../chjcxx
