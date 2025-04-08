@@ -35,19 +35,53 @@
       <Configuration>Release ANSI</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
+    <!-- ARM64 -->
+    <ProjectConfiguration Include="Debug|ARM64">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug ANSI|ARM64">
+      <Configuration>Debug ANSI</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release ANSI|ARM64">
+      <Configuration>Release ANSI</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <!-- ARM64EC -->
+    <ProjectConfiguration Include="Debug|ARM64EC">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM64EC</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64EC">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64EC</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug ANSI|ARM64EC">
+      <Configuration>Debug ANSI</Configuration>
+      <Platform>ARM64EC</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release ANSI|ARM64EC">
+      <Configuration>Release ANSI</Configuration>
+      <Platform>ARM64EC</Platform>
+    </ProjectConfiguration>
   </ItemGroup>
 
   <!-- User project properties -->
   
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{20230704-0000-0000-0000-000452000001}</ProjectGuid>
+    <ProjectGuid>{20250408-0000-0000-0000-101040000001}</ProjectGuid>
     <ProjectName>timesub</ProjectName>
-     <TargetName>timesub</TargetName>
+     <TargetName>$(ProjectName>)</TargetName>
     <ConfigurationType>Application</ConfigurationType>
   </PropertyGroup>
   
   <!-- Microsoft.Cpp.Default.props 
-  	For Linux .vcxproj, this should be after above "global" Properties. -->
+  	This should be after above "Global" Properties. (At least Linux .vcxproj demands this.) -->
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
 
   <!-- Debug or Release -->
@@ -75,8 +109,8 @@
         "v120" on VC2013
         "v140" on VC2015
         "v141" on VC2017
-          "v142" on VC2019
-          "v143" on VC2022
+        "v142" on VC2019
+        "v143" on VC2022
       -->
     <PlatformToolset Condition="$(DefaultPlatformToolset)!=''">$(DefaultPlatformToolset)</PlatformToolset>
   </PropertyGroup>
@@ -115,7 +149,7 @@
 
       <PreprocessorDefinitions>;;WIN32;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
 
-      <AdditionalIncludeDirectories>.;../../__chjcxx/common-include/include;..\..\__WinConst;;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;..\..\__chjcxx\common-include\include;..\..\__WinConst;;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -143,7 +177,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress Condition="!$(Platform.StartsWith('ARM64'))">false</RandomizedBaseAddress>
     </Link>
   </ItemDefinitionGroup>
   <!-- 
@@ -169,8 +203,12 @@
     <ClCompile Include="..\..\__WinConst\itc\InterpretConst.cpp" />
     <ClCompile Include="..\..\__WinConst\mswin\WinError.itc.cpp" />
   </ItemGroup>
+
   <ItemGroup>
-    <ClInclude Include="..\..\__chjcxx\common-include\include\mswin\trueGetTickCount.h" />
+    <ClInclude Include="..\..\__WinConst\mswin\WinError.itc.h" />
+<!-- 
+    <ClInclude Include="..\..\__chjcxx\common-include\include\EnsureClnup_mswin.h" />
+-->
   </ItemGroup>
 
   <!-- MSBuild system stock Cpp.targets -->
@@ -180,7 +218,8 @@
 
   <!-- import VSPG start -->
   <PropertyGroup>
-    <VSPG_BootsDir_NoTBS>..\..\__VSPG\_VSPG\boots</VSPG_BootsDir_NoTBS>
+    <VSPG_BootsDir_NoTBS Condition="exists('..\..\__VSPG\_VSPG\boots\_VSPG.props')" >..\..\__VSPG\_VSPG\boots</VSPG_BootsDir_NoTBS>
+    <VSPG_BootsDir_NoTBS Condition="exists('$(SolutionDir)_VSPG\boots\_VSPG.props')">$(SolutionDir)_VSPG\boots</VSPG_BootsDir_NoTBS>
   </PropertyGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(VSPG_BootsDir_NoTBS)\_VSPG.props" Condition="exists('$(VSPG_BootsDir_NoTBS)\_VSPG.props')"/>
