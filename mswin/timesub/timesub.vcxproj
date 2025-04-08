@@ -115,7 +115,7 @@
 
       <PreprocessorDefinitions>;;WIN32;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
 
-      <AdditionalIncludeDirectories>.;;$(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;../../__chjcxx/common-include/include;..\..\__WinConst;;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -166,6 +166,11 @@
    -->
   <ItemGroup>
     <ClCompile Include="timesub.cpp" />
+    <ClCompile Include="..\..\__WinConst\itc\InterpretConst.cpp" />
+    <ClCompile Include="..\..\__WinConst\mswin\WinError.itc.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\__chjcxx\common-include\include\mswin\trueGetTickCount.h" />
   </ItemGroup>
 
   <!-- MSBuild system stock Cpp.targets -->
@@ -175,7 +180,7 @@
 
   <!-- import VSPG start -->
   <PropertyGroup>
-    <VSPG_BootsDir_NoTBS>$(SolutionDir)_VSPG\boots</VSPG_BootsDir_NoTBS>
+    <VSPG_BootsDir_NoTBS>..\..\__VSPG\_VSPG\boots</VSPG_BootsDir_NoTBS>
   </PropertyGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(VSPG_BootsDir_NoTBS)\_VSPG.props" Condition="exists('$(VSPG_BootsDir_NoTBS)\_VSPG.props')"/>

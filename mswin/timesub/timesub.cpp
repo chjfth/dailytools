@@ -11,7 +11,10 @@ Yes, it is like the Unix/Linux `time` program.
 #include <tchar.h>
 #include <locale.h>
 
-const TCHAR *version = _T("1.0");
+#include <mswin/trueGetTickCount.h>
+#include <mswin/WinError.itc.h>
+
+const TCHAR *version = _T("1.1");
 
 typedef DWORD WinErr_t;
 
@@ -54,8 +57,7 @@ HANDLE myRunSubprocess(const TCHAR *pszExepath, const TCHAR *iSubCmdline,
 		&procinfo);
 	if(!succ)
 	{
-		winerr = GetLastError();
-		_tprintf(_T("[timesub] CreateProcess() fail, WinErr=%d.\n"), winerr);
+		_tprintf(_T("[timesub] CreateProcess() fail, WinErr=%s.\n"), ITCS_WinError);
 		return NULL;
 	}
 
@@ -70,8 +72,7 @@ HANDLE myRunSubprocess(const TCHAR *pszExepath, const TCHAR *iSubCmdline,
 	BOOL waitre = WaitForSingleObject(procinfo.hProcess, INFINITE);
 	if(waitre!=WAIT_OBJECT_0)
 	{
-		winerr = GetLastError();
-		_tprintf(_T("[timesub] PANIC! WaitForSingleObject() on process-handle got WinErr=%d.\n"), winerr);
+		_tprintf(_T("[timesub] PANIC! WaitForSingleObject() on process-handle got WinErr=%s.\n"), ITCS_WinError);
 	}
 
 	return procinfo.hProcess;
@@ -160,6 +161,9 @@ int _tmain(int argc, TCHAR* argv[])
 		return 0x404;
 	}
 
+	DWORD msec_start = trueGetTickCount();
+	msec_start = trueGetTickCount(); // again to wipe off start jitter, maybe
+
 	WinErr_t winerr = 0;
 	HANDLE hProcess = myRunSubprocess(
 		exepath[0] ? exepath : NULL,
@@ -168,12 +172,14 @@ int _tmain(int argc, TCHAR* argv[])
 	if(!hProcess)
 		return 0x405;
 
+	DWORD msec_end = trueGetTickCount();
+
 	DWORD subproc_exitcode = -1;
 	BOOL succ = GetExitCodeProcess(hProcess, &subproc_exitcode);
 	if(!succ)
 	{
 		winerr = GetLastError();
-		_tprintf(_T("[timesub] PANIC! GetExitCodeProcess() got WinErr=%d.\n"), winerr);
+		_tprintf(_T("[timesub] PANIC! GetExitCodeProcess() got WinErr=%s.\n"), ITCS_WinError);
 		exit(4);
 	}
 
@@ -182,7 +188,7 @@ int _tmain(int argc, TCHAR* argv[])
 	if(!succ)
 	{
 		winerr = GetLastError();
-		_tprintf(_T("[timesub] PANIC! GetProcessTimes() got WinErr=%d.\n"), winerr);
+		_tprintf(_T("[timesub] PANIC! GetProcessTimes() got WinErr=%s.\n"), ITCS_WinError);
 		exit(4);
 	}
 
@@ -213,6 +219,14 @@ int _tmain(int argc, TCHAR* argv[])
 		);
 
 	_ftprintf_s(stderr, _T("\n%s\n"), report);
+
+	// [2025-04-08] If GetProcessTimes() reports a walltime less than 16ms,
+	// (could happen on a VMwks Win7 VM) hint user a more accurate time.
+	DWORD msec_used = msec_end-msec_start;
+	if(msec_used<16 && (int)msec_used<hns_ms(hnsTimespan))
+	{
+		_ftprintf_s(stderr, _T("[timesub] Note: Finer walltime used: %d ms\n"), msec_used);
+	}
 
 	// We follow sub-process's exit code.
 	return subproc_exitcode;
