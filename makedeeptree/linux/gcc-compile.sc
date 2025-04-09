@@ -1,0 +1,1 @@
+g++ -o makedeeptree.ex -I . ../makedeeptree.cpp psfuncs.cpp

@@ -2,13 +2,14 @@
 #include <windows.h>
 #include <strsafe.h>
 //#include <stdexcept>
-#include "psfuncs.h"
+#include "osheader.h"
+#include "..\psfuncs.h"
 
 #if _MSC_VER < 1900
 #error "This makedeeptree needs at least VC2015 to compile. Older compiler behaves abnormally on C++ exceptions."
 #endif
 
-#define snprintf StringCchPrintf 
+//#define snprintf StringCchPrintf // VC2015 already provides snprintf.
 
 unsigned int ps_GetMillisec()
 {
@@ -19,7 +20,7 @@ void ps_create_dir_if_not_exist(const char *dirpath)
 {
 	const char *thisfunc = "ps_create_dir_if_not_exist";
 
-	char errmsg[400] = {};
+	char errmsg[4000] = {};
 	DWORD winerr = 0;
 	DWORD attr = GetFileAttributes(dirpath);
 	if(attr!=INVALID_FILE_ATTRIBUTES)

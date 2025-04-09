@@ -204,7 +204,7 @@
     Source file list:
    -->
   <ItemGroup>
-    <ClCompile Include="makedeeptree.cpp" />
+    <ClCompile Include="..\makedeeptree.cpp" />
     <ClCompile Include="psfuncs.cpp" />
 <!--
     <ClCompile Include="..\..\__WinConst\itc\InterpretConst.cpp" />
@@ -213,7 +213,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ClInclude Include="psfuncs.h" />
+    <ClInclude Include="osheader.h" />
+    <ClInclude Include="..\psfuncs.h" />
 <!-- 
     <ClInclude Include="..\..\__chjcxx\common-include\include\EnsureClnup_mswin.h" />
     <ClInclude Include="..\..\__WinConst\mswin\WinError.itc.h" />

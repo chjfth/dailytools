@@ -1,6 +1,8 @@
 #ifndef __psfuncs_h_
 #define __psfuncs_h_
 
+// Note: This header file is shared across Windows and Linux.
+
 #include <stdio.h>
 #include <string.h>
 
@@ -30,7 +32,17 @@ struct ErrMsg
 	}
 };
 
-#define PATH_SEP_CHAR "\\"
+
+#ifndef ARRAYSIZE
+extern"C++"
+template <typename TElement, int N>
+char(*
+	RtlpNumberOf(TElement(&rparam)[N])
+	)[N];
+
+#define ARRAYSIZE(arr)  ( sizeof(*RtlpNumberOf(arr)) )
+#endif
+
 
 unsigned int ps_GetMillisec();
 
