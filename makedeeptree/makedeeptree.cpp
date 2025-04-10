@@ -251,7 +251,7 @@ void print_help()
 "    makedeeptree d:\\mytree 3 2 1\n"
 "\n"
 "This will create 2 levels of subdirs inside d:\\mytree .\n"
-"Each dirnode will contain 3 sub-dirs and 4 filenodes.\n"
+"Each dirnode will contain 3 sub-dirs and 1 filenode.\n"
 "So the result will be:\n"
 "    d:\\mytree \n"
 "    d:\\mytree\\deep1a \n"
@@ -267,7 +267,7 @@ void print_help()
 "    d:\\mytree\\deep1c\\deep2b \n"
 "    d:\\mytree\\deep1c\\deep2c \n"
 ".\n"
-"Each above dirnode will have extra four files.\n"
+"Each above dirnode will have extra 1 file.\n"
 	;
 	printf("%s", helptext);
 
