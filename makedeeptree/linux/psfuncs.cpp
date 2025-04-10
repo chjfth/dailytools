@@ -68,11 +68,11 @@ void ps_create_dir_if_not_exist(const char *dirpath)
 	}
 }
 
-void ps_create_file_write_string(const char *filepath, const char *text)
+filehandle_t ps_create_new_file(const char *filepath)
 {
-	const char *thisfunc = "ps_create_file_write_string";
+	const char *thisfunc = "ps_create_new_file";
 	char errmsg[4000] = {};
-	
+
 	// First check if path exists and is a directory
 	struct stat info = {};
 	
@@ -81,8 +81,9 @@ void ps_create_file_write_string(const char *filepath, const char *text)
 		if (S_ISDIR(info.st_mode)) 
 		{
 			snprintf(errmsg, ARRAYSIZE(errmsg),
-				"Unexpect! There is a directory in the way that prevents us creating it as a file: %s",
-				filepath);
+				"Unexpect! There is a directory in the way that prevents us creating it as a file.\n"
+				"filepath: %s"
+				, filepath);
 			throw ErrMsg(thisfunc, errmsg);
 		}
 	}
@@ -92,38 +93,42 @@ void ps_create_file_write_string(const char *filepath, const char *text)
 	int fd = open(filepath, O_CREAT | O_WRONLY | O_TRUNC, 0644);
 	if (fd == -1) {
 		snprintf(errmsg, ARRAYSIZE(errmsg),
-			"[ERROR] Creating file via open(\"%s\") fails, errno=%d, %s",
+			"[ERROR] Creating new file via open(\"%s\") fails, errno=%d, %s",
 			filepath, errno, strerror(errno));
 		throw ErrMsg(thisfunc, errmsg);
 	}
+	
+	return (void*)(intptr_t)fd;
+}
 
-	// Get text length
-	size_t text_len = strlen(text);
-	ssize_t bytes_written = write(fd, text, text_len);
-
-	// Always close the file descriptor, even if write failed
-	int close_err = 0;
-	if (close(fd) == -1) {
-		close_err = errno;
-	}
-
-	// Check if all bytes were written
-	if (bytes_written != static_cast<ssize_t>(text_len)) {
+void ps_write_file(filehandle_t hfile, const void *pbytes, int nbytes)
+{
+	const char *thisfunc = "ps_write_file";
+	char errmsg[4000] = {};
+	
+	int fd = (intptr_t)hfile;
+	int nbWritten = write(fd, pbytes, nbytes);
+	if(nbWritten!=nbytes)
+	{
 		snprintf(errmsg, ARRAYSIZE(errmsg),
-			"[ERROR] Creating file success but writing file failed.\n"
-			"filepath: %s\n"
-			,filepath);
+			"[ERROR] write(fd=%d) fails, errno=%d, %s",
+			fd, errno, strerror(errno));
 		throw ErrMsg(thisfunc, errmsg);
 	}
+}
 
-	// Check for close errors
-	if (close_err != 0) {
-		snprintf(errmsg, ARRAYSIZE(errmsg),
-			"Unexpect! close() file failed.\n"
-			"filepath: %s\n"
-			,filepath);
-		throw ErrMsg(thisfunc, errmsg);
-	}
+void ps_close_file(filehandle_t hfile)
+{
+	close((intptr_t)hfile);
+}
+
+
+void ps_create_file_write_string(const char *filepath, const char *text)
+{
+	filehandle_t hfile = ps_create_new_file(filepath);
+	ps_write_file(hfile, text, (int)strlen(text));
+	ps_close_file(hfile);
+
 }
 
 

@@ -215,8 +215,9 @@
   <ItemGroup>
     <ClInclude Include="osheader.h" />
     <ClInclude Include="..\psfuncs.h" />
+    <ClInclude Include="..\..\__chjcxx\common-include\include\ChunkHelper.h" />
+    <ClInclude Include="..\..\__chjcxx\common-include\include\EnsureClnup.h" />
 <!-- 
-    <ClInclude Include="..\..\__chjcxx\common-include\include\EnsureClnup_mswin.h" />
     <ClInclude Include="..\..\__WinConst\mswin\WinError.itc.h" />
 -->
   </ItemGroup>

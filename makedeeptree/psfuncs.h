@@ -48,6 +48,13 @@ unsigned int ps_GetMillisec();
 
 void ps_create_dir_if_not_exist(const char *dirpath);
 
+
+typedef void* filehandle_t;
+
+filehandle_t ps_create_new_file(const char *filepath);
+void ps_write_file(filehandle_t hfile, const void *pbytes, int nbytes);
+void ps_close_file(filehandle_t hfile);
+
 void ps_create_file_write_string(const char *filepath, const char *text);
 
 

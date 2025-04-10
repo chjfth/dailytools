@@ -8,6 +8,12 @@
 #include "osheader.h"
 #include "psfuncs.h"
 
+#include "../__chjcxx/common-include/include/EnsureClnup.h"
+MakeDelega_CleanupPtr(Cec_filehandle, void, ps_close_file, filehandle_t)
+
+#include "../__chjcxx/common-include/include/ChunkHelper.h"
+
+
 #define TOOBIG (-1)
 
 #define MAX_NODES (2*1000*1000)
@@ -15,6 +21,8 @@
 #define FILENAME_MAXLEN 64
 
 #define STRLEN(s) ((int)strlen(s))
+
+static unsigned char g_wblock[128 * 1024];
 
 char *my_strrev(char *str)
 {
@@ -101,9 +109,56 @@ int generate_stemname(char *buf, int bufsize, int ndepth, int nfile)
 
 	my_strrev(tail);
 
-	snprintf(buf, bufsize, "deep%d%s", ndepth, tail);
+	const char *stemname_prefix = getenv("MAKEDEEPTREE_FILENAME_PREFIX");
+	if (!stemname_prefix)
+		stemname_prefix = "deep";
+
+	snprintf(buf, bufsize, "%s%d%s", stemname_prefix, ndepth, tail);
 	
 	return STRLEN(buf);
+}
+
+static void FillUshorts(void *buf, int bytes)
+{
+	static unsigned short now_short = 0;
+	int shorts = bytes / 2;
+	unsigned short *pShorts = (unsigned short*)buf;
+	int i;
+	for (i = 0; i < shorts; i++)
+	{
+		pShorts[i] = now_short++;
+	}
+}
+
+void create_filenode(const char *filepath, const char *default_text)
+{
+	int exfilelen = 0;
+
+	const char *pszfilelen = getenv("MAKEDEEPTREE_FILE_LENGTH");
+	if (pszfilelen)
+		exfilelen = atoi(pszfilelen);
+
+	if (exfilelen <= 0)
+	{
+		ps_create_file_write_string(filepath, default_text);
+	}
+	else
+	{
+		filehandle_t hfile = ps_create_new_file(filepath);
+		Cec_filehandle cec_hfile = hfile;
+
+		int chunksize = sizeof(g_wblock);
+		CChunkHelper chelp(exfilelen, chunksize);
+		
+		for(;;)
+		{
+			int bytesToWrite = chelp.next();
+			ps_write_file(hfile, g_wblock, bytesToWrite);
+			
+			if (chelp.drop(bytesToWrite) <= 0)
+				break;
+		}
+	}
 }
 
 void r_make_one_dirnode(WorkParam_st &workparam, const char *nowdir, int nowdepth,
@@ -136,8 +191,9 @@ void r_make_one_dirnode(WorkParam_st &workparam, const char *nowdir, int nowdept
 
 		// append extname:
 		snprintf(pfilename+stemlen, FILENAME_MAXLEN+1-stemlen, ".txt");
+		
 		// printf("File: %s\n", newpathbuf);
-		ps_create_file_write_string(newpathbuf, pfilename);
+		create_filenode(newpathbuf, pfilename);
 	}
 
 	if(nowdepth < workparam.ndepth)
@@ -243,7 +299,7 @@ void makedeeptree(const char *rootdir, int nsibling_dirs, int ndepth, int nsibli
 void print_help()
 {
 	const char *helptext =
-"makedeeptree v1.0\n"
+"makedeeptree v1.1\n"
 "Usage:\n"
 "    makedeeptree <rootdir> [dir_sibs] [deep] [file_sibs]\n"
 "Example (as default values):\n"
@@ -268,7 +324,11 @@ void print_help()
 "    d:\\mytree\\deep1c\\deep2c \n"
 ".\n"
 "Each above dirnode will have extra 1 file.\n"
-	;
+"\n"
+"Env-vars to tune program behavior:\n"
+"MAKEDEEPTREE_FILENAME_PREFIX=stemname\n"
+"MAKEDEEPTREE_FILE_LENGTH=8000\n"
+;
 	printf("%s", helptext);
 
 /* Python counting code, Geometric sum:
@@ -281,12 +341,13 @@ def dirnodes(nsibs, ndepth):
 
 int main(int argc, char* argv[])
 {
+	FillUshorts(g_wblock, sizeof(g_wblock));
+
 	int nsibling_dirs = 3;
 	int ndepth = 2;
 	int nsibling_files = 1;
 
-	if(argc<2)
-	{
+	if(argc<2) {
 		print_help();
 		exit(1);
 	}
