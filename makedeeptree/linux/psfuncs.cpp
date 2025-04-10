@@ -5,7 +5,7 @@
 #include <cstring>
 #include <stdexcept>
 
-#include "..\psfuncs.h"
+#include "../psfuncs.h"
 
 
 unsigned int ps_GetMillisec()

@@ -269,7 +269,7 @@ void print_help()
 ".\n"
 "Each above dirnode will have extra four files.\n"
 	;
-	printf(helptext);
+	printf("%s", helptext);
 
 /* Python counting code, Geometric sum:
 
