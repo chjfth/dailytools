@@ -148,7 +148,7 @@ void create_filenode(const char *filepath, const char *default_text)
 		Cec_filehandle cec_hfile = hfile;
 
 		int chunksize = sizeof(g_wblock);
-		CChunkHelper chelp(exfilelen, chunksize);
+		auto chelp = makeChunkHelper(exfilelen, chunksize);
 		
 		for(;;)
 		{
