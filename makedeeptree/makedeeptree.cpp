@@ -299,7 +299,7 @@ void makedeeptree(const char *rootdir, int nsibling_dirs, int ndepth, int nsibli
 void print_help()
 {
 	const char *helptext =
-"makedeeptree v1.1\n"
+"makedeeptree v1.2\n"
 "Usage:\n"
 "    makedeeptree <rootdir> [dir_sibs] [deep] [file_sibs]\n"
 "Example (as default values):\n"

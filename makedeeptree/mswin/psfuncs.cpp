@@ -74,7 +74,7 @@ filehandle_t ps_create_new_file(const char *filepath)
 	if (hfile == INVALID_HANDLE_VALUE)
 	{
 		snprintf(errmsg, ARRAYSIZE(errmsg),
-			"CreateFile() creating file fail with winerr=%s"
+			"CreateFile() creating file fail with winerr=%s\n"
 			"filepath: %s\n"
 			,
 			ITCS_WinError, filepath);
@@ -95,7 +95,7 @@ void ps_write_file(filehandle_t hfile, const void *pbytes, int nbytes)
 	if (!succ)
 	{
 		snprintf(errmsg, ARRAYSIZE(errmsg),
-			"[ERROR] WriteFile() fail with winerr=%s"
+			"[ERROR] WriteFile() fail with winerr=%s\n"
 			"file-handle: 0x%p\n"
 			,
 			ITCS_WinError, hfile);
