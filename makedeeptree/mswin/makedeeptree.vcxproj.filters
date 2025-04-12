@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\makedeeptree.cpp" />
+    <ClCompile Include="psfuncs.cpp" />
+    <ClCompile Include="..\..\__WinConst\itc\InterpretConst.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\__WinConst\mswin\WinError.itc.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="osheader.h" />
+    <ClInclude Include="..\psfuncs.h" />
+    <ClInclude Include="..\..\__chjcxx\common-include\include\ChunkHelper.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\__chjcxx\common-include\include\EnsureClnup.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\__WinConst\mswin\WinError.itc.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="utils">
+      <UniqueIdentifier>{3e65a12d-5f56-4e02-aeef-95ab4062167a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

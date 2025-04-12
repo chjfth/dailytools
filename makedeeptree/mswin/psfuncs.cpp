@@ -1,8 +1,10 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
-#include <strsafe.h>
 #include "osheader.h"
 #include "..\psfuncs.h"
+
+#include "..\..\__WinConst\mswin\WinError.itc.h"
+using namespace itc;
 
 #if _MSC_VER < 1900
 #error "This makedeeptree needs at least VC2015 to compile. Older compiler behaves abnormally on C++ exceptions."
@@ -20,7 +22,6 @@ void ps_create_dir_if_not_exist(const char *dirpath)
 	const char *thisfunc = "ps_create_dir_if_not_exist";
 
 	char errmsg[4000] = {};
-	DWORD winerr = 0;
 	DWORD attr = GetFileAttributes(dirpath);
 	if(attr!=INVALID_FILE_ATTRIBUTES)
 	{
@@ -41,9 +42,8 @@ void ps_create_dir_if_not_exist(const char *dirpath)
 	BOOL succ = CreateDirectory(dirpath, NULL);
 	if(!succ)
 	{
-		winerr = GetLastError();
 		snprintf(errmsg, ARRAYSIZE(errmsg), 
-			"CreateDirectory(\"%s\") fail with winerr=%d", dirpath, winerr);
+			"CreateDirectory(\"%s\") fail with winerr=%s", dirpath, ITCS_WinError);
 		throw ErrMsg(thisfunc, errmsg);
 	}
 
@@ -61,10 +61,7 @@ filehandle_t ps_create_new_file(const char *filepath)
 {
 	const char *thisfunc = "ps_create_new_file";
 
-	DWORD winerr = 0;
-	const int bufsize = 4000;
-	char szWinErr[bufsize] = {};
-	char errmsg[bufsize] = {};
+	char errmsg[4000] = {};
 
 	HANDLE hfile = CreateFile(filepath,
 		GENERIC_READ | GENERIC_WRITE,
@@ -76,18 +73,11 @@ filehandle_t ps_create_new_file(const char *filepath)
 
 	if (hfile == INVALID_HANDLE_VALUE)
 	{
-		winerr = GetLastError();
-
-		DWORD retchars = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, winerr,
-			0, // LANGID
-			szWinErr, bufsize,
-			NULL); // A trailing \r\n has been filled.
-
 		snprintf(errmsg, ARRAYSIZE(errmsg),
-			"CreateFile() creating file fail with winerr=%u: %s"
+			"CreateFile() creating file fail with winerr=%s"
 			"filepath: %s\n"
 			,
-			winerr, szWinErr, filepath);
+			ITCS_WinError, filepath);
 		throw ErrMsg(thisfunc, errmsg);
 	}
 
@@ -98,25 +88,17 @@ void ps_write_file(filehandle_t hfile, const void *pbytes, int nbytes)
 {
 	const char *thisfunc = "ps_write_file";
 
-	DWORD winerr = 0;
-	const int bufsize = 4000;
-	char szWinErr[bufsize] = {};
-	char errmsg[bufsize] = {};
+	char errmsg[4000] = {};
 
 	DWORD nbWritten = 0;
 	BOOL succ = WriteFile(hfile, pbytes, nbytes, &nbWritten, NULL);
 	if (!succ)
 	{
-		DWORD retchars = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, winerr,
-			0, // LANGID
-			szWinErr, bufsize,
-			NULL); // A trailing \r\n has been filled.
-
 		snprintf(errmsg, ARRAYSIZE(errmsg),
-			"[ERROR] WriteFile() fail with winerr=%u: %s"
+			"[ERROR] WriteFile() fail with winerr=%s"
 			"file-handle: 0x%p\n"
 			,
-			winerr, szWinErr, hfile);
+			ITCS_WinError, hfile);
 		throw ErrMsg(thisfunc, errmsg);
 	}
 }

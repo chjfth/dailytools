@@ -206,10 +206,8 @@
   <ItemGroup>
     <ClCompile Include="..\makedeeptree.cpp" />
     <ClCompile Include="psfuncs.cpp" />
-<!--
     <ClCompile Include="..\..\__WinConst\itc\InterpretConst.cpp" />
     <ClCompile Include="..\..\__WinConst\mswin\WinError.itc.cpp" />
--->
   </ItemGroup>
 
   <ItemGroup>
@@ -217,9 +215,7 @@
     <ClInclude Include="..\psfuncs.h" />
     <ClInclude Include="..\..\__chjcxx\common-include\include\ChunkHelper.h" />
     <ClInclude Include="..\..\__chjcxx\common-include\include\EnsureClnup.h" />
-<!-- 
     <ClInclude Include="..\..\__WinConst\mswin\WinError.itc.h" />
--->
   </ItemGroup>
 
   <!-- MSBuild system stock Cpp.targets -->
