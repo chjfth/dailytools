@@ -1,0 +1,28 @@
+#include "iversion.h"
+
+1 VERSIONINFO
+FileVersion    tEnumDisplayMonitors_VMAJOR, tEnumDisplayMonitors_VMINOR, tEnumDisplayMonitors_VPATCH, tEnumDisplayMonitors_VTAIL
+ProductVersion tEnumDisplayMonitors_VMAJOR, tEnumDisplayMonitors_VMINOR, tEnumDisplayMonitors_VPATCH, tEnumDisplayMonitors_VTAIL
+{
+    BLOCK "StringFileInfo"
+    {
+        BLOCK "040904E4"
+        //language ID = U.S. English, char set = Windows, Multilingual
+        {
+            VALUE "CompanyName", "Public Domain"
+            VALUE "ProductName",     tEnumDisplayMonitors_NAME
+            VALUE "FileDescription", tEnumDisplayMonitors_NAME
+            VALUE "FileVersion",    tEnumDisplayMonitors_VMAJORs "." tEnumDisplayMonitors_VMINORs "." tEnumDisplayMonitors_VPATCHs
+            VALUE "ProductVersion",    tEnumDisplayMonitors_VMAJORs "." tEnumDisplayMonitors_VMINORs "." tEnumDisplayMonitors_VPATCHs
+            VALUE "LegalCopyright",    "Public domain"
+            VALUE "OriginalFilename" , tEnumDisplayMonitors_NAME ".exe"
+            VALUE "InternalName", tEnumDisplayMonitors_NAME ".exe"
+            VALUE "Comments","Presented by public domain"
+        }
+    }
+
+    BLOCK "VarFileInfo"
+    {
+        VALUE "Translation", 0x0409, 1252
+    }
+}
