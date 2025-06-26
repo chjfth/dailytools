@@ -218,11 +218,13 @@ def do_main():
 		print("Usage:")
 		print("    %s <input-dir> <output-dir>"%(pyfilename))
 		print("")
-		print("Files with the following pattern, will be re-encoded to be 80% jpg quality.")
+		print("Files with the following pattern, will be re-encoded to be 80% jpg quality into output-dir.")
 		print("    IMG_20231107_184622 xxx.jpg")
 		print("    IMG_20231107_184622_xxx.jpg")
 		print("")
-		print("Files like IMG_20231107_184622.jpg will be left as is.")
+		print("Files like IMG_20231107_184622.jpg (MIUI default naming pattern) will be left as is.")
+		print("So, to pickout a JPG to preserve, add some suffix text to its filename, then run this py,")
+		print("then you harvest that slimmed JPG in output-dir.")
 		exit(1)
 
 	indir = sys.argv[1]
