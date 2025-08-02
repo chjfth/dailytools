@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""[2024-02-01]
+"""[2025-08-01]
 XiaoMi Phone M11U saves jpg with 96% quality, which causes the jpg files unnecessarily big.
 Re-encoding then to 80% quality will reduce the file size to be 25~30% of the original.
 """
@@ -130,6 +130,75 @@ def rename_panos(indir):
 		print("Renamed: " + newpath)
 		os.rename(oldpath, newpath)
 
+
+def mp4_get_newname(vidfn):
+
+	# If vidfn should be copied to new-dir, return the new-name it should be.
+	# Otherwise, return None.
+	# 
+	# Original mp4 filename my MiPhone is like: VID_20250704_160044.mp4
+	# If I want to keep it, I would have renamed it to be sth like: VID_20250704_160044_some-incident.mp4
+	#
+	# The new name would be IMG_20250704_160044_VIDEO_some-incident.mp4
+	# Purpose: For a single real-world event, I may take many photos and/or take a few videos, so making them 
+	# have the same 'IMG_20250704_160044' prefix will have the OS list them side-by-side(when list dir alphabetically).
+
+	m = re.match(r"VID_([0-9]{8}_[0-9]{6})(.+)\.mp4$", vidfn)
+	#                                     ^ suffix
+	if m:
+		timestp = m.group(1)
+		suffix = m.group(2)
+		return f"IMG_{timestp}_VIDEO{suffix}.mp4"
+	else:
+		return None
+
+def suggest_mp4_encoding_commands(indir, outdir):
+	
+	print("===Scanning mp4 files in " + indir + "...")
+	nkeep = 0
+	
+	for infile in os.listdir(indir):
+		mp4fn_new = mp4_get_newname(infile)
+		if not mp4fn_new:
+			continue
+		nkeep += 1
+	
+	if nkeep == 0:
+		print("No mp4 video files to keep.")
+		return
+
+	nkeep = 0
+	nskip = 0
+	npending = 0
+	
+	for infile in os.listdir(indir):
+		mp4fn_new = mp4_get_newname(infile)
+		if not mp4fn_new:
+			continue
+		
+		nkeep += 1
+		
+		mp4_oldname = infile
+		
+		mp4_oldpath = os.path.join(indir, mp4_oldname)
+		mp4_newpath = os.path.join(outdir, mp4fn_new)
+		mp4_newpath_no_extname = os.path.splitext(mp4_newpath)[0]
+		
+		if os.path.exists(mp4_newpath):
+			nskip += 1
+			continue
+		else:
+			npending += 1
+		
+		chjtrancode_cmd_prefix = os.getenv('chjtrancode_cmd_prefix', 
+			'c transcode_x264-no-audio-gain.py -o zzz.mp4 -b 900 -B 56')
+		
+		print(f"[Mp4 pending #{npending}] {mp4_oldname}")
+		print(f'  {chjtrancode_cmd_prefix} --done-rename="{mp4_newpath_no_extname}" "{mp4_oldpath}"')
+		print("")
+	
+	print(f"Mp4 files to keep {nkeep}, done {nskip}, pending {npending}.")
+
 def do_main():
 	if len(sys.argv)<3:
 		print("Usage:")
@@ -161,7 +230,10 @@ def do_main():
 	nencode = 0
 
 	for jpgfn in os.listdir(indir):
+		
 		jpgfn_new = jpgfn_get_newname(jpgfn)
+		# -- This would include screenshots and panos.
+		
 		if not jpgfn_new:
 			continue
 
@@ -195,7 +267,9 @@ def do_main():
 			newsize*100/oldsize
 		))
 
-	print("Done, skip %d + re-encode %d, total %d"%(nskip, nencode, nskip+nencode))
+	print("Camera jpgs done, skip %d + re-encode %d, total %d"%(nskip, nencode, nskip+nencode))
+	
+	suggest_mp4_encoding_commands(indir, outdir)
 
 if __name__=='__main__':
 	do_main()
