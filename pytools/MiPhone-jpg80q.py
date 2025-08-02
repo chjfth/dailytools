@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""[2025-08-01]
+"""[2025-08-02]
 XiaoMi Phone M11U saves jpg with 96% quality, which causes the jpg files unnecessarily big.
 Re-encoding then to 80% quality will reduce the file size to be 25~30% of the original.
 """
@@ -131,9 +131,10 @@ def rename_panos(indir):
 		os.rename(oldpath, newpath)
 
 
-def mp4_get_newname(vidfn):
+def mp4_get_newname(mp4fn):
 
-	# If vidfn should be copied to new-dir, return the new-name it should be.
+	# mp4fn is an mp4 video filename, no dir prefix.
+	# If mp4fn should be copied to new-dir, return the new-name it should be.
 	# Otherwise, return None.
 	# 
 	# Original mp4 filename my MiPhone is like: VID_20250704_160044.mp4
@@ -143,7 +144,7 @@ def mp4_get_newname(vidfn):
 	# Purpose: For a single real-world event, I may take many photos and/or take a few videos, so making them 
 	# have the same 'IMG_20250704_160044' prefix will have the OS list them side-by-side(when list dir alphabetically).
 
-	m = re.match(r"VID_([0-9]{8}_[0-9]{6})(.+)\.mp4$", vidfn)
+	m = re.match(r"VID_([0-9]{8}_[0-9]{6})(.+)\.mp4$", mp4fn)
 	#                                     ^ suffix
 	if m:
 		timestp = m.group(1)
@@ -154,7 +155,7 @@ def mp4_get_newname(vidfn):
 
 def suggest_mp4_encoding_commands(indir, outdir):
 	
-	print("===Scanning mp4 files in " + indir + "...")
+	print("===Scanning mp4 files in " + indir + " ...")
 	nkeep = 0
 	
 	for infile in os.listdir(indir):
