@@ -10,6 +10,9 @@ import re
 from fnmatch import fnmatch
 from PIL import Image
 
+date_as_ver = "20250814.1"
+
+CHJTRANSCODE_ENVVAR = 'chjtrancode_cmd_prefix'
 MARK_PANO = "_PANO"
 MARK_SNAP = "_SNAP"
 MARK_MVIMG = "_MVIMG" # sth like iPhone Live-photo
@@ -57,8 +60,8 @@ def copy_screenshots(indir):
 		minute = m.group(5)
 		second = m.group(6)
 		millisec = m.group(7)
-		dstfn_stem = f"IMG_{year}{month}{day}_{hour}{minute}{second}.{millisec}"
-		dstfn = dstfn_stem + "_scrn.jpg" # example: "IMG_20240712_110504.047_scrn.jpg"
+		dstfn_stem = f"{year}{month}{day}_{hour}{minute}{second}.{millisec}"
+		dstfn = dstfn_stem + "_scrn.jpg" # example: "20240712_110504.047_scrn.jpg"
 
 		if match_startswith(dstfn_stem, converged_stems)>=0 :
 			# This jpg had been copied since previous run, do not copy again.
@@ -103,7 +106,7 @@ def jpgfn_get_newname(jpgfn):
 			# IMG_20240621_162431_TIMEBURST1.jpg, IMG_20240621_162431_TIMEBURST2.jpg etc
 			return None
 		else:
-			return jpgfn
+			return f"{timestp}{suffix}.jpg"
 	else:
 		return None
 
@@ -123,7 +126,7 @@ def rename_panos(indir):
 		prefix = m.group(1)
 		timestp = m.group(2)
 		suffix = m.group(3)
-		newfile = "IMG_" + timestp + "_" + prefix + suffix + ".jpg"
+		newfile = timestp + "_" + prefix + suffix + ".jpg"
 
 		oldpath = os.path.join(indir, file)
 		newpath = os.path.join(indir, newfile)
@@ -140,16 +143,16 @@ def mp4_get_newname(mp4fn):
 	# Original mp4 filename my MiPhone is like: VID_20250704_160044.mp4
 	# If I want to keep it, I would have renamed it to be sth like: VID_20250704_160044_some-incident.mp4
 	#
-	# The new name would be IMG_20250704_160044_VIDEO_some-incident.mp4
+	# The new name would be 20250704_160044_VIDEO_some-incident.mp4
 	# Purpose: For a single real-world event, I may take many photos and/or take a few videos, so making them 
-	# have the same 'IMG_20250704_160044' prefix will have the OS list them side-by-side(when list dir alphabetically).
+	# have the same '20250704_160044' prefix will have the OS list them side-by-side(when list dir alphabetically).
 
 	m = re.match(r"VID_([0-9]{8}_[0-9]{6})(.+)\.mp4$", mp4fn)
 	#                                     ^ suffix
 	if m:
 		timestp = m.group(1)
 		suffix = m.group(2)
-		return f"IMG_{timestp}_VIDEO{suffix}.mp4"
+		return f"{timestp}_VIDEO{suffix}.mp4"
 	else:
 		return None
 
@@ -171,6 +174,7 @@ def suggest_mp4_encoding_commands(indir, outdir):
 	nkeep = 0
 	nskip = 0
 	npending = 0
+	chj_cmd_prefix_default = 'c transcode_x264-no-audio-gain.py -o zzz.mp4 -b 900 -B 56'
 	
 	for infile in os.listdir(indir):
 		mp4fn_new = mp4_get_newname(infile)
@@ -191,17 +195,21 @@ def suggest_mp4_encoding_commands(indir, outdir):
 		else:
 			npending += 1
 		
-		chjtrancode_cmd_prefix = os.getenv('chjtrancode_cmd_prefix', 
-			'c transcode_x264-no-audio-gain.py -o zzz.mp4 -b 900 -B 56')
+		
+		chjtrancode_cmd_prefix = os.getenv(CHJTRANSCODE_ENVVAR, chj_cmd_prefix_default)
 		
 		print(f"[Mp4 pending #{npending}] {mp4_oldname}")
 		print(f'  {chjtrancode_cmd_prefix} --done-rename="{mp4_newpath_no_extname}" "{mp4_oldpath}"')
 		print("")
 	
 	print(f"Mp4 files to keep {nkeep}, done {nskip}, pending {npending}.")
+	
+	if npending>0 and os.getenv(CHJTRANSCODE_ENVVAR)==None:
+		print(f"Hint: You can use envvar '{CHJTRANSCODE_ENVVAR}' to override default cmd prefix:\n    '{chj_cmd_prefix_default}'")
 
 def do_main():
 	if len(sys.argv)<3:
+		print("%s version %s"%(pyfilename, date_as_ver))
 		print("Usage:")
 		print("    %s <input-dir> <output-dir>"%(pyfilename))
 		print("")
