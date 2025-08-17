@@ -29,6 +29,9 @@ def do_main():
 	
 	for jpgfn in jpgfn_list:
 		
+		if not jpgfn.lower().endswith('.jpg'):
+			continue
+		
 		jpgfp = os.path.join(indir, jpgfn)
 		
 		print(f"{jpgfn} => {nowpage:03d}")
@@ -48,7 +51,7 @@ def do_main():
 		nowpage +=1
 
 	if nowpage != end_page+1:
-		print(f"Input page range does NOT match jpg files in {jpg_input_dir}.")
+		print(f"[ERROR] Input page range does NOT match jpg files in {indir}.")
 		exit(1)
 
 if __name__=='__main__':
