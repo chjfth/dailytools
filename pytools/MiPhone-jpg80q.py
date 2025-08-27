@@ -10,7 +10,7 @@ import re
 from fnmatch import fnmatch
 from PIL import Image
 
-date_as_ver = "20250814.1"
+date_as_ver = "20250827.1"
 
 CHJTRANSCODE_ENVVAR = 'chjtrancode_cmd_prefix'
 MARK_PANO = "_PANO"
@@ -225,6 +225,11 @@ def do_main():
 
 	if not os.path.isdir(indir):
 		print("Input dir not exist: %s"%(indir))
+		exit(1)
+
+	if os.path.abspath(indir) == os.path.abspath(outdir):
+		print("Error: <input-dir> and <output-dir> should not be the same.")
+		exit(1)
 
 	if not os.path.exists(outdir):
 		os.mkdir(outdir)
