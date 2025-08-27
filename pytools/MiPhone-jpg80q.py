@@ -10,7 +10,7 @@ import re
 from fnmatch import fnmatch
 from PIL import Image
 
-date_as_ver = "20250827.1"
+date_as_ver = "20250827.2"
 
 CHJTRANSCODE_ENVVAR = 'chjtrancode_cmd_prefix'
 MARK_PANO = "_PANO"
@@ -60,7 +60,7 @@ def copy_screenshots(indir):
 		minute = m.group(5)
 		second = m.group(6)
 		millisec = m.group(7)
-		dstfn_stem = f"{year}{month}{day}_{hour}{minute}{second}.{millisec}"
+		dstfn_stem = f"IMG_{year}{month}{day}_{hour}{minute}{second}.{millisec}"
 		dstfn = dstfn_stem + "_scrn.jpg" # example: "20240712_110504.047_scrn.jpg"
 
 		if match_startswith(dstfn_stem, converged_stems)>=0 :
@@ -236,7 +236,7 @@ def do_main():
 
 	copy_screenshots(indir)
 
-	print("=== Scanning Camera jpg-s in " + indir + " ...")
+	print("=== Scanning custom-naming images in " + indir + " ...")
 
 	rename_panos(indir)
 
