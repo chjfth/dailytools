@@ -10,9 +10,12 @@ import re
 from fnmatch import fnmatch
 from PIL import Image
 
-date_as_ver = "20250827.2"
+date_as_ver = "20250912.1"
 
 CHJTRANSCODE_ENVVAR = 'chjtrancode_cmd_prefix'
+
+TYPE_HINTS = "IMG|PANO|MVIMG|VID"
+
 MARK_PANO = "_PANO"
 MARK_SNAP = "_SNAP"
 MARK_MVIMG = "_MVIMG" # sth like iPhone Live-photo
@@ -31,7 +34,9 @@ def match_startswith(prefix, array):
 def copy_screenshots(indir):
 	# Copy $indir/Scrn/Screenshot_2023-01-04-18-18-35-559_someappname.jpg
 	# to
-	# $outdir/IMG_20230104_181835.559_scrn-someappname.jpg
+	# $indir/20230104_181835[scrn].jpg
+	#
+	# Limiation: If there are duplicates within one second, only one will be copied.
 
 	indir_sub = os.path.join(indir, 'Scrn')
 	if os.path.isdir(indir_sub):
@@ -60,8 +65,8 @@ def copy_screenshots(indir):
 		minute = m.group(5)
 		second = m.group(6)
 		millisec = m.group(7)
-		dstfn_stem = f"IMG_{year}{month}{day}_{hour}{minute}{second}.{millisec}"
-		dstfn = dstfn_stem + "_scrn.jpg" # example: "20240712_110504.047_scrn.jpg"
+		dstfn_stem = f"{year}{month}{day}_{hour}{minute}{second}[scrn]"
+		dstfn = dstfn_stem + ".jpg" # example: "20240712_110504[scrn].jpg"
 
 		if match_startswith(dstfn_stem, converged_stems)>=0 :
 			# This jpg had been copied since previous run, do not copy again.
@@ -82,11 +87,12 @@ def jpgfn_get_newname(jpgfn):
 	# If jpgfn should be copied to new-dir, return the new-name it should be.
 	# Otherwise, return None.
 
-	m = re.match(r"IMG_([0-9]{8}_[0-9]{6})(.+)\.jpg$", jpgfn)
-	#                                     ^ suffix
+	m = re.match(r"([0-9]{8}_[0-9]{6})\[(%s)\](.+)\.jpg$"%(TYPE_HINTS), jpgfn)
+	#                                         ^ suffix
 	if m:
 		timestp = m.group(1)
-		suffix = m.group(2)
+		typehint = m.group(2)
+		suffix = m.group(3)
 		Suffix = suffix.upper()
 		if Suffix==MARK_PANO:
 			return None
@@ -98,35 +104,32 @@ def jpgfn_get_newname(jpgfn):
 			# IMG_20240705_080808_1.jpg, IMG_20240705_080808_2.jpg etc
 			# This is from burst-shot duplicates; discard it.
 			return None
-		elif re.match(r"^\.[0-9]{3}_scrn$", suffix):
-			# IMG_20240712_110504.047_scrn.jpg etc
-			# This is un-renamed(meaning ungiven) screenshot jpg (quality 100).
-			return None
 		elif re.match(r'_TIMEBURST([0-9]+)', Suffix):
 			# IMG_20240621_162431_TIMEBURST1.jpg, IMG_20240621_162431_TIMEBURST2.jpg etc
 			return None
 		else:
-			return f"{timestp}{suffix}.jpg"
+			return f"{timestp}[{typehint}]{suffix}.jpg"
 	else:
 		return None
 
-def rename_panos(indir):
-	# For PANO_yyyymmdd_hhmmss...jpg, I will rename it to IMG_yyyymmdd_hhmmss_PANO...jpg
-	# so that when the filenames are sorted alphabetically, they natuarally appears timestamp sorted.
-	#
-	# [2024-07-06] Same process for MVIMG_yyyymmdd_hhmmss...jpg
+def rename_to_have_YYYMMDD_prefix(indir):
+	# For IMG_yyyymmdd_hhmmss...jpg, I will rename it to yyyymmdd_hhmmss[IMG]...jpg .
+	# For PANO_yyyymmdd_hhmmss...jpg, I will rename it to yyyymmdd_hhmmss[PANO]...jpg .
+	# etc
+	# so that when the filenames are sorted alphabetically, they naturally appears timestamp sorted.
 
 	files = os.listdir(indir)
 	for file in files:
-		m = re.match(r"(PANO|MVIMG)_([0-9]{8}_[0-9]{6})(.*)\.jpg$", file)
-		#               prefix       timestp            suffix
+		m = re.match(r"(%s)_([0-9]{8}_[0-9]{6})(.*)\.(jpg|mp4)$"%(TYPE_HINTS), file)
+		#               typehint               suffix
 		if not m:
 			continue
 
-		prefix = m.group(1)
+		typehint = m.group(1)
 		timestp = m.group(2)
 		suffix = m.group(3)
-		newfile = timestp + "_" + prefix + suffix + ".jpg"
+		extname = m.group(4)
+		newfile = f"{timestp}[{typehint}]{suffix}.{extname}"
 
 		oldpath = os.path.join(indir, file)
 		newpath = os.path.join(indir, newfile)
@@ -140,19 +143,22 @@ def mp4_get_newname(mp4fn):
 	# If mp4fn should be copied to new-dir, return the new-name it should be.
 	# Otherwise, return None.
 	# 
-	# Original mp4 filename my MiPhone is like: VID_20250704_160044.mp4
-	# If I want to keep it, I would have renamed it to be sth like: VID_20250704_160044_some-incident.mp4
+	# Input mp4 filename is like: 20250704_160044[VID].mp4
+	# If I want to keep it, I would have renamed it to be sth like: 
+	# 	20250704_160044[VID]_some-incident.mp4
+	# 	20250704_160044[VID] some-incident.mp4
 	#
 	# The new name would be 20250704_160044_VIDEO_some-incident.mp4
 	# Purpose: For a single real-world event, I may take many photos and/or take a few videos, so making them 
 	# have the same '20250704_160044' prefix will have the OS list them side-by-side(when list dir alphabetically).
 
-	m = re.match(r"VID_([0-9]{8}_[0-9]{6})(.+)\.mp4$", mp4fn)
+	m = re.match(r"([0-9]{8}_[0-9]{6})\[VID\](.+)\.mp4$", mp4fn)
 	#                                     ^ suffix
 	if m:
-		timestp = m.group(1)
-		suffix = m.group(2)
-		return f"{timestp}_VIDEO{suffix}.mp4"
+#		timestp = m.group(1)
+#		suffix = m.group(2)
+#		return f"{timestp}_VIDEO{suffix}.mp4"
+		return mp4fn
 	else:
 		return None
 
@@ -174,7 +180,7 @@ def suggest_mp4_encoding_commands(indir, outdir):
 	nkeep = 0
 	nskip = 0
 	npending = 0
-	chj_cmd_prefix_default = 'c transcode_x264-no-audio-gain.py -o zzz.mp4 -b 900 -B 56'
+	chj_cmd_prefix_default = 'c transcode_x265-no-audio-gain.py -o zzz.mp4 -b 700 -B 56'
 	
 	for infile in os.listdir(indir):
 		mp4fn_new = mp4_get_newname(infile)
@@ -194,7 +200,6 @@ def suggest_mp4_encoding_commands(indir, outdir):
 			continue
 		else:
 			npending += 1
-		
 		
 		chjtrancode_cmd_prefix = os.getenv(CHJTRANSCODE_ENVVAR, chj_cmd_prefix_default)
 		
@@ -238,7 +243,7 @@ def do_main():
 
 	print("=== Scanning custom-naming images in " + indir + " ...")
 
-	rename_panos(indir)
+	rename_to_have_YYYMMDD_prefix(indir)
 
 	nskip = 0
 	nencode = 0
