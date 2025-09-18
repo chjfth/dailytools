@@ -10,11 +10,11 @@ import re
 from fnmatch import fnmatch
 from PIL import Image
 
-date_as_ver = "20250912.1"
+date_as_ver = "20250918.1"
 
 CHJTRANSCODE_ENVVAR = 'chjtrancode_cmd_prefix'
 
-TYPE_HINTS = "IMG|PANO|MVIMG|VID"
+TYPE_HINTS = "IMG|PANO|MVIMG|VID|scrn"
 
 MARK_PANO = "_PANO"
 MARK_SNAP = "_SNAP"
