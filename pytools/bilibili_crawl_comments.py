@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #coding: utf-8
 
-# This program grabs user comments from a Bilibli video URL, and generate a local bilibili_comments.html .
+# This program grabs user comments from a Bilibili video URL, and generates a local bilibili.comments.html .
 #
 # [2026-08-20] Code with 90% help from Deepseek.
 
@@ -11,6 +11,8 @@ import json
 import time
 import re
 from urllib.parse import urlparse, parse_qs
+
+VER_STR = '20260821.4'
 
 # ---------- 配置区 ----------
 #VIDEO_URL = "https://www.bilibili.com/video/BV1KxgH6wEj3"  # 你要爬取的视频链接，
@@ -22,14 +24,46 @@ COOKIE_FILE = r"d:\temp\Bilibili_user_cookie.txt"
 # Sample user-login cookie. Will be re-read from file COOKIE_FILE.
 COOKIE = "buvid_fp_plain=undefined; DedeUserID=2003585538; DedeUserID__ckMd5=dccd1862e52c9353; theme-tip-show=SHOWED; theme-avatar-tip-show=SHOWED; buvid3=3D77940D-EA35-DE56-892B-490092C6ED9D70172infoc; b_nut=1762171069; _uuid=BF848CA10-A119-D183-C1BC-F8F4FF52CF3481963infoc; LIVE_BUVID=AUTO5017631207625464; bsource_origin=toutiao_bilibilih5; timeMachine=0; rpdid=|(JlRYJ)kuuk0J'u~YlkJJR)R; home_feed_column=4; theme-switch-show=SHOWED; CURRENT_BLACKGAP=0; hit-dyn-v2=1; share_source_origin=COPY; fingerprint=45d2b91a8df9d86b38991ca692200610; buvid_fp=45d2b91a8df9d86b38991ca692200610; historyviewmode=grid; buvid4=07332335-ECBC-C189-91C0-3EF2CF1B8D3E74199-026070520-HCn2sElLRz/dJ/cTKuwgsw%3D%3D; bsource=share_source_copy_link; PVID=1; bili_ticket=eyJhbGciOiJIUzI1NiIsImtpZCI6InMwMyIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODczMDgzMDksImlhdCI6MTc4NzA0OTA0OSwicGx0IjotMX0.OUpeH9LrVzMajRcjh6uNf97hQM3VaxqBkTbr4riaxWo; bili_ticket_expires=1787308249; SESSDATA=383ed8b6%2C1802680390%2C0f003%2A81CjAyCIo_0vg0xabXnrdCTVgqeb9JBH2a39QdJib_CS7tt1RBB_LBk03DyxjiI0AMmmYSVk9kTXAwQXdCRWJjWnJWNGN6VExPcGRiT0hZSnlEOTliOU94TzhMTXpkaDBIUEk1SVZTNUM2VG9GbzdmcHA3dF9jd2ZsRS1pa1Vpd3BRRzYxY0NSelRRIIEC; bili_jct=5aae5d8de89fc6c7b5f11d90ea8fe631; sid=5zury4ci; browser_resolution=1384-1623; CURRENT_QUALITY=80; bp_t_offset_2003585538=1238451882771349504; CURRENT_FNVAL=4048; b_lsid=FC553B2A_1A01E9E2EDE"  # 如果遇到风控，请填入你的B站登录Cookie（可选）
 
-OUTPUT_HTML = "bilibili_comments.html"  # 输出的HTML文件名
+OUTPUT_HTML = "bilibili.comments.html"  # 输出的HTML文件名
 
 SLEEP_SEC = 0.5
 
 MAX_DEPTH = 2  # 最大抓取深度（Lv1=1, Lv2=2, Lv3=3）// 实际上 Lv3 并不能工作，抓到的是跟 Lv2 相同的内容。
 # ---------------------------
 
-Lv1Seq = 0
+REQUEST_PER_BATCH = 100
+request_count = 0
+import random
+from datetime import datetime, timedelta, timezone
+
+def requests_get(url, **kwargs):
+	# Chj: This wrapper moderates HTTP requests sent to server, to avoid frequent-access banning.
+	global request_count
+
+	while True:
+		resp = requests.get(url, **kwargs)
+		
+		if resp.status_code == 412:
+			ban_delay_minutes = 10
+			future = datetime.now() + timedelta(minutes=ban_delay_minutes)
+			resume_on = future.strftime('%Y-%m-%d %H:%M:%S')
+			
+			print(f"Got Bilibili HTTP-412 banning, wait {ban_delay_minutes} minutes. Will Resume on {resume_on}.")
+			
+			time.sleep(60*ban_delay_minutes)
+
+		else:
+			request_count += 1
+
+			if request_count % REQUEST_PER_BATCH == 0:
+				delay_sec = 5 + random.randint(0, 10)
+				print(f"HTTP requests reaches {request_count}, delay some random {delay_sec} seconds...")
+				time.sleep(delay_sec)
+
+			break
+	
+	return resp
+
 
 def get_cid(bvid):
 	"""根据BV号获取视频的cid（评论需要用）"""
@@ -37,7 +71,7 @@ def get_cid(bvid):
 	headers = {"User-Agent": USER_AGENT}
 	if COOKIE:
 		headers["Cookie"] = COOKIE
-	resp = requests.get(url, headers=headers)
+	resp = requests_get(url, headers=headers)
 	data = resp.json()
 	if data["code"] != 0:
 		raise Exception(f"获取cid失败: {data['message']}")
@@ -49,7 +83,7 @@ def get_aid_and_cid(bvid):
 	headers = {"User-Agent": USER_AGENT}
 	if COOKIE:
 		headers["Cookie"] = COOKIE
-	resp = requests.get(url, headers=headers)
+	resp = requests_get(url, headers=headers)
 	data = resp.json()
 	if data["code"] != 0:
 		raise Exception(f"获取视频信息失败: {data['message']}")
@@ -91,7 +125,7 @@ def fetch_comments(oid, root_id=0, page=1):
 		"Sec-Fetch-Site": "same-site",
 	}
 	
-	resp = requests.get(url, params=params, headers=headers)
+	resp = requests_get(url, params=params, headers=headers)
 	if resp.status_code != 200:
 		print(f"HTTP错误: {resp.status_code}")
 		return [], False
@@ -247,7 +281,7 @@ def test_cookie_validity():
 	headers = {"User-Agent": USER_AGENT}
 	if COOKIE:
 		headers["Cookie"] = COOKIE
-	resp = requests.get(test_url, headers=headers)
+	resp = requests_get(test_url, headers=headers)
 	data = resp.json()
 	if data["code"] == 0:
 		print(f"✅ Cookie有效！当前登录用户：{data['data']['uname']}")
@@ -278,7 +312,7 @@ def debug_comment_api(cid):
 	
 	print(f"🛠️ 请求URL: {url}?{'&'.join([f'{k}={v}' for k,v in params.items()])}")
 	
-	resp = requests.get(url, params=params, headers=headers)
+	resp = requests_get(url, params=params, headers=headers)
 	data = resp.json()
 	
 	print(f"📦 响应状态码: {data['code']}")
@@ -327,7 +361,7 @@ def main():
 	if COOKIE:
 		headers["Cookie"] = COOKIE
 	view_url = f"https://api.bilibili.com/x/web-interface/view?bvid={bvid}"
-	title = requests.get(view_url, headers=headers).json()["data"]["title"]
+	title = requests_get(view_url, headers=headers).json()["data"]["title"]
 	print(f"📺 视频标题: {title}")
 
 	# 第一步：抓取所有Lv1评论
@@ -363,7 +397,7 @@ def main():
 		total_replies += len(lv1['children'])
 		time.sleep(SLEEP_SEC)
 	
-	print(f"\n✅ 共抓取 {total_replies} 条回复）")
+	print(f"\n✅ 共抓取 {total_replies} 条回复")
 	
 	# 第三步：生成HTML
 	print(f"\n📝 生成HTML...")
