@@ -333,7 +333,7 @@ def main():
 	print(f'Using URL: {VIDEO_URL}')
 	
 	global COOKIE
-	COOKIE = open(COOKIE_FILE).read()
+	COOKIE = open(COOKIE_FILE).read().strip()
 	
 	# 1. 从URL中提取BV号
 	bvid = None
