@@ -12,7 +12,7 @@ import time
 import re
 from urllib.parse import urlparse, parse_qs
 
-VER_STR = '20260821.4'
+VER_STR = '20260826.1'
 
 # ---------- 配置区 ----------
 #VIDEO_URL = "https://www.bilibili.com/video/BV1KxgH6wEj3"  # 你要爬取的视频链接，
@@ -288,6 +288,7 @@ def test_cookie_validity():
 		return True
 	else:
 		print(f"❌ Cookie无效或过期！错误码：{data['code']}，信息：{data['message']}")
+		print(f"本程序 cookie 原始文本存放于: {COOKIE_FILE}")
 		return False
 
 
@@ -346,7 +347,7 @@ def main():
 		raise ValueError("未从URL中提取到BV号，请检查输入")
 
 	if not test_cookie_validity():
-		print("请重新从浏览器复制最新的Cookie")
+		print("请重新从浏览器复制最新的Cookie塞入上述文件")
 		return
 
 	print(f"🔍 正在获取视频信息... BV号: {bvid}")
