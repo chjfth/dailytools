@@ -60,30 +60,32 @@ BOOL myGetDiskGeometry(int diskid, DISK_GEOMETRY *pdg, __int64 *pLBAs)
 	return (bResult);
 }
 
-double getfriendly(__int64 bytes, int radix_, TCHAR unit[1])
+double filesize_friendly_units(Uint64 bytes, int _radix, TCHAR unit[1])
 {
-	__int64 radix = radix_;
-	__int64 tbi = bytes/(radix*radix*radix*radix);
+	assert(_radix==1024 || _radix==1000);
+
+	Uint64 radix = _radix; // force it to be 64-bits
+	Uint64 tbi = bytes/(radix*radix*radix*radix);
 	if(tbi>=1) {
 		unit[0] = 'T';
-		return (double)bytes/(radix*radix*radix*radix);
+		return (double)bytes / (radix*radix*radix*radix);
 	}
 
-	__int64 gbi = bytes/(radix*radix*radix);
+	Uint64 gbi = bytes/(radix*radix*radix);
 	if(gbi>=1) {
 		unit[0] = 'G';
-		return (double)bytes/(radix*radix*radix);
+		return (double)bytes / (radix*radix*radix);
 	}
 
-	__int64 mbi = bytes/(radix*radix);
+	Uint64 mbi = bytes/(radix*radix);
 	if(mbi>=1) {
 		unit[0] = 'M';
-		return (double)bytes/(radix*radix);
+		return (double)bytes / (radix*radix);
 	}
 
 	__int64 kbi = bytes/(radix);
 	unit[0] = 'K';
-	return (double)bytes/(radix);
+	return (double)bytes / (radix);
 }
 
 const TCHAR *FriendlyDiskSize(__int64 lba, TCHAR *buf, int bufchars)
@@ -91,16 +93,16 @@ const TCHAR *FriendlyDiskSize(__int64 lba, TCHAR *buf, int bufchars)
 	__int64 bytes = lba*512;
 	
 	TCHAR unit_i = '\0', unit_o = '\0';
-	double XiB = getfriendly(bytes, 1024, &unit_i); // XiB implies TiB, GiB, MiB etc
-	double XoB = getfriendly(bytes, 1000, &unit_o);
-	unit_o -= 'A' - 'a'; // make it lower case
+	double XiB = filesize_friendly_units(bytes, 1024, &unit_i); // XiB implies TiB, GiB, MiB etc
+	double XoB = filesize_friendly_units(bytes, 1000, &unit_o);
+	unit_o -= 'A' - 'a'; // make it lower case (optional)
 
 	snTprintf(buf, bufchars-1, 
 		_T("%.3g %ciB or %.3g %cB"), 
 		XiB, unit_i, // %.3g %ciB
 		XoB, unit_o  // %.3g %cB
 		);
-		// Result is like: "61 GiB or 65.5 GoB"
+		// Result is like: "14.5 GiB or 15.6 gB"
 	return buf;
 }
 
@@ -114,7 +116,7 @@ int _tmain(int argc, TCHAR *argv[])
 	const int trymax = 100;
 	int unusual_sector_size = 0;
 
-	_tprintf(_T("get_harddisk_lba v1.3, compiled on %s\n"), _T(__DATE__));
+	_tprintf(_T("get_harddisk_lba v1.4, compiled on %s\n"), _T(__DATE__));
 	_tprintf(_T("Retrieving physical disk info (trymax %d)...\n\n"), trymax);
 
 	int i;
