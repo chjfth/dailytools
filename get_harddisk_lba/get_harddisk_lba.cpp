@@ -1,17 +1,18 @@
 #include <assert.h>
 #include <stdio.h>
 #include <tchar.h>
-
 #include <windows.h>
 #include <winioctl.h>
+
+#define CHHI_ALL_IMPL
+#include <snTprintf.h>
+#include <mswin/WinError.itc.h>
 
 // https://msdn.microsoft.com/en-gb/library/windows/desktop/aa363147%28v=vs.85%29.aspx
 
 
 /* The code of interest is in the subroutine GetDriveGeometry. The 
    code in main shows how to interpret the results of the call. */
-
-#define wszDriveFmt L"\\\\.\\PhysicalDrive%d"
 
 BOOL GetDriveGeometry(int diskid, DISK_GEOMETRY *pdg, __int64 *pLBAs)
 {
@@ -21,9 +22,9 @@ BOOL GetDriveGeometry(int diskid, DISK_GEOMETRY *pdg, __int64 *pLBAs)
 	BOOL bResult   = FALSE;                 // results flag
 	DWORD junk     = 0;                     // discard results
 
-	WCHAR szDiskDev[64];
-	wsprintfW(szDiskDev, wszDriveFmt, diskid);
-	hDevice = CreateFileW(szDiskDev,      // drive to open
+	TCHAR szDiskDev[64] = {};
+	snTprintf(szDiskDev, _T("\\\\.\\PhysicalDrive%d"), diskid);
+	hDevice = CreateFile(szDiskDev,      // drive to open
 						0,                // no access to the drive
 						FILE_SHARE_READ | // share mode
 						FILE_SHARE_WRITE, 
@@ -59,7 +60,7 @@ BOOL GetDriveGeometry(int diskid, DISK_GEOMETRY *pdg, __int64 *pLBAs)
 	return (bResult);
 }
 
-double getfriendly(__int64 bytes, int radix_, WCHAR unit[1])
+double getfriendly(__int64 bytes, int radix_, TCHAR unit[1])
 {
 	__int64 radix = radix_;
 	__int64 tbi = bytes/(radix*radix*radix*radix);
@@ -85,41 +86,60 @@ double getfriendly(__int64 bytes, int radix_, WCHAR unit[1])
 	return (double)bytes/(radix);
 }
 
-const WCHAR *FriendlyDiskSize(__int64 lba, WCHAR *buf, int bufchars)
+const TCHAR *FriendlyDiskSize(__int64 lba, TCHAR *buf, int bufchars)
 {
 	__int64 bytes = lba*512;
 	
-	WCHAR unit_i, unit_o;
+	TCHAR unit_i = '\0', unit_o = '\0';
 	double XiB = getfriendly(bytes, 1024, &unit_i); // XiB implies TiB, GiB, MiB etc
 	double XoB = getfriendly(bytes, 1000, &unit_o);
 	unit_o -= 'A' - 'a'; // make it lower case
 
-//	buf[bufchars-1] = L'\0';
-//	_snwprintf(buf, bufchars-1, L"%.3g %ciB or %.3g %cB", XiB, unit_i, XoB, unit_o);
-	//
-	_snwprintf_s(buf, bufchars-1, _TRUNCATE, L"%.3g %ciB or %.3g %cB", XiB, unit_i, XoB, unit_o);
+	snTprintf(buf, bufchars-1, 
+		_T("%.3g %ciB or %.3g %cB"), 
+		XiB, unit_i, // %.3g %ciB
+		XoB, unit_o  // %.3g %cB
+		);
 		// Result is like: "61 GiB or 65.5 GoB"
 	return buf;
 }
 
-int wmain(int argc, wchar_t *argv[])
+int _tmain(int argc, TCHAR *argv[])
 {
 	DISK_GEOMETRY pdg = { 0 }; // disk drive geometry structure
-	BOOL bResult = FALSE;      // generic results flag
+	BOOL bSucc = FALSE;      // generic results flag
 	ULONGLONG DiskSize = 0;    // size of the drive, in bytes
 	const int bufsize = 40;
-	WCHAR szfriendly[bufsize];
+	TCHAR szfriendly[bufsize];
 
-	wprintf(L"Retrieving physical disk info...\n\n");
+	_tprintf(_T("get_harddisk_lba v1.1, compiled on %s\n"), _T(__DATE__));
+	_tprintf(_T("Retrieving physical disk info...\n\n"));
 
 	int i;
 	for(i=0; i<1000; i++)
 	{
 		__int64 LBAs = 0, LBAs_fake = 0;
-		bResult = GetDriveGeometry(i, &pdg, &LBAs);
+		bSucc = GetDriveGeometry(i, &pdg, &LBAs);
 
-		if(!bResult) 
-			break;
+		if(!bSucc) 
+		{
+			DWORD winerr = GetLastError();
+			if(winerr==ERROR_FILE_NOT_FOUND)
+			{
+				// No more disk to enumerate.
+				break;
+			}
+
+			// Other error code is considered temporal, we should try next DiskId.
+			// For example, a USB SD card reader with no SD card injected, we get
+			// winerr=21(ERROR_NOT_READY)
+
+			_tprintf(_T("Disk %d: GetDriveGeometry() gets winerr=%s\n"), 
+				i,
+				ITCSvn(winerr, itc::WinError));
+
+			continue;
+		}
 		
 		__int64 c = pdg.Cylinders.QuadPart;
 		int h = pdg.TracksPerCylinder;
@@ -127,7 +147,7 @@ int wmain(int argc, wchar_t *argv[])
 		LBAs_fake = c * h * s;
 		DiskSize = LBAs*512;
 
-		wprintf(L"Disk %d: LBAs=%I64d (%s), %I64d cylinders + %d sectors.\n",
+		_tprintf(_T("Disk %d: LBAs=%I64d (%s), %I64d cylinders + %d sectors.\n"),
 			i,
 			LBAs, FriendlyDiskSize(LBAs, szfriendly, bufsize),
 			c, LBAs-LBAs_fake
@@ -150,12 +170,12 @@ int wmain(int argc, wchar_t *argv[])
 
 	if(i==0)
 	{
-		wprintf(L"Unexpected: No disk info is available!\n");
-		return 1;
+		_tprintf(_T("Unexpected: No disk info is available!\n"));
+		return 4;
 	}
 	else
 	{
-		wprintf(L"\nHint: 1GiB=1024*1024*1024 , 1gB=1000*1000*1000\n");
+		_tprintf(_T("\nHint: 1GiB=1024*1024*1024 , 1gB=1000*1000*1000\n"));
 		return 0;
 	}
 }
