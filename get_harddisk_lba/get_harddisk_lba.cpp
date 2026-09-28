@@ -14,7 +14,7 @@
 /* The code of interest is in the subroutine GetDriveGeometry. The 
    code in main shows how to interpret the results of the call. */
 
-BOOL GetDriveGeometry(int diskid, DISK_GEOMETRY *pdg, __int64 *pLBAs)
+BOOL myGetDiskGeometry(int diskid, DISK_GEOMETRY *pdg, __int64 *pLBAs)
 {
 	// diskid: 0, 1, 2 ...
 
@@ -54,7 +54,7 @@ BOOL GetDriveGeometry(int diskid, DISK_GEOMETRY *pdg, __int64 *pLBAs)
 		return FALSE;
 
 	assert(pdgex->DiskSize.QuadPart%512==0);
-	*pLBAs = pdgex->DiskSize.QuadPart / 512;
+	*pLBAs = pdgex->DiskSize.QuadPart / 512; // Each LBA is hardcoded as 512 bytes
 
 	*pdg = pdgex->Geometry;
 	return (bResult);
@@ -112,16 +112,16 @@ int _tmain(int argc, TCHAR *argv[])
 	const int bufsize = 40;
 	TCHAR szfriendly[bufsize];
 	const int trymax = 100;
+	int unusual_sector_size = 0;
 
-
-	_tprintf(_T("get_harddisk_lba v1.2, compiled on %s\n"), _T(__DATE__));
+	_tprintf(_T("get_harddisk_lba v1.3, compiled on %s\n"), _T(__DATE__));
 	_tprintf(_T("Retrieving physical disk info (trymax %d)...\n\n"), trymax);
 
 	int i;
 	for(i=0; i<trymax; i++)
 	{
 		__int64 LBAs = 0, LBAs_fake = 0;
-		bSucc = GetDriveGeometry(i, &pdg, &LBAs);
+		bSucc = myGetDiskGeometry(i, &pdg, &LBAs);
 
 		if(!bSucc) 
 		{
@@ -150,11 +150,31 @@ int _tmain(int argc, TCHAR *argv[])
 		LBAs_fake = c * h * s;
 		DiskSize = LBAs*512;
 
-		_tprintf(_T("Disk %d: LBAs=%I64d (%s), %I64d cylinders + %d sectors.\n"),
-			i,
-			LBAs, FriendlyDiskSize(LBAs, szfriendly, bufsize),
-			c, LBAs-LBAs_fake
-			);
+		if(pdg.BytesPerSector==512) // the normal case
+		{
+			_tprintf(_T("Disk %d: LBAs=%I64d (%s), %I64d cylinders + %d sectors.\n"),
+				i,
+				LBAs, FriendlyDiskSize(LBAs, szfriendly, bufsize), // LBAs=%I64d (%s)
+				c, int(LBAs - LBAs_fake)
+				);
+		}
+		else
+		{	
+			// Unusual case: Intel P3600 PCI-E SSD says pdg.BytesPerSector=4096 .
+			unusual_sector_size = pdg.BytesPerSector;
+
+			__int64 PhyzSectors = LBAs * 512 /pdg.BytesPerSector;
+			__int64 PhyzSectors_fake = c * h * s; 
+
+			_tprintf(_T("Disk %d: LBAs=%I64d (%s), %I64d cylinders + %d sectors. (per-sector bytes %d!)\n"),
+				i,
+				LBAs, FriendlyDiskSize(LBAs, szfriendly, bufsize), // LBAs=%I64d (%s)
+				c, // nominal cylinders
+				int(PhyzSectors - PhyzSectors_fake), 
+				pdg.BytesPerSector // (sector bytes %d!)
+				);
+			_tprintf(_T("")); // easy step-debug
+		}
 
 /*
 		wprintf(L"Drive path      = %ws\n",   wszDrive);
@@ -179,6 +199,11 @@ int _tmain(int argc, TCHAR *argv[])
 	else
 	{
 		_tprintf(_T("\nHint: 1GiB=1024*1024*1024 , 1gB=1000*1000*1000\n"));
+		if(unusual_sector_size>0)
+		{
+			_tprintf(_T("One LBA is always 512 bytes, even if we see some disk reports per-sector bytes=%d.\n"),
+				unusual_sector_size);
+		}
 		return 0;
 	}
 }
