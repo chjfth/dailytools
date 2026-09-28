@@ -174,6 +174,9 @@ int _tmain(int argc, TCHAR *argv[])
 				pdg.BytesPerSector // (sector bytes %d!)
 				);
 			_tprintf(_T("")); // easy step-debug
+
+			// Sample output:
+			// Disk 5: LBAs=3907029168 (1.82 TiB or 2 tB), 30400 cylinders + 2646 sectors. (per-sector bytes 4096!)
 		}
 
 /*
