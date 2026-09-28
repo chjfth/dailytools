@@ -111,12 +111,14 @@ int _tmain(int argc, TCHAR *argv[])
 	ULONGLONG DiskSize = 0;    // size of the drive, in bytes
 	const int bufsize = 40;
 	TCHAR szfriendly[bufsize];
+	const int trymax = 100;
 
-	_tprintf(_T("get_harddisk_lba v1.1, compiled on %s\n"), _T(__DATE__));
-	_tprintf(_T("Retrieving physical disk info...\n\n"));
+
+	_tprintf(_T("get_harddisk_lba v1.2, compiled on %s\n"), _T(__DATE__));
+	_tprintf(_T("Retrieving physical disk info (trymax %d)...\n\n"), trymax);
 
 	int i;
-	for(i=0; i<1000; i++)
+	for(i=0; i<trymax; i++)
 	{
 		__int64 LBAs = 0, LBAs_fake = 0;
 		bSucc = GetDriveGeometry(i, &pdg, &LBAs);
@@ -126,11 +128,12 @@ int _tmain(int argc, TCHAR *argv[])
 			DWORD winerr = GetLastError();
 			if(winerr==ERROR_FILE_NOT_FOUND)
 			{
-				// No more disk to enumerate.
-				break;
+				// This diskId is hollow, USB-disk unplugged for example.
+				// Mute on this case.
+				continue;
 			}
 
-			// Other error code is considered temporal, we should try next DiskId.
+			// Other error code is considered temporal failure, we should try next DiskId.
 			// For example, a USB SD card reader with no SD card injected, we get
 			// winerr=21(ERROR_NOT_READY)
 
