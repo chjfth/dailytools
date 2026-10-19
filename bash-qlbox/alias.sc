@@ -28,3 +28,4 @@ fi
 alias gsu='git status -uno'
 alias gpr='git pull --recurse-submodules'
 alias gsi='git submodule update --init'
+alias gbvv='git branch -vv'
