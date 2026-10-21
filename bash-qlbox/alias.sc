@@ -26,6 +26,7 @@ if [ "$(uname)" = "Darwin" ]; then
 fi
 
 alias gsu='git status -uno'
-alias gpr='git pull --recurse-submodules'
 alias gsi='git submodule update --init'
+alias gpr='git pull --recurse-submodules'
+alias gps='git pull && git submodule update'
 alias gbvv='git branch -vv'
