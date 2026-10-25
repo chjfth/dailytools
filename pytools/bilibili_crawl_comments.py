@@ -334,7 +334,12 @@ def main():
 	print(f'Using URL: {VIDEO_URL}')
 	
 	global COOKIE
-	COOKIE = open(COOKIE_FILE).read().strip()
+	
+	try:
+		COOKIE = open(COOKIE_FILE).read().strip()
+	except FileNotFoundError:
+		print(f"该程序需要 {COOKIE_FILE}, 请重新从浏览器复制最新的Cookie塞入上述文件")
+		exit(1)
 	
 	# 1. 从URL中提取BV号
 	bvid = None
